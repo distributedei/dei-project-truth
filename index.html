@@ -3,254 +3,490 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DEI Project Truth</title>
+  <title>DEI Project Truth | Distributed Energy Infrastructure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-  <!-- Microsoft Authentication Library (MSAL) -->
   <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
   <style>
+    :root {
+      --navy:     #0a1628;
+      --navy-mid: #0f2040;
+      --navy-lt:  #162d54;
+      --slate:    #1e3a5f;
+      --steel:    #2d5282;
+      --gold:     #c8a84b;
+      --gold-lt:  #e8c96b;
+      --white:    #f8f9fa;
+      --gray:     #8fa3bb;
+      --gray-lt:  #b8cce0;
+      --border:   rgba(255,255,255,0.08);
+      --green:    #2ecc8a;
+      --red:      #e05252;
+      --amber:    #e8a930;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse at 0% 0%, rgba(21,56,108,0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at 100% 100%, rgba(200,168,75,0.06) 0%, transparent 50%);
+    }
+
+    /* ── LAYOUT ── */
     .app { display: flex; min-height: 100vh; }
-    .sidebar { width: 240px; background: #141720; border-right: 1px solid #1e2535; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
-    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-    .topbar { background: #141720; border-bottom: 1px solid #1e2535; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-    .content { padding: 24px; flex: 1; }
-    .sidebar-logo { padding: 20px 16px 12px; border-bottom: 1px solid #1e2535; }
-    .logo-text { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
-    .logo-sub { font-size: 11px; color: #64748b; margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
-    .nav { padding: 8px; flex: 1; }
-    .nav-section { font-size: 10px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 1px; padding: 12px 8px 4px; }
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; color: #94a3b8; transition: all 0.15s; margin: 1px 0; }
-    .nav-item:hover { background: #1e2535; color: #e2e8f0; }
-    .nav-item.active { background: #1e3a5f; color: #60a5fa; font-weight: 500; }
-    .nav-badge { margin-left: auto; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
-    .nav-badge.warn { background: #d97706; }
-    .sidebar-footer { padding: 12px 16px; border-top: 1px solid #1e2535; font-size: 12px; color: #475569; }
-    .topbar-title { font-size: 16px; font-weight: 600; color: #e2e8f0; }
-    .topbar-actions { display: flex; align-items: center; gap: 12px; }
-    .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
-    .btn-primary { background: #1d4ed8; border-color: #3b82f6; color: #fff; }
-    .btn-primary:hover { background: #2563eb; }
-    .btn-ghost { background: transparent; border-color: #2d3748; color: #94a3b8; }
-    .btn-ghost:hover { background: #1e2535; color: #e2e8f0; }
-    .btn-success { background: #064e3b; border-color: #10b981; color: #34d399; }
-    .btn-danger { background: #7f1d1d; border-color: #dc2626; color: #fca5a5; }
-    .btn-sm { padding: 4px 10px; font-size: 12px; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .kpi-card { background: #141720; border: 1px solid #1e2535; border-radius: 10px; padding: 16px; }
-    .kpi-card.alert { border-color: #dc2626; }
-    .kpi-card.warn { border-color: #d97706; }
-    .kpi-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-    .kpi-value { font-size: 28px; font-weight: 700; color: #e2e8f0; }
-    .kpi-sub { font-size: 12px; margin-top: 4px; }
-    .kpi-sub.red { color: #f87171; }
-    .kpi-sub.green { color: #34d399; }
-    .kpi-sub.yellow { color: #fbbf24; }
-    .table-wrap { background: #141720; border: 1px solid #1e2535; border-radius: 10px; overflow: hidden; margin-bottom: 24px; }
-    .table-header { padding: 16px 20px; border-bottom: 1px solid #1e2535; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    .table-title { font-size: 15px; font-weight: 600; color: #e2e8f0; }
+    .sidebar {
+      width: 260px; background: rgba(10,22,40,0.95);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; }
+    .topbar {
+      background: rgba(10,22,40,0.9);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(12px);
+    }
+    .content { padding: 32px; flex: 1; }
+
+    /* ── SIDEBAR ── */
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo-wordmark {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; font-size: 20px;
+      letter-spacing: 0.5px;
+      color: var(--white);
+      line-height: 1.1;
+    }
+    .logo-wordmark span { color: var(--gold); }
+    .logo-tagline {
+      font-size: 10px; color: var(--gray);
+      text-transform: uppercase; letter-spacing: 2px;
+      margin-top: 4px;
+    }
+    .logo-divider {
+      height: 2px; background: linear-gradient(90deg, var(--gold), transparent);
+      margin-top: 12px; border-radius: 2px;
+    }
+
+    .nav { padding: 12px 10px; flex: 1; overflow-y: auto; }
+    .nav-section {
+      font-size: 10px; font-weight: 700; color: var(--gray);
+      text-transform: uppercase; letter-spacing: 2px;
+      padding: 16px 10px 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border-radius: 6px;
+      cursor: pointer; font-size: 14px; font-weight: 500;
+      color: var(--gray-lt); transition: all 0.2s;
+      margin: 2px 0; position: relative;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(200,168,75,0.15), rgba(21,56,108,0.3));
+      color: var(--gold-lt);
+      border-left: 2px solid var(--gold);
+      padding-left: 12px;
+    }
+    .nav-icon { width: 20px; text-align: center; font-size: 16px; }
+    .nav-badge {
+      margin-left: auto; background: var(--red);
+      color: #fff; font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 12px;
+    }
+    .nav-badge.warn { background: var(--amber); color: var(--navy); }
+
+    .sidebar-user {
+      padding: 16px 20px; border-top: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .user-name { font-weight: 600; color: var(--white); font-size: 13px; }
+    .user-org { color: var(--gray); font-size: 11px; margin-top: 2px; }
+    .signout-btn {
+      margin-top: 10px; width: 100%; background: transparent;
+      border: 1px solid var(--border); color: var(--gray);
+      padding: 6px; border-radius: 5px; cursor: pointer;
+      font-size: 12px; font-family: 'Barlow', sans-serif;
+      transition: all 0.2s;
+    }
+    .signout-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── TOPBAR ── */
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px; font-weight: 700;
+      color: var(--white); letter-spacing: 0.5px;
+    }
+    .topbar-breadcrumb { font-size: 12px; color: var(--gray); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .live-dot {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--green);
+    }
+    .live-dot::before {
+      content: ''; width: 7px; height: 7px;
+      background: var(--green); border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity:1; transform:scale(1); }
+      50% { opacity:0.5; transform:scale(1.3); }
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 7px 16px; border-radius: 5px; border: 1px solid;
+      cursor: pointer; font-size: 13px; font-weight: 600;
+      font-family: 'Barlow', sans-serif;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px;
+      letter-spacing: 0.3px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #1a4a8a, #0f2d5e);
+      border-color: var(--steel); color: var(--white);
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, #2258a0, #1a3d78); border-color: var(--gold); }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), #a8882e);
+      border-color: var(--gold); color: var(--navy);
+    }
+    .btn-gold:hover { background: linear-gradient(135deg, var(--gold-lt), var(--gold)); }
+    .btn-ghost { background: transparent; border-color: var(--border); color: var(--gray-lt); }
+    .btn-ghost:hover { border-color: var(--gray); color: var(--white); background: rgba(255,255,255,0.04); }
+    .btn-sm { padding: 5px 11px; font-size: 12px; }
+    .btn-danger { background: rgba(224,82,82,0.15); border-color: var(--red); color: var(--red); }
+
+    /* ── KPI CARDS ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .kpi-card {
+      background: linear-gradient(135deg, rgba(15,32,64,0.8), rgba(10,22,40,0.9));
+      border: 1px solid var(--border); border-radius: 10px; padding: 20px;
+      position: relative; overflow: hidden; transition: transform 0.2s, border-color 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); border-color: rgba(200,168,75,0.3); }
+    .kpi-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 2px; background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    .kpi-card.alert { border-color: rgba(224,82,82,0.4); }
+    .kpi-card.alert::before { background: linear-gradient(90deg, var(--red), transparent); }
+    .kpi-card.warn { border-color: rgba(232,169,48,0.4); }
+    .kpi-card.warn::before { background: linear-gradient(90deg, var(--amber), transparent); }
+    .kpi-card.good::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .kpi-label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
+    .kpi-value { font-family: 'Barlow Condensed', sans-serif; font-size: 36px; font-weight: 700; color: var(--white); line-height: 1; }
+    .kpi-sub { font-size: 12px; margin-top: 6px; color: var(--gray); }
+    .kpi-sub.red { color: var(--red); }
+    .kpi-sub.green { color: var(--green); }
+    .kpi-sub.amber { color: var(--amber); }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: linear-gradient(135deg, rgba(15,32,64,0.7), rgba(10,22,40,0.8));
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; margin-bottom: 24px;
+    }
+    .table-header {
+      padding: 18px 22px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+      background: rgba(10,22,40,0.4);
+    }
+    .table-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px; font-weight: 700; color: var(--white); letter-spacing: 0.3px;
+    }
     .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .filter-select { background: #1e2535; border: 1px solid #2d3748; color: #e2e8f0; padding: 6px 10px; border-radius: 6px; font-size: 13px; }
+    .filter-select {
+      background: rgba(15,32,64,0.8); border: 1px solid var(--border);
+      color: var(--gray-lt); padding: 6px 10px; border-radius: 5px;
+      font-size: 12px; font-family: 'Barlow', sans-serif;
+      cursor: pointer;
+    }
+    .filter-select:focus { outline: none; border-color: var(--gold); }
     table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; border-bottom: 1px solid #1e2535; background: #0f1117; }
-    td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #1a2030; vertical-align: middle; }
+    th {
+      text-align: left; padding: 11px 18px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--gray);
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,22,40,0.5);
+    }
+    td { padding: 13px 18px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #1a2030; }
-    .empty-state { text-align: center; padding: 60px 20px; color: #475569; }
-    .empty-icon { font-size: 40px; margin-bottom: 12px; }
-    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
-    .badge-draft { background: #1e2535; color: #94a3b8; }
-    .badge-submitted { background: #1e3a5f; color: #60a5fa; }
-    .badge-review { background: #2d1f5e; color: #a78bfa; }
-    .badge-approved { background: #064e3b; color: #34d399; }
-    .badge-rejected { background: #450a0a; color: #f87171; }
-    .badge-closed { background: #1f2937; color: #6b7280; }
-    .badge-returned { background: #431407; color: #fb923c; }
-    .bic { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-    .bic-eng { background: #1e3a5f; color: #60a5fa; }
-    .bic-con { background: #064e3b; color: #34d399; }
-    .bic-pm { background: #2d1f5e; color: #a78bfa; }
-    .bic-owner { background: #431407; color: #fb923c; }
-    .bic-vendor { background: #1f2937; color: #9ca3af; }
-    .bic-ahj { background: #713f12; color: #fbbf24; }
-    .aging-ok { color: #34d399; }
-    .aging-warn { color: #fbbf24; }
-    .aging-danger { color: #f87171; font-weight: 600; }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .modal { background: #141720; border: 1px solid #1e2535; border-radius: 12px; padding: 24px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-    .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
-    .form-group { margin-bottom: 14px; }
-    .form-label { font-size: 12px; color: #64748b; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
-    .form-input, .form-select, .form-textarea { width: 100%; background: #1e2535; border: 1px solid #2d3748; color: #e2e8f0; padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+    tr:hover td { background: rgba(255,255,255,0.03); }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+    .badge-draft     { background: rgba(255,255,255,0.07); color: var(--gray); border: 1px solid var(--border); }
+    .badge-submitted { background: rgba(21,56,108,0.5); color: #7eb3e8; border: 1px solid rgba(100,160,230,0.3); }
+    .badge-review    { background: rgba(100,60,180,0.3); color: #b89af0; border: 1px solid rgba(150,100,230,0.3); }
+    .badge-approved  { background: rgba(46,204,138,0.15); color: var(--green); border: 1px solid rgba(46,204,138,0.3); }
+    .badge-rejected  { background: rgba(224,82,82,0.15); color: var(--red); border: 1px solid rgba(224,82,82,0.3); }
+    .badge-closed    { background: rgba(255,255,255,0.05); color: var(--gray); border: 1px solid var(--border); }
+    .badge-returned  { background: rgba(232,169,48,0.15); color: var(--amber); border: 1px solid rgba(232,169,48,0.3); }
+
+    /* ── BIC ── */
+    .bic {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 4px;
+      font-size: 11px; font-weight: 600;
+      font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px;
+    }
+    .bic-eng  { background: rgba(21,56,108,0.4); color: #7eb3e8; }
+    .bic-con  { background: rgba(46,204,138,0.15); color: var(--green); }
+    .bic-pm   { background: rgba(200,168,75,0.15); color: var(--gold-lt); }
+    .bic-own  { background: rgba(232,169,48,0.15); color: var(--amber); }
+    .bic-ven  { background: rgba(255,255,255,0.06); color: var(--gray); }
+    .bic-ahj  { background: rgba(180,100,50,0.2); color: #e8a07a; }
+
+    /* ── AGING ── */
+    .aging-ok     { color: var(--green); font-size: 12px; }
+    .aging-warn   { color: var(--amber); font-size: 12px; }
+    .aging-danger { color: var(--red); font-size: 12px; font-weight: 700; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(5,12,25,0.85);
+      z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+    .modal {
+      background: linear-gradient(135deg, #0f2040, #0a1628);
+      border: 1px solid rgba(200,168,75,0.2);
+      border-radius: 12px; padding: 28px;
+      width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    }
+    .modal-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px; font-weight: 700; margin-bottom: 20px;
+      color: var(--white);
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 11px; color: var(--gray); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      background: rgba(10,22,40,0.8); border: 1px solid var(--border);
+      color: var(--white); padding: 9px 12px; border-radius: 5px;
+      font-size: 14px; font-family: 'Barlow', sans-serif;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none; border-color: var(--gold);
+    }
     .form-textarea { resize: vertical; min-height: 80px; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
-    .section-title { font-size: 20px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
-    .section-sub { font-size: 14px; color: #64748b; margin-bottom: 20px; }
-    .loading { display: flex; align-items: center; justify-content: center; padding: 60px; flex-direction: column; gap: 16px; color: #64748b; }
-    .spinner { width: 32px; height: 32px; border: 3px solid #1e2535; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
+
+    /* ── SECTION ── */
+    .section-head { margin-bottom: 24px; }
+    .section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 26px; font-weight: 800; color: var(--white);
+      letter-spacing: 0.5px; line-height: 1;
+    }
+    .section-title span { color: var(--gold); }
+    .section-sub { font-size: 14px; color: var(--gray); margin-top: 6px; }
+
+    /* ── LOADING / EMPTY ── */
+    .loading { display: flex; align-items: center; justify-content: center; padding: 60px; flex-direction: column; gap: 16px; color: var(--gray); }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid rgba(255,255,255,0.08);
+      border-top-color: var(--gold); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 20px; }
-    .login-card { background: #141720; border: 1px solid #1e2535; border-radius: 16px; padding: 40px; text-align: center; max-width: 400px; width: 100%; }
-    .login-logo { font-size: 48px; margin-bottom: 16px; }
-    .login-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
-    .login-sub { font-size: 14px; color: #64748b; margin-bottom: 24px; }
-    .ms-btn { background: #0078d4; border: none; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; margin: 0 auto; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--gray); }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+
+    /* ── BANNERS ── */
+    .banner-error   { background: rgba(224,82,82,0.1); border: 1px solid rgba(224,82,82,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #f08080; font-size: 13px; }
+    .banner-success { background: rgba(46,204,138,0.1); border: 1px solid rgba(46,204,138,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: var(--green); font-size: 13px; }
+
+    /* ── LOGIN ── */
+    .login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      background: var(--navy);
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(21,56,108,0.5) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(200,168,75,0.08) 0%, transparent 50%);
+    }
+    .login-card {
+      background: linear-gradient(135deg, rgba(15,32,64,0.95), rgba(10,22,40,0.98));
+      border: 1px solid rgba(200,168,75,0.2);
+      border-radius: 16px; padding: 48px 40px; text-align: center;
+      max-width: 420px; width: 100%;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+    }
+    .login-logo-area { margin-bottom: 28px; }
+    .login-wordmark {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px; font-weight: 800;
+      color: var(--white); letter-spacing: 1px;
+    }
+    .login-wordmark span { color: var(--gold); }
+    .login-tagline { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; }
+    .login-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 24px 0; }
+    .login-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .login-sub { font-size: 13px; color: var(--gray); margin-bottom: 28px; line-height: 1.5; }
+    .ms-btn {
+      background: #0078d4; border: none; color: #fff;
+      padding: 13px 28px; border-radius: 6px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      font-family: 'Barlow', sans-serif; letter-spacing: 0.3px;
+      display: flex; align-items: center; gap: 10px; margin: 0 auto;
+      transition: background 0.2s;
+    }
     .ms-btn:hover { background: #106ebe; }
-    .error-banner { background: #1a0a0a; border: 1px solid #dc2626; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #fca5a5; font-size: 13px; }
-    .success-banner { background: #0a1f15; border: 1px solid #10b981; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #34d399; font-size: 13px; }
-    .tag { display: inline-block; background: #1e2535; color: #94a3b8; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-right: 4px; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0f1117; }
-    ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
+    .login-footer { margin-top: 24px; font-size: 11px; color: var(--gray); }
+
+    /* ── COMING SOON ── */
+    .coming-soon {
+      background: linear-gradient(135deg, rgba(15,32,64,0.6), rgba(10,22,40,0.7));
+      border: 1px dashed rgba(200,168,75,0.3); border-radius: 10px;
+      padding: 48px; text-align: center;
+    }
+    .coming-soon-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.6; }
+    .coming-soon-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .coming-soon-sub { color: var(--gray); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+    code { background: rgba(200,168,75,0.15); color: var(--gold-lt); padding: 2px 8px; border-radius: 4px; font-size: 13px; }
+
+    /* ── CONNECTED BANNER ── */
+    .connected-banner {
+      display: flex; align-items: center; gap: 16px;
+      background: linear-gradient(135deg, rgba(46,204,138,0.08), rgba(15,32,64,0.5));
+      border: 1px solid rgba(46,204,138,0.2); border-radius: 8px;
+      padding: 14px 20px; margin-bottom: 24px;
+    }
+    .connected-icon { font-size: 24px; }
+    .connected-text { flex: 1; }
+    .connected-label { font-weight: 600; font-size: 14px; }
+    .connected-url { font-size: 12px; color: var(--gray); margin-top: 2px; }
+    .connected-url a { color: var(--gold); }
+
+    /* ── MONO ── */
+    .mono { font-family: 'Barlow Condensed', sans-serif; color: var(--gold-lt); font-size: 13px; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--navy); }
+    ::-webkit-scrollbar-thumb { background: var(--slate); border-radius: 3px; }
   </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useCallback, useRef } = React;
+const { useState, useEffect, useCallback } = React;
 
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
 const CONFIG = {
-  clientId:  "613928f8-0497-47ea-bb0f-c1725a1f156a",
-  tenantId:  "ec357a32-5b85-438d-a765-ae33c8eb13b7",
-  siteId:    "825ac03b-8ba9-4336-a5a1-63ea999f0d7e",
-  siteUrl:   "https://distributedei.sharepoint.com/sites/Buildingaconnectedfuture",
-  lists: {
-    rfi: "DEI-RFI-Submittal-Tracker",
-  }
+  clientId: "613928f8-0497-47ea-bb0f-c1725a1f156a",
+  tenantId: "ec357a32-5b85-438d-a765-ae33c8eb13b7",
+  siteId:   "825ac03b-8ba9-4336-a5a1-63ea999f0d7e",
+  siteUrl:  "https://distributedei.sharepoint.com/sites/Buildingaconnectedfuture",
+  lists: { rfi: "DEI-RFI-Submittal-Tracker" }
 };
 
-// ─── MSAL SETUP ───────────────────────────────────────────────────────────────
-const msalConfig = {
+const msalInstance = new msal.PublicClientApplication({
   auth: {
     clientId: CONFIG.clientId,
     authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`,
     redirectUri: window.location.origin,
   },
   cache: { cacheLocation: "sessionStorage" }
-};
+});
 
-const msalInstance = new msal.PublicClientApplication(msalConfig);
+const SCOPES = ["Sites.Selected", "Files.Read.All", "User.Read"];
 
-const GRAPH_SCOPES = ["Sites.Selected", "Files.Read.All", "User.Read"];
-
-// ─── GRAPH API CLIENT ─────────────────────────────────────────────────────────
 async function getToken() {
   const accounts = msalInstance.getAllAccounts();
-  if (accounts.length === 0) throw new Error("Not signed in");
+  if (!accounts.length) throw new Error("Not signed in");
   try {
-    const result = await msalInstance.acquireTokenSilent({
-      scopes: GRAPH_SCOPES,
-      account: accounts[0]
-    });
-    return result.accessToken;
-  } catch (e) {
-    const result = await msalInstance.acquireTokenPopup({ scopes: GRAPH_SCOPES });
-    return result.accessToken;
+    const r = await msalInstance.acquireTokenSilent({ scopes: SCOPES, account: accounts[0] });
+    return r.accessToken;
+  } catch {
+    const r = await msalInstance.acquireTokenPopup({ scopes: SCOPES });
+    return r.accessToken;
   }
 }
 
-async function graphGet(path) {
+async function graph(method, path, body) {
   const token = await getToken();
   const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
-    headers: { Authorization: `Bearer ${token}` }
+    method: method || "GET",
+    headers: { Authorization: `Bearer ${token}`, ...(body ? {"Content-Type":"application/json"} : {}) },
+    ...(body ? { body: JSON.stringify(body) } : {})
   });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || `Graph API error: ${res.status}`);
-  }
-  return res.json();
+  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || `Error ${res.status}`); }
+  return res.status === 204 ? null : res.json();
 }
 
-async function graphPost(path, body) {
-  const token = await getToken();
-  const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || `Graph API error: ${res.status}`);
-  }
-  return res.json();
+const SITE = `/sites/${CONFIG.siteId}`;
+
+async function getItems(list) {
+  const d = await graph("GET", `${SITE}/lists/${list}/items?expand=fields&$top=500`);
+  return (d.value||[]).map(i => ({id:i.id,...i.fields}));
 }
+async function addItem(list, fields) { return graph("POST", `${SITE}/lists/${list}/items`, {fields}); }
+async function editItem(list, id, fields) { return graph("PATCH", `${SITE}/lists/${list}/items/${id}/fields`, fields); }
 
-async function graphPatch(path, body) {
-  const token = await getToken();
-  const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || `Graph API error: ${res.status}`);
-  }
-  return res.json();
-}
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 
-// ─── SHAREPOINT LIST HELPERS ──────────────────────────────────────────────────
-const SITE_PATH = `/sites/${CONFIG.siteId}`;
-
-async function getListItems(listName, filter = "") {
-  let path = `${SITE_PATH}/lists/${listName}/items?expand=fields&$top=500`;
-  if (filter) path += `&$filter=${encodeURIComponent(filter)}`;
-  const data = await graphGet(path);
-  return (data.value || []).map(i => ({ id: i.id, ...i.fields }));
-}
-
-async function createListItem(listName, fields) {
-  return graphPost(`${SITE_PATH}/lists/${listName}/items`, { fields });
-}
-
-async function updateListItem(listName, itemId, fields) {
-  return graphPatch(`${SITE_PATH}/lists/${listName}/items/${itemId}/fields`, fields);
-}
-
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
-function statusBadge(status) {
-  const map = {
-    "Draft": "badge-draft",
-    "Submitted": "badge-submitted",
-    "In Review": "badge-review",
-    "Returned - Revise": "badge-returned",
-    "Approved": "badge-approved",
-    "Rejected": "badge-rejected",
-    "Closed": "badge-closed",
+function Badge({status}) {
+  const m = {
+    "Draft":"badge-draft","Submitted":"badge-submitted","In Review":"badge-review",
+    "Returned - Revise":"badge-returned","Approved":"badge-approved",
+    "Rejected":"badge-rejected","Closed":"badge-closed"
   };
-  return <span className={`badge ${map[status] || "badge-draft"}`}>{status || "—"}</span>;
+  return <span className={`badge ${m[status]||"badge-draft"}`}>{status||"—"}</span>;
 }
 
-function bicChip(bic) {
-  const map = { Engineering:"bic-eng", Construction:"bic-con", PM:"bic-pm", Owner:"bic-owner", Vendor:"bic-vendor", "AHJ/Utility":"bic-ahj" };
-  const icons = { Engineering:"⚙️", Construction:"🏗️", PM:"📋", Owner:"👤", Vendor:"📦", "AHJ/Utility":"🏛️" };
-  return <span className={`bic ${map[bic]||"bic-vendor"}`}>{icons[bic]||"•"} {bic||"—"}</span>;
+function BIC({val}) {
+  const m = {Engineering:"bic-eng",Construction:"bic-con",PM:"bic-pm",Owner:"bic-own",Vendor:"bic-ven","AHJ/Utility":"bic-ahj"};
+  const ic = {Engineering:"⚙",Construction:"🏗",PM:"📋",Owner:"👤",Vendor:"📦","AHJ/Utility":"🏛"};
+  return <span className={`bic ${m[val]||"bic-ven"}`}>{ic[val]||"•"} {val||"—"}</span>;
 }
 
-function agingCell(dueDateStr) {
-  if (!dueDateStr) return <span style={{color:"#475569"}}>No date</span>;
-  const due = new Date(dueDateStr);
-  const today = new Date();
-  const days = Math.floor((today - due) / 86400000);
-  if (days <= 0) return <span className="aging-ok">On Track</span>;
-  if (days < 7)  return <span className="aging-warn">{days}d overdue</span>;
-  return <span className="aging-danger">{days}d overdue ⚠</span>;
+function Aging({date}) {
+  if (!date) return <span style={{color:"var(--gray)"}}>—</span>;
+  const d = Math.floor((new Date()-new Date(date))/86400000);
+  if (d<=0) return <span className="aging-ok">● On Track</span>;
+  if (d<7)  return <span className="aging-warn">▲ {d}d overdue</span>;
+  return <span className="aging-danger">⚠ {d}d overdue</span>;
 }
 
-function formatDate(d) {
+function fmtDate(d) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
+  return new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
 }
 
-// ─── MODALS ───────────────────────────────────────────────────────────────────
-function Modal({ title, onClose, children }) {
+// ── MODAL ────────────────────────────────────────────────────────────────────
+
+function Modal({title, onClose, children}) {
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="modal">
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
           <div className="modal-title">{title}</div>
           <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
         </div>
@@ -260,218 +496,275 @@ function Modal({ title, onClose, children }) {
   );
 }
 
-function AddItemModal({ onClose, onSave }) {
-  const [form, setForm] = useState({
-    Title: "", Project: "", ItemType: "RFI", Number: "",
-    Subject: "", Status: "Draft", BallInCourt: "Engineering",
-    AssignedTo: "", DueDate: "", Description: "", EvidenceLink: ""
+function AddModal({onClose, onSave}) {
+  const [f, setF] = useState({
+    Title:"",Project:"",ItemType:"RFI",Number:"",Subject:"",
+    Status:"Draft",BallInCourt:"Engineering",AssignedTo:"",DueDate:"",
+    Description:"",EvidenceLink:""
   });
   const [saving, setSaving] = useState(false);
-  const set = (k, v) => setForm(f => ({...f, [k]: v}));
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      await onSave(form);
-      onClose();
-    } catch(e) {
-      alert("Error saving: " + e.message);
-    } finally {
-      setSaving(false);
-    }
-  };
+  const s = (k,v) => setF(p=>({...p,[k]:v}));
 
   return (
-    <Modal title="Add New RFI / Submittal" onClose={onClose}>
-      <div className="form-group">
-        <label className="form-label">Title</label>
-        <input className="form-input" value={form.Title} onChange={e=>set("Title",e.target.value)} placeholder="Brief title..." />
-      </div>
+    <Modal title="Add RFI / Submittal" onClose={onClose}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+        <div className="form-group" style={{gridColumn:"1/-1"}}>
+          <label className="form-label">Title *</label>
+          <input className="form-input" value={f.Title} onChange={e=>s("Title",e.target.value)} placeholder="Brief descriptive title" />
+        </div>
         <div className="form-group">
           <label className="form-label">Project</label>
-          <input className="form-input" value={form.Project} onChange={e=>set("Project",e.target.value)} placeholder="Project name" />
+          <input className="form-input" value={f.Project} onChange={e=>s("Project",e.target.value)} placeholder="Project name" />
         </div>
         <div className="form-group">
           <label className="form-label">Type</label>
-          <select className="form-select" value={form.ItemType} onChange={e=>set("ItemType",e.target.value)}>
-            <option>RFI</option>
-            <option>Submittal</option>
+          <select className="form-select" value={f.ItemType} onChange={e=>s("ItemType",e.target.value)}>
+            <option>RFI</option><option>Submittal</option>
           </select>
         </div>
         <div className="form-group">
           <label className="form-label">Number</label>
-          <input className="form-input" value={form.Number} onChange={e=>set("Number",e.target.value)} placeholder="RFI-001" />
+          <input className="form-input" value={f.Number} onChange={e=>s("Number",e.target.value)} placeholder="RFI-001" />
         </div>
         <div className="form-group">
           <label className="form-label">Status</label>
-          <select className="form-select" value={form.Status} onChange={e=>set("Status",e.target.value)}>
-            {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(s=><option key={s}>{s}</option>)}
+          <select className="form-select" value={f.Status} onChange={e=>s("Status",e.target.value)}>
+            {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(v=><option key={v}>{v}</option>)}
           </select>
         </div>
         <div className="form-group">
           <label className="form-label">Ball in Court</label>
-          <select className="form-select" value={form.BallInCourt} onChange={e=>set("BallInCourt",e.target.value)}>
-            {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(s=><option key={s}>{s}</option>)}
+          <select className="form-select" value={f.BallInCourt} onChange={e=>s("BallInCourt",e.target.value)}>
+            {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(v=><option key={v}>{v}</option>)}
           </select>
         </div>
         <div className="form-group">
           <label className="form-label">Assigned To</label>
-          <input className="form-input" value={form.AssignedTo} onChange={e=>set("AssignedTo",e.target.value)} placeholder="Name" />
+          <input className="form-input" value={f.AssignedTo} onChange={e=>s("AssignedTo",e.target.value)} placeholder="Person / team" />
         </div>
         <div className="form-group">
           <label className="form-label">Due Date</label>
-          <input className="form-input" type="date" value={form.DueDate} onChange={e=>set("DueDate",e.target.value)} />
+          <input className="form-input" type="date" value={f.DueDate} onChange={e=>s("DueDate",e.target.value)} />
         </div>
-        <div className="form-group">
+        <div className="form-group" style={{gridColumn:"1/-1"}}>
           <label className="form-label">Subject</label>
-          <input className="form-input" value={form.Subject} onChange={e=>set("Subject",e.target.value)} placeholder="Subject" />
+          <input className="form-input" value={f.Subject} onChange={e=>s("Subject",e.target.value)} placeholder="Technical subject" />
         </div>
-      </div>
-      <div className="form-group">
-        <label className="form-label">Description</label>
-        <textarea className="form-textarea" value={form.Description} onChange={e=>set("Description",e.target.value)} placeholder="Details..." />
-      </div>
-      <div className="form-group">
-        <label className="form-label">Evidence / SharePoint Link</label>
-        <input className="form-input" value={form.EvidenceLink} onChange={e=>set("EvidenceLink",e.target.value)} placeholder="https://..." />
+        <div className="form-group" style={{gridColumn:"1/-1"}}>
+          <label className="form-label">Description</label>
+          <textarea className="form-textarea" value={f.Description} onChange={e=>s("Description",e.target.value)} placeholder="Detailed description..." />
+        </div>
+        <div className="form-group" style={{gridColumn:"1/-1"}}>
+          <label className="form-label">Evidence / SharePoint Link</label>
+          <input className="form-input" value={f.EvidenceLink} onChange={e=>s("EvidenceLink",e.target.value)} placeholder="https://distributedei.sharepoint.com/..." />
+        </div>
       </div>
       <div className="modal-actions">
         <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" onClick={save} disabled={saving || !form.Title}>
-          {saving ? "Saving..." : "Save to SharePoint"}
+        <button className="btn btn-gold" disabled={saving||!f.Title} onClick={async()=>{
+          setSaving(true);
+          try { await onSave(f); onClose(); }
+          catch(e) { alert("Error: "+e.message); setSaving(false); }
+        }}>
+          {saving ? "Saving..." : "⚡ Save to SharePoint"}
         </button>
       </div>
     </Modal>
   );
 }
 
-function EditStatusModal({ item, onClose, onSave }) {
-  const [status, setStatus] = useState(item.Status || "Draft");
-  const [bic, setBic]       = useState(item.BallInCourt || "Engineering");
+function EditModal({item, onClose, onSave}) {
+  const [status, setStatus] = useState(item.Status||"Draft");
+  const [bic, setBic]       = useState(item.BallInCourt||"Engineering");
   const [saving, setSaving] = useState(false);
 
-  const save = async () => {
-    setSaving(true);
-    try {
-      await onSave(item.id, { Status: status, BallInCourt: bic });
-      onClose();
-    } catch(e) {
-      alert("Error: " + e.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
-    <Modal title={`Update — ${item.Title || item.Number}`} onClose={onClose}>
-      <div className="form-group">
-        <label className="form-label">Current Status</label>
-        {statusBadge(item.Status)}
+    <Modal title={`Update — ${item.Title||item.Number||"Item"}`} onClose={onClose}>
+      <div style={{marginBottom:16}}>
+        <span style={{color:"var(--gray)",fontSize:13}}>Current: </span>
+        <Badge status={item.Status} />
       </div>
       <div className="form-group">
         <label className="form-label">New Status</label>
         <select className="form-select" value={status} onChange={e=>setStatus(e.target.value)}>
-          {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(s=><option key={s}>{s}</option>)}
+          {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(v=><option key={v}>{v}</option>)}
         </select>
       </div>
       <div className="form-group">
         <label className="form-label">Ball in Court</label>
         <select className="form-select" value={bic} onChange={e=>setBic(e.target.value)}>
-          {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(s=><option key={s}>{s}</option>)}
+          {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(v=><option key={v}>{v}</option>)}
         </select>
       </div>
       <div className="modal-actions">
         <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" onClick={save} disabled={saving}>
-          {saving ? "Saving..." : "Update in SharePoint"}
+        <button className="btn btn-gold" disabled={saving} onClick={async()=>{
+          setSaving(true);
+          try { await onSave(item.id,{Status:status,BallInCourt:bic}); onClose(); }
+          catch(e) { alert("Error: "+e.message); setSaving(false); }
+        }}>
+          {saving ? "Saving..." : "⚡ Update SharePoint"}
         </button>
       </div>
     </Modal>
   );
 }
 
-// ─── ENGINEERING LOG VIEW ─────────────────────────────────────────────────────
-function EngineeringView() {
-  const [items, setItems]       = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
-  const [success, setSuccess]   = useState(null);
-  const [typeFilter, setType]   = useState("all");
-  const [statusFilter, setStat] = useState("all");
-  const [bicFilter, setBic]     = useState("all");
-  const [modal, setModal]       = useState(null);
-  const [selected, setSelected] = useState(null);
+// ── VIEWS ─────────────────────────────────────────────────────────────────────
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getListItems(CONFIG.lists.rfi);
-      setItems(data);
-    } catch(e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+function Overview({user}) {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(()=>{
+    getItems(CONFIG.lists.rfi).then(items=>{
+      const today = new Date();
+      setStats({
+        total: items.length,
+        open: items.filter(i=>!["Closed","Approved"].includes(i.Status)).length,
+        overdue: items.filter(i=>i.DueDate&&new Date(i.DueDate)<today&&!["Closed","Approved"].includes(i.Status)).length,
+        rfis: items.filter(i=>i.ItemType==="RFI").length,
+        subs: items.filter(i=>i.ItemType==="Submittal").length,
+      });
+    }).catch(()=>setStats(null)).finally(()=>setLoading(false));
+  },[]);
 
-  const handleAdd = async (fields) => {
-    await createListItem(CONFIG.lists.rfi, fields);
-    setSuccess("Item added to SharePoint ✓");
-    setTimeout(() => setSuccess(null), 3000);
-    load();
-  };
-
-  const handleUpdate = async (itemId, fields) => {
-    await updateListItem(CONFIG.lists.rfi, itemId, fields);
-    setSuccess("Updated in SharePoint ✓");
-    setTimeout(() => setSuccess(null), 3000);
-    load();
-  };
-
-  const filtered = items.filter(i =>
-    (typeFilter === "all" || i.ItemType === typeFilter) &&
-    (statusFilter === "all" || i.Status === statusFilter) &&
-    (bicFilter === "all" || i.BallInCourt === bicFilter)
-  ).sort((a,b) => {
-    if (!a.DueDate) return 1;
-    if (!b.DueDate) return -1;
-    return new Date(a.DueDate) - new Date(b.DueDate);
-  });
-
-  const overdue = items.filter(i => i.DueDate && new Date(i.DueDate) < new Date() && i.Status !== "Closed" && i.Status !== "Approved");
+  const first = (user?.name||user?.username||"there").split(" ")[0];
 
   return (
     <div>
-      <div className="section-title">Engineering Log</div>
-      <div className="section-sub">RFIs and Submittals — live from SharePoint</div>
+      <div className="section-head">
+        <div className="section-title">Welcome back, <span>{first}</span></div>
+        <div className="section-sub">DEI Project Truth — your live PMO control plane</div>
+      </div>
 
-      {error && <div className="error-banner">⚠️ {error}</div>}
-      {success && <div className="success-banner">✅ {success}</div>}
+      <div className="connected-banner">
+        <div className="connected-icon">🔗</div>
+        <div className="connected-text">
+          <div className="connected-label" style={{color:"var(--green)"}}>Connected to SharePoint</div>
+          <div className="connected-url">
+            <a href={CONFIG.siteUrl} target="_blank" rel="noreferrer">
+              distributedei.sharepoint.com / Building a Connected Future
+            </a>
+          </div>
+        </div>
+        <div className="live-dot">Live</div>
+      </div>
+
+      {loading ? <div className="loading"><div className="spinner"/><div>Loading from SharePoint...</div></div>
+      : stats ? (
+        <div className="kpi-grid">
+          <div className="kpi-card good">
+            <div className="kpi-label">Total Items</div>
+            <div className="kpi-value">{stats.total}</div>
+            <div className="kpi-sub green">Tracked in SharePoint</div>
+          </div>
+          <div className={`kpi-card ${stats.overdue>0?"alert":""}`}>
+            <div className="kpi-label">Overdue</div>
+            <div className="kpi-value">{stats.overdue}</div>
+            <div className={`kpi-sub ${stats.overdue>0?"red":"green"}`}>
+              {stats.overdue>0?"Action required":"All on track"}
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">Open Items</div>
+            <div className="kpi-value">{stats.open}</div>
+            <div className="kpi-sub">Active</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">RFIs</div>
+            <div className="kpi-value">{stats.rfis}</div>
+            <div className="kpi-sub">{stats.subs} submittals</div>
+          </div>
+        </div>
+      ) : <div className="banner-error">⚠ Could not load data — check SharePoint connection and permissions.</div>}
+
+      <div style={{background:"linear-gradient(135deg,rgba(15,32,64,0.7),rgba(10,22,40,0.8))",border:"1px solid var(--border)",borderRadius:10,padding:24,marginTop:8}}>
+        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:18,fontWeight:700,marginBottom:16,color:"var(--white)",letterSpacing:"0.5px"}}>
+          MVP BUILD STATUS
+        </div>
+        {[
+          ["✅","Azure AD Authentication","Signed in — "+( user?.username||"active"),"good"],
+          ["✅","SharePoint Connection","Live read/write to DEI site","good"],
+          ["✅","RFI & Submittal Tracker","Full CRUD — create, edit, filter, aging","good"],
+          ["🔜","Permit Matrix","Create DEI-Permit-Matrix list in SharePoint","pending"],
+          ["🔜","BOM / Procurement","Create DEI-BOM-Procurement list","pending"],
+          ["🔜","Invoicing","Create DEI-Invoices list","pending"],
+          ["🔜","Closeout Tracker","Create DEI-Closeout-Items list","pending"],
+        ].map(([icon,label,sub,type])=>(
+          <div key={label} style={{display:"flex",alignItems:"center",gap:14,padding:"10px 0",borderBottom:"1px solid var(--border)"}}>
+            <span style={{fontSize:18,width:24,textAlign:"center"}}>{icon}</span>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:600,fontSize:14,color:type==="good"?"var(--white)":"var(--gray-lt)"}}>{label}</div>
+              <div style={{fontSize:12,color:"var(--gray)",marginTop:2}}>{sub}</div>
+            </div>
+            {type==="good"
+              ? <span style={{fontSize:11,color:"var(--green)",background:"rgba(46,204,138,0.1)",padding:"3px 10px",borderRadius:20,border:"1px solid rgba(46,204,138,0.2)"}}>LIVE</span>
+              : <span style={{fontSize:11,color:"var(--amber)",background:"rgba(232,169,48,0.1)",padding:"3px 10px",borderRadius:20,border:"1px solid rgba(232,169,48,0.2)"}}>NEXT</span>
+            }
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Engineering() {
+  const [items, setItems]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]   = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [typeF, setTypeF]   = useState("all");
+  const [statF, setStatF]   = useState("all");
+  const [bicF, setBicF]     = useState("all");
+  const [modal, setModal]   = useState(null);
+  const [sel, setSel]       = useState(null);
+
+  const load = useCallback(async()=>{
+    setLoading(true); setError(null);
+    try { setItems(await getItems(CONFIG.lists.rfi)); }
+    catch(e) { setError(e.message); }
+    finally { setLoading(false); }
+  },[]);
+
+  useEffect(()=>{ load(); },[load]);
+
+  const flash = msg => { setSuccess(msg); setTimeout(()=>setSuccess(null),3000); };
+
+  const filtered = items
+    .filter(i=>(typeF==="all"||i.ItemType===typeF)&&(statF==="all"||i.Status===statF)&&(bicF==="all"||i.BallInCourt===bicF))
+    .sort((a,b)=>{ if(!a.DueDate) return 1; if(!b.DueDate) return -1; return new Date(a.DueDate)-new Date(b.DueDate); });
+
+  const overdue = items.filter(i=>i.DueDate&&new Date(i.DueDate)<new Date()&&!["Closed","Approved"].includes(i.Status));
+
+  return (
+    <div>
+      <div className="section-head">
+        <div className="section-title">Engineering <span>Log</span></div>
+        <div className="section-sub">RFIs and Submittals — live from SharePoint</div>
+      </div>
+
+      {error   && <div className="banner-error">⚠ {error}</div>}
+      {success && <div className="banner-success">✅ {success}</div>}
 
       <div className="kpi-grid">
         <div className="kpi-card">
           <div className="kpi-label">Total Items</div>
           <div className="kpi-value">{items.length}</div>
-          <div className="kpi-sub">In SharePoint list</div>
+          <div className="kpi-sub">In SharePoint</div>
         </div>
-        <div className={`kpi-card ${overdue.length > 0 ? "alert" : ""}`}>
+        <div className={`kpi-card ${overdue.length>0?"alert":""}`}>
           <div className="kpi-label">Overdue</div>
           <div className="kpi-value">{overdue.length}</div>
-          <div className={`kpi-sub ${overdue.length > 0 ? "red" : "green"}`}>
-            {overdue.length > 0 ? "Needs attention" : "All on track"}
-          </div>
+          <div className={`kpi-sub ${overdue.length>0?"red":"green"}`}>{overdue.length>0?"Action required":"All on track"}</div>
         </div>
         <div className="kpi-card">
-          <div className="kpi-label">Open RFIs</div>
+          <div className="kpi-label">RFIs Open</div>
           <div className="kpi-value">{items.filter(i=>i.ItemType==="RFI"&&i.Status!=="Closed").length}</div>
           <div className="kpi-sub">{items.filter(i=>i.ItemType==="RFI").length} total</div>
         </div>
         <div className="kpi-card">
-          <div className="kpi-label">Open Submittals</div>
+          <div className="kpi-label">Submittals Open</div>
           <div className="kpi-value">{items.filter(i=>i.ItemType==="Submittal"&&i.Status!=="Closed").length}</div>
           <div className="kpi-sub">{items.filter(i=>i.ItemType==="Submittal").length} total</div>
         </div>
@@ -481,80 +774,66 @@ function EngineeringView() {
         <div className="table-header">
           <div className="table-title">Items ({filtered.length})</div>
           <div className="filters">
-            <select className="filter-select" value={typeFilter} onChange={e=>setType(e.target.value)}>
+            <select className="filter-select" value={typeF} onChange={e=>setTypeF(e.target.value)}>
               <option value="all">All Types</option>
               <option value="RFI">RFI</option>
               <option value="Submittal">Submittal</option>
             </select>
-            <select className="filter-select" value={statusFilter} onChange={e=>setStat(e.target.value)}>
+            <select className="filter-select" value={statF} onChange={e=>setStatF(e.target.value)}>
               <option value="all">All Statuses</option>
-              {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(s=>
-                <option key={s} value={s}>{s}</option>
-              )}
+              {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(s=><option key={s}>{s}</option>)}
             </select>
-            <select className="filter-select" value={bicFilter} onChange={e=>setBic(e.target.value)}>
+            <select className="filter-select" value={bicF} onChange={e=>setBicF(e.target.value)}>
               <option value="all">All Ball-in-Court</option>
-              {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(s=>
-                <option key={s} value={s}>{s}</option>
-              )}
+              {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(s=><option key={s}>{s}</option>)}
             </select>
             <button className="btn btn-ghost btn-sm" onClick={load}>↺ Refresh</button>
-            <button className="btn btn-primary btn-sm" onClick={()=>setModal("add")}>+ Add Item</button>
+            <button className="btn btn-gold btn-sm" onClick={()=>setModal("add")}>+ Add Item</button>
           </div>
         </div>
 
-        {loading ? (
-          <div className="loading">
-            <div className="spinner" />
-            <div>Loading from SharePoint...</div>
-          </div>
-        ) : filtered.length === 0 ? (
+        {loading ? <div className="loading"><div className="spinner"/><div>Loading from SharePoint...</div></div>
+        : filtered.length===0 ? (
           <div className="empty-state">
             <div className="empty-icon">📋</div>
-            <div style={{marginBottom:8}}>
-              {items.length === 0 ? "No items in SharePoint yet." : "No items match the current filters."}
-            </div>
-            {items.length === 0 && (
-              <button className="btn btn-primary" onClick={()=>setModal("add")}>+ Add First Item</button>
-            )}
+            <div style={{marginBottom:12}}>{items.length===0?"No items yet — add your first one.":"No items match the filters."}</div>
+            {items.length===0 && <button className="btn btn-gold" onClick={()=>setModal("add")}>+ Add First Item</button>}
           </div>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>#</th>
-                <th>Type</th>
-                <th>Title / Subject</th>
-                <th>Project</th>
-                <th>Status</th>
-                <th>Ball in Court</th>
-                <th>Assigned To</th>
-                <th>Due Date</th>
-                <th>Aging</th>
-                <th>Actions</th>
+                <th>#</th><th>Type</th><th>Title</th><th>Project</th>
+                <th>Status</th><th>Ball in Court</th><th>Assigned</th>
+                <th>Due Date</th><th>Aging</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(item => (
+              {filtered.map(item=>(
                 <tr key={item.id}>
-                  <td><span style={{fontFamily:"monospace",color:"#60a5fa",fontSize:12}}>{item.Number||"—"}</span></td>
-                  <td><span className="tag">{item.ItemType||"—"}</span></td>
+                  <td><span className="mono">{item.Number||"—"}</span></td>
                   <td>
-                    <div style={{color:"#e2e8f0",fontWeight:500}}>{item.Title}</div>
-                    {item.Subject && <div style={{color:"#64748b",fontSize:11,marginTop:2}}>{item.Subject}</div>}
-                    {item.EvidenceLink && (
-                      <a href={item.EvidenceLink} target="_blank" rel="noreferrer" style={{fontSize:11,color:"#60a5fa"}}>📎 Evidence</a>
-                    )}
+                    <span style={{
+                      background: item.ItemType==="RFI"?"rgba(21,56,108,0.4)":"rgba(200,168,75,0.15)",
+                      color: item.ItemType==="RFI"?"#7eb3e8":"var(--gold-lt)",
+                      padding:"2px 8px",borderRadius:4,fontSize:11,fontWeight:700,
+                      fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.5px"
+                    }}>{item.ItemType||"—"}</span>
                   </td>
-                  <td style={{color:"#94a3b8",fontSize:12}}>{item.Project||"—"}</td>
-                  <td>{statusBadge(item.Status)}</td>
-                  <td>{bicChip(item.BallInCourt)}</td>
-                  <td style={{color:"#94a3b8",fontSize:13}}>{item.AssignedTo||"—"}</td>
-                  <td style={{color:"#94a3b8",fontSize:13}}>{formatDate(item.DueDate)}</td>
-                  <td>{agingCell(item.DueDate)}</td>
                   <td>
-                    <button className="btn btn-ghost btn-sm" onClick={()=>{setSelected(item);setModal("edit");}}>
-                      ✏️ Update
+                    <div style={{fontWeight:600,color:"var(--white)"}}>{item.Title}</div>
+                    {item.Subject&&<div style={{color:"var(--gray)",fontSize:11,marginTop:2}}>{item.Subject}</div>}
+                    {item.EvidenceLink&&<a href={item.EvidenceLink} target="_blank" rel="noreferrer" style={{fontSize:11,color:"var(--gold)",display:"block",marginTop:3}}>📎 Evidence</a>}
+                  </td>
+                  <td style={{color:"var(--gray-lt)",fontSize:12}}>{item.Project||"—"}</td>
+                  <td><Badge status={item.Status}/></td>
+                  <td><BIC val={item.BallInCourt}/></td>
+                  <td style={{color:"var(--gray-lt)",fontSize:13}}>{item.AssignedTo||"—"}</td>
+                  <td style={{color:"var(--gray)",fontSize:12}}>{fmtDate(item.DueDate)}</td>
+                  <td><Aging date={item.DueDate}/></td>
+                  <td>
+                    <button className="btn btn-ghost btn-sm" onClick={()=>{setSel(item);setModal("edit");}}>
+                      ✏ Update
                     </button>
                   </td>
                 </tr>
@@ -564,133 +843,60 @@ function EngineeringView() {
         )}
       </div>
 
-      {modal === "add" && <AddItemModal onClose={()=>setModal(null)} onSave={handleAdd} />}
-      {modal === "edit" && selected && (
-        <EditStatusModal item={selected} onClose={()=>setModal(null)} onSave={handleUpdate} />
-      )}
+      {modal==="add" && <AddModal onClose={()=>setModal(null)} onSave={async f=>{await addItem(CONFIG.lists.rfi,f);flash("Added to SharePoint ✓");load();}}/>}
+      {modal==="edit" && sel && <EditModal item={sel} onClose={()=>setModal(null)} onSave={async(id,f)=>{await editItem(CONFIG.lists.rfi,id,f);flash("Updated in SharePoint ✓");load();}}/>}
     </div>
   );
 }
 
-// ─── OVERVIEW VIEW ────────────────────────────────────────────────────────────
-function OverviewView({ user }) {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getListItems(CONFIG.lists.rfi).then(items => {
-      setStats({
-        total: items.length,
-        overdue: items.filter(i => i.DueDate && new Date(i.DueDate) < new Date() && i.Status !== "Closed").length,
-        rfis: items.filter(i => i.ItemType === "RFI").length,
-        submittals: items.filter(i => i.ItemType === "Submittal").length,
-        open: items.filter(i => !["Closed","Approved","Rejected"].includes(i.Status)).length,
-      });
-    }).catch(() => setStats(null)).finally(() => setLoading(false));
-  }, []);
-
+function ComingSoon({title, listName}) {
   return (
     <div>
-      <div className="section-title">Welcome back, {user?.name?.split(" ")[0] || "there"} 👋</div>
-      <div className="section-sub">DEI Project Truth — connected to SharePoint</div>
-
-      <div style={{background:"#141720",border:"1px solid #1e2535",borderRadius:10,padding:16,marginBottom:24,display:"flex",alignItems:"center",gap:12}}>
-        <span style={{fontSize:24}}>🔗</span>
-        <div>
-          <div style={{fontWeight:600,color:"#e2e8f0",fontSize:14}}>Connected to SharePoint</div>
-          <div style={{color:"#64748b",fontSize:12}}>
-            <a href={CONFIG.siteUrl} target="_blank" rel="noreferrer" style={{color:"#60a5fa"}}>
-              {CONFIG.siteUrl}
-            </a>
-          </div>
-        </div>
-        <span style={{marginLeft:"auto",color:"#34d399",fontSize:13}}>● Live</span>
+      <div className="section-head">
+        <div className="section-title">{title.split(" ")[0]} <span>{title.split(" ").slice(1).join(" ")}</span></div>
       </div>
-
-      {loading ? (
-        <div className="loading"><div className="spinner"/><div>Loading data...</div></div>
-      ) : stats ? (
-        <div className="kpi-grid">
-          <div className="kpi-card">
-            <div className="kpi-label">Total Tracked Items</div>
-            <div className="kpi-value">{stats.total}</div>
-            <div className="kpi-sub green">In SharePoint</div>
-          </div>
-          <div className={`kpi-card ${stats.overdue > 0 ? "alert" : ""}`}>
-            <div className="kpi-label">Overdue</div>
-            <div className="kpi-value">{stats.overdue}</div>
-            <div className={`kpi-sub ${stats.overdue > 0 ? "red" : "green"}`}>
-              {stats.overdue > 0 ? "Need attention" : "All on track"}
-            </div>
-          </div>
-          <div className="kpi-card">
-            <div className="kpi-label">Open Items</div>
-            <div className="kpi-value">{stats.open}</div>
-            <div className="kpi-sub">Active</div>
-          </div>
-          <div className="kpi-card">
-            <div className="kpi-label">RFIs / Submittals</div>
-            <div className="kpi-value">{stats.rfis} / {stats.submittals}</div>
-            <div className="kpi-sub">Split</div>
-          </div>
+      <div className="coming-soon">
+        <div className="coming-soon-icon">🔜</div>
+        <div className="coming-soon-title">SharePoint List Required</div>
+        <div className="coming-soon-sub">
+          To enable this view, create a new SharePoint list named <code>{listName}</code> on your DEI site, then we'll add the columns together.
         </div>
-      ) : (
-        <div className="error-banner">Could not load stats — check SharePoint connection</div>
-      )}
-
-      <div style={{background:"#141720",border:"1px solid #1e2535",borderRadius:10,padding:20,marginTop:8}}>
-        <div style={{fontWeight:600,marginBottom:12,color:"#e2e8f0"}}>📋 MVP Status</div>
-        <div style={{display:"flex",flexDirection:"column",gap:8,fontSize:13}}>
-          {[
-            ["✅","Azure AD Authentication","Working — signed in as " + (user?.username||"you")],
-            ["✅","SharePoint Connection","Connected to DEI site"],
-            ["✅","RFI & Submittal Tracker","Live — read/write to SharePoint list"],
-            ["🔜","Permit Matrix","Create DEI-Permit-Matrix list next"],
-            ["🔜","BOM / Procurement","Create DEI-BOM-Procurement list next"],
-            ["🔜","Invoicing","Create DEI-Invoices list next"],
-            ["🔜","Closeout Tracker","Create DEI-Closeout list next"],
-          ].map(([icon,label,sub]) => (
-            <div key={label} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid #1e2535"}}>
-              <span style={{fontSize:16}}>{icon}</span>
-              <div>
-                <div style={{color:"#e2e8f0",fontWeight:500}}>{label}</div>
-                <div style={{color:"#64748b",fontSize:11}}>{sub}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <a href={CONFIG.siteUrl} target="_blank" rel="noreferrer" className="btn btn-gold">
+          Open DEI SharePoint Site →
+        </a>
       </div>
     </div>
   );
 }
 
-// ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
-function LoginScreen({ onLogin }) {
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+
+function Login({onLogin}) {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
 
   const login = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       await msalInstance.initialize();
-      const result = await msalInstance.loginPopup({ scopes: GRAPH_SCOPES });
-      onLogin(result.account);
-    } catch(e) {
-      setError(e.message);
-      setLoading(false);
-    }
+      const r = await msalInstance.loginPopup({scopes: SCOPES});
+      onLogin(r.account);
+    } catch(e) { setError(e.message); setLoading(false); }
   };
 
   return (
     <div className="login-screen">
       <div className="login-card">
-        <div className="login-logo">🏗️</div>
-        <div className="login-title">DEI Project Truth</div>
-        <div className="login-sub">Sign in with your Distributed Energy Infrastructure Microsoft account to access project data.</div>
-        {error && <div className="error-banner" style={{marginBottom:16,textAlign:"left"}}>⚠️ {error}</div>}
+        <div className="login-logo-area">
+          <div className="login-wordmark">DISTRIBUTED <span>ENERGY</span> INFRASTRUCTURE</div>
+          <div className="login-tagline">Building a Connected Future</div>
+        </div>
+        <div className="login-divider" />
+        <div className="login-title">Project Truth</div>
+        <div className="login-sub">Sign in with your DEI Microsoft account to access the PMO control plane.</div>
+        {error && <div className="banner-error" style={{marginBottom:16,textAlign:"left"}}>⚠ {error}</div>}
         <button className="ms-btn" onClick={login} disabled={loading}>
-          <svg width="20" height="20" viewBox="0 0 21 21" fill="none">
+          <svg width="20" height="20" viewBox="0 0 21 21">
             <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
             <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
             <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
@@ -698,119 +904,96 @@ function LoginScreen({ onLogin }) {
           </svg>
           {loading ? "Signing in..." : "Sign in with Microsoft"}
         </button>
+        <div className="login-footer">Restricted to Distributed Energy Infrastructure accounts only</div>
       </div>
     </div>
   );
 }
 
-// ─── COMING SOON PLACEHOLDER ──────────────────────────────────────────────────
-function ComingSoon({ title, listName }) {
-  return (
-    <div>
-      <div className="section-title">{title}</div>
-      <div className="section-sub">Coming next — requires SharePoint list setup</div>
-      <div style={{background:"#141720",border:"1px solid #1e2535",borderRadius:10,padding:32,textAlign:"center"}}>
-        <div style={{fontSize:40,marginBottom:12}}>🔜</div>
-        <div style={{fontWeight:600,color:"#e2e8f0",marginBottom:8}}>Create the SharePoint list to enable this view</div>
-        <div style={{color:"#64748b",fontSize:13,marginBottom:20}}>
-          Go to your SharePoint site → New → List → Blank list → name it <code style={{background:"#1e2535",padding:"2px 6px",borderRadius:4,color:"#60a5fa"}}>{listName}</code>
-        </div>
-        <a href={CONFIG.siteUrl} target="_blank" rel="noreferrer" className="btn btn-primary">
-          Open SharePoint Site →
-        </a>
-      </div>
-    </div>
-  );
-}
+// ── APP ───────────────────────────────────────────────────────────────────────
 
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
 function App() {
   const [user, setUser]   = useState(null);
   const [view, setView]   = useState("overview");
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    msalInstance.initialize().then(() => {
-      // Check if already signed in
-      const accounts = msalInstance.getAllAccounts();
-      if (accounts.length > 0) setUser(accounts[0]);
+  useEffect(()=>{
+    msalInstance.initialize().then(()=>{
+      const accts = msalInstance.getAllAccounts();
+      if (accts.length) setUser(accts[0]);
       setReady(true);
     });
-  }, []);
+  },[]);
 
-  if (!ready) return (
-    <div className="login-screen">
-      <div className="loading"><div className="spinner"/><div>Initializing...</div></div>
-    </div>
-  );
+  if (!ready) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><div className="spinner"/></div>;
+  if (!user)  return <Login onLogin={setUser}/>;
 
-  if (!user) return <LoginScreen onLogin={setUser} />;
-
-  const navItems = [
-    { section: "Project" },
-    { id: "overview",    icon: "🏠", label: "Overview" },
-    { section: "Logs" },
-    { id: "engineering", icon: "⚙️", label: "Engineering Log" },
-    { id: "owner",       icon: "👤", label: "Owner Log" },
-    { id: "permits",     icon: "🏛️", label: "Permits" },
-    { id: "closeout",    icon: "📋", label: "Closeout" },
+  const nav = [
+    {section:"PROJECT"},
+    {id:"overview",   icon:"🏠", label:"Overview"},
+    {section:"LOGS"},
+    {id:"engineering",icon:"⚙", label:"Engineering Log"},
+    {id:"owner",      icon:"👤", label:"Owner Log"},
+    {id:"permits",    icon:"🏛", label:"Permits"},
+    {id:"closeout",   icon:"📋", label:"Closeout"},
   ];
 
-  const viewTitles = {
-    overview: "Overview", engineering: "Engineering Log",
-    owner: "Owner Log", permits: "Permit Matrix", closeout: "Closeout"
+  const titles = {
+    overview:"Overview", engineering:"Engineering Log",
+    owner:"Owner Log", permits:"Permit Matrix", closeout:"Closeout"
   };
 
   return (
     <div className="app">
       <div className="sidebar">
         <div className="sidebar-logo">
-          <div className="logo-text">DEI Project Truth</div>
-          <div className="logo-sub">PMO Control Plane</div>
+          <div className="logo-wordmark">DISTRIBUTED <span>ENERGY</span> INFRA</div>
+          <div className="logo-tagline">Project Truth — PMO</div>
+          <div className="logo-divider"/>
         </div>
         <div className="nav">
-          {navItems.map((item, i) => {
+          {nav.map((item,i)=>{
             if (item.section) return <div key={i} className="nav-section">{item.section}</div>;
             return (
               <div key={item.id} className={`nav-item ${view===item.id?"active":""}`} onClick={()=>setView(item.id)}>
-                <span>{item.icon}</span>
+                <span className="nav-icon">{item.icon}</span>
                 <span>{item.label}</span>
-                {item.badge > 0 && <span className={`nav-badge ${item.badgeType||""}`}>{item.badge}</span>}
+                {item.badge>0 && <span className={`nav-badge ${item.badgeType||""}`}>{item.badge}</span>}
               </div>
             );
           })}
         </div>
-        <div className="sidebar-footer">
-          <div>👤 {user.name || user.username}</div>
-          <div style={{marginTop:4,fontSize:11,color:"#334155"}}>Distributed Energy Infrastructure</div>
-          <button
-            className="btn btn-ghost btn-sm"
-            style={{marginTop:8,width:"100%",justifyContent:"center"}}
-            onClick={()=>{ msalInstance.logoutPopup(); setUser(null); }}
-          >Sign out</button>
+        <div className="sidebar-user">
+          <div className="user-name">{user.name||"User"}</div>
+          <div className="user-org">{user.username}</div>
+          <button className="signout-btn" onClick={()=>{msalInstance.logoutPopup();setUser(null);}}>
+            Sign out
+          </button>
         </div>
       </div>
 
       <div className="main">
         <div className="topbar">
-          <div className="topbar-title">{viewTitles[view]}</div>
-          <div className="topbar-actions">
-            <span style={{fontSize:12,color:"#34d399"}}>● Connected to SharePoint</span>
+          <div className="topbar-left">
+            <div className="topbar-title">{titles[view]}</div>
+          </div>
+          <div className="topbar-right">
+            <div className="live-dot">SharePoint Connected</div>
           </div>
         </div>
         <div className="content">
-          {view === "overview"    && <OverviewView user={user} />}
-          {view === "engineering" && <EngineeringView />}
-          {view === "owner"       && <ComingSoon title="Owner Log" listName="DEI-BOM-Procurement" />}
-          {view === "permits"     && <ComingSoon title="Permit Matrix" listName="DEI-Permit-Matrix" />}
-          {view === "closeout"    && <ComingSoon title="Closeout Tracker" listName="DEI-Closeout-Items" />}
+          {view==="overview"    && <Overview user={user}/>}
+          {view==="engineering" && <Engineering/>}
+          {view==="owner"       && <ComingSoon title="Owner Log"       listName="DEI-BOM-Procurement"/>}
+          {view==="permits"     && <ComingSoon title="Permit Matrix"   listName="DEI-Permit-Matrix"/>}
+          {view==="closeout"    && <ComingSoon title="Closeout Tracker" listName="DEI-Closeout-Items"/>}
         </div>
       </div>
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
