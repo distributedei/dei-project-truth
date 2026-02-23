@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEI Project Truth</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <!-- Microsoft Authentication Library (MSAL) -->
+  <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+    .app { display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; background: #141720; border-right: 1px solid #1e2535; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { background: #141720; border-bottom: 1px solid #1e2535; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .content { padding: 24px; flex: 1; }
+    .sidebar-logo { padding: 20px 16px 12px; border-bottom: 1px solid #1e2535; }
+    .logo-text { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .logo-sub { font-size: 11px; color: #64748b; margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+    .nav { padding: 8px; flex: 1; }
+    .nav-section { font-size: 10px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 1px; padding: 12px 8px 4px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; color: #94a3b8; transition: all 0.15s; margin: 1px 0; }
+    .nav-item:hover { background: #1e2535; color: #e2e8f0; }
+    .nav-item.active { background: #1e3a5f; color: #60a5fa; font-weight: 500; }
+    .nav-badge { margin-left: auto; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+    .nav-badge.warn { background: #d97706; }
+    .sidebar-footer { padding: 12px 16px; border-top: 1px solid #1e2535; font-size: 12px; color: #475569; }
+    .topbar-title { font-size: 16px; font-weight: 600; color: #e2e8f0; }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: #1d4ed8; border-color: #3b82f6; color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-ghost { background: transparent; border-color: #2d3748; color: #94a3b8; }
+    .btn-ghost:hover { background: #1e2535; color: #e2e8f0; }
+    .btn-success { background: #064e3b; border-color: #10b981; color: #34d399; }
+    .btn-danger { background: #7f1d1d; border-color: #dc2626; color: #fca5a5; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card { background: #141720; border: 1px solid #1e2535; border-radius: 10px; padding: 16px; }
+    .kpi-card.alert { border-color: #dc2626; }
+    .kpi-card.warn { border-color: #d97706; }
+    .kpi-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .kpi-value { font-size: 28px; font-weight: 700; color: #e2e8f0; }
+    .kpi-sub { font-size: 12px; margin-top: 4px; }
+    .kpi-sub.red { color: #f87171; }
+    .kpi-sub.green { color: #34d399; }
+    .kpi-sub.yellow { color: #fbbf24; }
+    .table-wrap { background: #141720; border: 1px solid #1e2535; border-radius: 10px; overflow: hidden; margin-bottom: 24px; }
+    .table-header { padding: 16px 20px; border-bottom: 1px solid #1e2535; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .table-title { font-size: 15px; font-weight: 600; color: #e2e8f0; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .filter-select { background: #1e2535; border: 1px solid #2d3748; color: #e2e8f0; padding: 6px 10px; border-radius: 6px; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; border-bottom: 1px solid #1e2535; background: #0f1117; }
+    td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #1a2030; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #1a2030; }
+    .empty-state { text-align: center; padding: 60px 20px; color: #475569; }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    .badge-draft { background: #1e2535; color: #94a3b8; }
+    .badge-submitted { background: #1e3a5f; color: #60a5fa; }
+    .badge-review { background: #2d1f5e; color: #a78bfa; }
+    .badge-approved { background: #064e3b; color: #34d399; }
+    .badge-rejected { background: #450a0a; color: #f87171; }
+    .badge-closed { background: #1f2937; color: #6b7280; }
+    .badge-returned { background: #431407; color: #fb923c; }
+    .bic { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .bic-eng { background: #1e3a5f; color: #60a5fa; }
+    .bic-con { background: #064e3b; color: #34d399; }
+    .bic-pm { background: #2d1f5e; color: #a78bfa; }
+    .bic-owner { background: #431407; color: #fb923c; }
+    .bic-vendor { background: #1f2937; color: #9ca3af; }
+    .bic-ahj { background: #713f12; color: #fbbf24; }
+    .aging-ok { color: #34d399; }
+    .aging-warn { color: #fbbf24; }
+    .aging-danger { color: #f87171; font-weight: 600; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal { background: #141720; border: 1px solid #1e2535; border-radius: 12px; padding: 24px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 12px; color: #64748b; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-input, .form-select, .form-textarea { width: 100%; background: #1e2535; border: 1px solid #2d3748; color: #e2e8f0; padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+    .section-title { font-size: 20px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+    .section-sub { font-size: 14px; color: #64748b; margin-bottom: 20px; }
+    .loading { display: flex; align-items: center; justify-content: center; padding: 60px; flex-direction: column; gap: 16px; color: #64748b; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #1e2535; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 20px; }
+    .login-card { background: #141720; border: 1px solid #1e2535; border-radius: 16px; padding: 40px; text-align: center; max-width: 400px; width: 100%; }
+    .login-logo { font-size: 48px; margin-bottom: 16px; }
+    .login-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .login-sub { font-size: 14px; color: #64748b; margin-bottom: 24px; }
+    .ms-btn { background: #0078d4; border: none; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; margin: 0 auto; }
+    .ms-btn:hover { background: #106ebe; }
+    .error-banner { background: #1a0a0a; border: 1px solid #dc2626; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #fca5a5; font-size: 13px; }
+    .success-banner { background: #0a1f15; border: 1px solid #10b981; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #34d399; font-size: 13px; }
+    .tag { display: inline-block; background: #1e2535; color: #94a3b8; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-right: 4px; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f1117; }
+    ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const CONFIG = {
+  clientId:  "613928f8-0497-47ea-bb0f-c1725a1f156a",
+  tenantId:  "ec357a32-5b85-438d-a765-ae33c8eb13b7",
+  siteId:    "825ac03b-8ba9-4336-a5a1-63ea999f0d7e",
+  siteUrl:   "https://distributedei.sharepoint.com/sites/Buildingaconnectedfuture",
+  lists: {
+    rfi: "DEI-RFI-Submittal-Tracker",
+  }
+};
+
+// ─── MSAL SETUP ───────────────────────────────────────────────────────────────
+const msalConfig = {
+  auth: {
+    clientId: CONFIG.clientId,
+    authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`,
+    redirectUri: window.location.origin,
+  },
+  cache: { cacheLocation: "sessionStorage" }
+};
+
+const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+const GRAPH_SCOPES = ["Sites.Selected", "Files.Read.All", "User.Read"];
+
+// ─── GRAPH API CLIENT ─────────────────────────────────────────────────────────
+async function getToken() {
+  const accounts = msalInstance.getAllAccounts();
+  if (accounts.length === 0) throw new Error("Not signed in");
+  try {
+    const result = await msalInstance.acquireTokenSilent({
+      scopes: GRAPH_SCOPES,
+      account: accounts[0]
+    });
+    return result.accessToken;
+  } catch (e) {
+    const result = await msalInstance.acquireTokenPopup({ scopes: GRAPH_SCOPES });
+    return result.accessToken;
+  }
+}
+
+async function graphGet(path) {
+  const token = await getToken();
+  const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || `Graph API error: ${res.status}`);
+  }
+  return res.json();
+}
+
+async function graphPost(path, body) {
+  const token = await getToken();
+  const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || `Graph API error: ${res.status}`);
+  }
+  return res.json();
+}
+
+async function graphPatch(path, body) {
+  const token = await getToken();
+  const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || `Graph API error: ${res.status}`);
+  }
+  return res.json();
+}
+
+// ─── SHAREPOINT LIST HELPERS ──────────────────────────────────────────────────
+const SITE_PATH = `/sites/${CONFIG.siteId}`;
+
+async function getListItems(listName, filter = "") {
+  let path = `${SITE_PATH}/lists/${listName}/items?expand=fields&$top=500`;
+  if (filter) path += `&$filter=${encodeURIComponent(filter)}`;
+  const data = await graphGet(path);
+  return (data.value || []).map(i => ({ id: i.id, ...i.fields }));
+}
+
+async function createListItem(listName, fields) {
+  return graphPost(`${SITE_PATH}/lists/${listName}/items`, { fields });
+}
+
+async function updateListItem(listName, itemId, fields) {
+  return graphPatch(`${SITE_PATH}/lists/${listName}/items/${itemId}/fields`, fields);
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function statusBadge(status) {
+  const map = {
+    "Draft": "badge-draft",
+    "Submitted": "badge-submitted",
+    "In Review": "badge-review",
+    "Returned - Revise": "badge-returned",
+    "Approved": "badge-approved",
+    "Rejected": "badge-rejected",
+    "Closed": "badge-closed",
+  };
+  return <span className={`badge ${map[status] || "badge-draft"}`}>{status || "—"}</span>;
+}
+
+function bicChip(bic) {
+  const map = { Engineering:"bic-eng", Construction:"bic-con", PM:"bic-pm", Owner:"bic-owner", Vendor:"bic-vendor", "AHJ/Utility":"bic-ahj" };
+  const icons = { Engineering:"⚙️", Construction:"🏗️", PM:"📋", Owner:"👤", Vendor:"📦", "AHJ/Utility":"🏛️" };
+  return <span className={`bic ${map[bic]||"bic-vendor"}`}>{icons[bic]||"•"} {bic||"—"}</span>;
+}
+
+function agingCell(dueDateStr) {
+  if (!dueDateStr) return <span style={{color:"#475569"}}>No date</span>;
+  const due = new Date(dueDateStr);
+  const today = new Date();
+  const days = Math.floor((today - due) / 86400000);
+  if (days <= 0) return <span className="aging-ok">On Track</span>;
+  if (days < 7)  return <span className="aging-warn">{days}d overdue</span>;
+  return <span className="aging-danger">{days}d overdue ⚠</span>;
+}
+
+function formatDate(d) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
+}
+
+// ─── MODALS ───────────────────────────────────────────────────────────────────
+function Modal({ title, onClose, children }) {
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div className="modal-title">{title}</div>
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function AddItemModal({ onClose, onSave }) {
+  const [form, setForm] = useState({
+    Title: "", Project: "", ItemType: "RFI", Number: "",
+    Subject: "", Status: "Draft", BallInCourt: "Engineering",
+    AssignedTo: "", DueDate: "", Description: "", EvidenceLink: ""
+  });
+  const [saving, setSaving] = useState(false);
+  const set = (k, v) => setForm(f => ({...f, [k]: v}));
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await onSave(form);
+      onClose();
+    } catch(e) {
+      alert("Error saving: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal title="Add New RFI / Submittal" onClose={onClose}>
+      <div className="form-group">
+        <label className="form-label">Title</label>
+        <input className="form-input" value={form.Title} onChange={e=>set("Title",e.target.value)} placeholder="Brief title..." />
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+        <div className="form-group">
+          <label className="form-label">Project</label>
+          <input className="form-input" value={form.Project} onChange={e=>set("Project",e.target.value)} placeholder="Project name" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Type</label>
+          <select className="form-select" value={form.ItemType} onChange={e=>set("ItemType",e.target.value)}>
+            <option>RFI</option>
+            <option>Submittal</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Number</label>
+          <input className="form-input" value={form.Number} onChange={e=>set("Number",e.target.value)} placeholder="RFI-001" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Status</label>
+          <select className="form-select" value={form.Status} onChange={e=>set("Status",e.target.value)}>
+            {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(s=><option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Ball in Court</label>
+          <select className="form-select" value={form.BallInCourt} onChange={e=>set("BallInCourt",e.target.value)}>
+            {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(s=><option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Assigned To</label>
+          <input className="form-input" value={form.AssignedTo} onChange={e=>set("AssignedTo",e.target.value)} placeholder="Name" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Due Date</label>
+          <input className="form-input" type="date" value={form.DueDate} onChange={e=>set("DueDate",e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Subject</label>
+          <input className="form-input" value={form.Subject} onChange={e=>set("Subject",e.target.value)} placeholder="Subject" />
+        </div>
+      </div>
+      <div className="form-group">
+        <label className="form-label">Description</label>
+        <textarea className="form-textarea" value={form.Description} onChange={e=>set("Description",e.target.value)} placeholder="Details..." />
+      </div>
+      <div className="form-group">
+        <label className="form-label">Evidence / SharePoint Link</label>
+        <input className="form-input" value={form.EvidenceLink} onChange={e=>set("EvidenceLink",e.target.value)} placeholder="https://..." />
+      </div>
+      <div className="modal-actions">
+        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+        <button className="btn btn-primary" onClick={save} disabled={saving || !form.Title}>
+          {saving ? "Saving..." : "Save to SharePoint"}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+function EditStatusModal({ item, onClose, onSave }) {
+  const [status, setStatus] = useState(item.Status || "Draft");
+  const [bic, setBic]       = useState(item.BallInCourt || "Engineering");
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await onSave(item.id, { Status: status, BallInCourt: bic });
+      onClose();
+    } catch(e) {
+      alert("Error: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal title={`Update — ${item.Title || item.Number}`} onClose={onClose}>
+      <div className="form-group">
+        <label className="form-label">Current Status</label>
+        {statusBadge(item.Status)}
+      </div>
+      <div className="form-group">
+        <label className="form-label">New Status</label>
+        <select className="form-select" value={status} onChange={e=>setStatus(e.target.value)}>
+          {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(s=><option key={s}>{s}</option>)}
+        </select>
+      </div>
+      <div className="form-group">
+        <label className="form-label">Ball in Court</label>
+        <select className="form-select" value={bic} onChange={e=>setBic(e.target.value)}>
+          {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(s=><option key={s}>{s}</option>)}
+        </select>
+      </div>
+      <div className="modal-actions">
+        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+        <button className="btn btn-primary" onClick={save} disabled={saving}>
+          {saving ? "Saving..." : "Update in SharePoint"}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+// ─── ENGINEERING LOG VIEW ─────────────────────────────────────────────────────
+function EngineeringView() {
+  const [items, setItems]       = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState(null);
+  const [success, setSuccess]   = useState(null);
+  const [typeFilter, setType]   = useState("all");
+  const [statusFilter, setStat] = useState("all");
+  const [bicFilter, setBic]     = useState("all");
+  const [modal, setModal]       = useState(null);
+  const [selected, setSelected] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getListItems(CONFIG.lists.rfi);
+      setItems(data);
+    } catch(e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleAdd = async (fields) => {
+    await createListItem(CONFIG.lists.rfi, fields);
+    setSuccess("Item added to SharePoint ✓");
+    setTimeout(() => setSuccess(null), 3000);
+    load();
+  };
+
+  const handleUpdate = async (itemId, fields) => {
+    await updateListItem(CONFIG.lists.rfi, itemId, fields);
+    setSuccess("Updated in SharePoint ✓");
+    setTimeout(() => setSuccess(null), 3000);
+    load();
+  };
+
+  const filtered = items.filter(i =>
+    (typeFilter === "all" || i.ItemType === typeFilter) &&
+    (statusFilter === "all" || i.Status === statusFilter) &&
+    (bicFilter === "all" || i.BallInCourt === bicFilter)
+  ).sort((a,b) => {
+    if (!a.DueDate) return 1;
+    if (!b.DueDate) return -1;
+    return new Date(a.DueDate) - new Date(b.DueDate);
+  });
+
+  const overdue = items.filter(i => i.DueDate && new Date(i.DueDate) < new Date() && i.Status !== "Closed" && i.Status !== "Approved");
+
+  return (
+    <div>
+      <div className="section-title">Engineering Log</div>
+      <div className="section-sub">RFIs and Submittals — live from SharePoint</div>
+
+      {error && <div className="error-banner">⚠️ {error}</div>}
+      {success && <div className="success-banner">✅ {success}</div>}
+
+      <div className="kpi-grid">
+        <div className="kpi-card">
+          <div className="kpi-label">Total Items</div>
+          <div className="kpi-value">{items.length}</div>
+          <div className="kpi-sub">In SharePoint list</div>
+        </div>
+        <div className={`kpi-card ${overdue.length > 0 ? "alert" : ""}`}>
+          <div className="kpi-label">Overdue</div>
+          <div className="kpi-value">{overdue.length}</div>
+          <div className={`kpi-sub ${overdue.length > 0 ? "red" : "green"}`}>
+            {overdue.length > 0 ? "Needs attention" : "All on track"}
+          </div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-label">Open RFIs</div>
+          <div className="kpi-value">{items.filter(i=>i.ItemType==="RFI"&&i.Status!=="Closed").length}</div>
+          <div className="kpi-sub">{items.filter(i=>i.ItemType==="RFI").length} total</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-label">Open Submittals</div>
+          <div className="kpi-value">{items.filter(i=>i.ItemType==="Submittal"&&i.Status!=="Closed").length}</div>
+          <div className="kpi-sub">{items.filter(i=>i.ItemType==="Submittal").length} total</div>
+        </div>
+      </div>
+
+      <div className="table-wrap">
+        <div className="table-header">
+          <div className="table-title">Items ({filtered.length})</div>
+          <div className="filters">
+            <select className="filter-select" value={typeFilter} onChange={e=>setType(e.target.value)}>
+              <option value="all">All Types</option>
+              <option value="RFI">RFI</option>
+              <option value="Submittal">Submittal</option>
+            </select>
+            <select className="filter-select" value={statusFilter} onChange={e=>setStat(e.target.value)}>
+              <option value="all">All Statuses</option>
+              {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(s=>
+                <option key={s} value={s}>{s}</option>
+              )}
+            </select>
+            <select className="filter-select" value={bicFilter} onChange={e=>setBic(e.target.value)}>
+              <option value="all">All Ball-in-Court</option>
+              {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(s=>
+                <option key={s} value={s}>{s}</option>
+              )}
+            </select>
+            <button className="btn btn-ghost btn-sm" onClick={load}>↺ Refresh</button>
+            <button className="btn btn-primary btn-sm" onClick={()=>setModal("add")}>+ Add Item</button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="loading">
+            <div className="spinner" />
+            <div>Loading from SharePoint...</div>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📋</div>
+            <div style={{marginBottom:8}}>
+              {items.length === 0 ? "No items in SharePoint yet." : "No items match the current filters."}
+            </div>
+            {items.length === 0 && (
+              <button className="btn btn-primary" onClick={()=>setModal("add")}>+ Add First Item</button>
+            )}
+          </div>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Type</th>
+                <th>Title / Subject</th>
+                <th>Project</th>
+                <th>Status</th>
+                <th>Ball in Court</th>
+                <th>Assigned To</th>
+                <th>Due Date</th>
+                <th>Aging</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(item => (
+                <tr key={item.id}>
+                  <td><span style={{fontFamily:"monospace",color:"#60a5fa",fontSize:12}}>{item.Number||"—"}</span></td>
+                  <td><span className="tag">{item.ItemType||"—"}</span></td>
+                  <td>
+                    <div style={{color:"#e2e8f0",fontWeight:500}}>{item.Title}</div>
+                    {item.Subject && <div style={{color:"#64748b",fontSize:11,marginTop:2}}>{item.Subject}</div>}
+                    {item.EvidenceLink && (
+                      <a href={item.EvidenceLink} target="_blank" rel="noreferrer" style={{fontSize:11,color:"#60a5fa"}}>📎 Evidence</a>
+                    )}
+                  </td>
+                  <td style={{color:"#94a3b8",fontSize:12}}>{item.Project||"—"}</td>
+                  <td>{statusBadge(item.Status)}</td>
+                  <td>{bicChip(item.BallInCourt)}</td>
+                  <td style={{color:"#94a3b8",fontSize:13}}>{item.AssignedTo||"—"}</td>
+                  <td style={{color:"#94a3b8",fontSize:13}}>{formatDate(item.DueDate)}</td>
+                  <td>{agingCell(item.DueDate)}</td>
+                  <td>
+                    <button className="btn btn-ghost btn-sm" onClick={()=>{setSelected(item);setModal("edit");}}>
+                      ✏️ Update
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {modal === "add" && <AddItemModal onClose={()=>setModal(null)} onSave={handleAdd} />}
+      {modal === "edit" && selected && (
+        <EditStatusModal item={selected} onClose={()=>setModal(null)} onSave={handleUpdate} />
+      )}
+    </div>
+  );
+}
+
+// ─── OVERVIEW VIEW ────────────────────────────────────────────────────────────
+function OverviewView({ user }) {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getListItems(CONFIG.lists.rfi).then(items => {
+      setStats({
+        total: items.length,
+        overdue: items.filter(i => i.DueDate && new Date(i.DueDate) < new Date() && i.Status !== "Closed").length,
+        rfis: items.filter(i => i.ItemType === "RFI").length,
+        submittals: items.filter(i => i.ItemType === "Submittal").length,
+        open: items.filter(i => !["Closed","Approved","Rejected"].includes(i.Status)).length,
+      });
+    }).catch(() => setStats(null)).finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div>
+      <div className="section-title">Welcome back, {user?.name?.split(" ")[0] || "there"} 👋</div>
+      <div className="section-sub">DEI Project Truth — connected to SharePoint</div>
+
+      <div style={{background:"#141720",border:"1px solid #1e2535",borderRadius:10,padding:16,marginBottom:24,display:"flex",alignItems:"center",gap:12}}>
+        <span style={{fontSize:24}}>🔗</span>
+        <div>
+          <div style={{fontWeight:600,color:"#e2e8f0",fontSize:14}}>Connected to SharePoint</div>
+          <div style={{color:"#64748b",fontSize:12}}>
+            <a href={CONFIG.siteUrl} target="_blank" rel="noreferrer" style={{color:"#60a5fa"}}>
+              {CONFIG.siteUrl}
+            </a>
+          </div>
+        </div>
+        <span style={{marginLeft:"auto",color:"#34d399",fontSize:13}}>● Live</span>
+      </div>
+
+      {loading ? (
+        <div className="loading"><div className="spinner"/><div>Loading data...</div></div>
+      ) : stats ? (
+        <div className="kpi-grid">
+          <div className="kpi-card">
+            <div className="kpi-label">Total Tracked Items</div>
+            <div className="kpi-value">{stats.total}</div>
+            <div className="kpi-sub green">In SharePoint</div>
+          </div>
+          <div className={`kpi-card ${stats.overdue > 0 ? "alert" : ""}`}>
+            <div className="kpi-label">Overdue</div>
+            <div className="kpi-value">{stats.overdue}</div>
+            <div className={`kpi-sub ${stats.overdue > 0 ? "red" : "green"}`}>
+              {stats.overdue > 0 ? "Need attention" : "All on track"}
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">Open Items</div>
+            <div className="kpi-value">{stats.open}</div>
+            <div className="kpi-sub">Active</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">RFIs / Submittals</div>
+            <div className="kpi-value">{stats.rfis} / {stats.submittals}</div>
+            <div className="kpi-sub">Split</div>
+          </div>
+        </div>
+      ) : (
+        <div className="error-banner">Could not load stats — check SharePoint connection</div>
+      )}
+
+      <div style={{background:"#141720",border:"1px solid #1e2535",borderRadius:10,padding:20,marginTop:8}}>
+        <div style={{fontWeight:600,marginBottom:12,color:"#e2e8f0"}}>📋 MVP Status</div>
+        <div style={{display:"flex",flexDirection:"column",gap:8,fontSize:13}}>
+          {[
+            ["✅","Azure AD Authentication","Working — signed in as " + (user?.username||"you")],
+            ["✅","SharePoint Connection","Connected to DEI site"],
+            ["✅","RFI & Submittal Tracker","Live — read/write to SharePoint list"],
+            ["🔜","Permit Matrix","Create DEI-Permit-Matrix list next"],
+            ["🔜","BOM / Procurement","Create DEI-BOM-Procurement list next"],
+            ["🔜","Invoicing","Create DEI-Invoices list next"],
+            ["🔜","Closeout Tracker","Create DEI-Closeout list next"],
+          ].map(([icon,label,sub]) => (
+            <div key={label} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid #1e2535"}}>
+              <span style={{fontSize:16}}>{icon}</span>
+              <div>
+                <div style={{color:"#e2e8f0",fontWeight:500}}>{label}</div>
+                <div style={{color:"#64748b",fontSize:11}}>{sub}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState(null);
+
+  const login = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await msalInstance.initialize();
+      const result = await msalInstance.loginPopup({ scopes: GRAPH_SCOPES });
+      onLogin(result.account);
+    } catch(e) {
+      setError(e.message);
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="login-screen">
+      <div className="login-card">
+        <div className="login-logo">🏗️</div>
+        <div className="login-title">DEI Project Truth</div>
+        <div className="login-sub">Sign in with your Distributed Energy Infrastructure Microsoft account to access project data.</div>
+        {error && <div className="error-banner" style={{marginBottom:16,textAlign:"left"}}>⚠️ {error}</div>}
+        <button className="ms-btn" onClick={login} disabled={loading}>
+          <svg width="20" height="20" viewBox="0 0 21 21" fill="none">
+            <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+            <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+            <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+            <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+          </svg>
+          {loading ? "Signing in..." : "Sign in with Microsoft"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── COMING SOON PLACEHOLDER ──────────────────────────────────────────────────
+function ComingSoon({ title, listName }) {
+  return (
+    <div>
+      <div className="section-title">{title}</div>
+      <div className="section-sub">Coming next — requires SharePoint list setup</div>
+      <div style={{background:"#141720",border:"1px solid #1e2535",borderRadius:10,padding:32,textAlign:"center"}}>
+        <div style={{fontSize:40,marginBottom:12}}>🔜</div>
+        <div style={{fontWeight:600,color:"#e2e8f0",marginBottom:8}}>Create the SharePoint list to enable this view</div>
+        <div style={{color:"#64748b",fontSize:13,marginBottom:20}}>
+          Go to your SharePoint site → New → List → Blank list → name it <code style={{background:"#1e2535",padding:"2px 6px",borderRadius:4,color:"#60a5fa"}}>{listName}</code>
+        </div>
+        <a href={CONFIG.siteUrl} target="_blank" rel="noreferrer" className="btn btn-primary">
+          Open SharePoint Site →
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+function App() {
+  const [user, setUser]   = useState(null);
+  const [view, setView]   = useState("overview");
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    msalInstance.initialize().then(() => {
+      // Check if already signed in
+      const accounts = msalInstance.getAllAccounts();
+      if (accounts.length > 0) setUser(accounts[0]);
+      setReady(true);
+    });
+  }, []);
+
+  if (!ready) return (
+    <div className="login-screen">
+      <div className="loading"><div className="spinner"/><div>Initializing...</div></div>
+    </div>
+  );
+
+  if (!user) return <LoginScreen onLogin={setUser} />;
+
+  const navItems = [
+    { section: "Project" },
+    { id: "overview",    icon: "🏠", label: "Overview" },
+    { section: "Logs" },
+    { id: "engineering", icon: "⚙️", label: "Engineering Log" },
+    { id: "owner",       icon: "👤", label: "Owner Log" },
+    { id: "permits",     icon: "🏛️", label: "Permits" },
+    { id: "closeout",    icon: "📋", label: "Closeout" },
+  ];
+
+  const viewTitles = {
+    overview: "Overview", engineering: "Engineering Log",
+    owner: "Owner Log", permits: "Permit Matrix", closeout: "Closeout"
+  };
+
+  return (
+    <div className="app">
+      <div className="sidebar">
+        <div className="sidebar-logo">
+          <div className="logo-text">DEI Project Truth</div>
+          <div className="logo-sub">PMO Control Plane</div>
+        </div>
+        <div className="nav">
+          {navItems.map((item, i) => {
+            if (item.section) return <div key={i} className="nav-section">{item.section}</div>;
+            return (
+              <div key={item.id} className={`nav-item ${view===item.id?"active":""}`} onClick={()=>setView(item.id)}>
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+                {item.badge > 0 && <span className={`nav-badge ${item.badgeType||""}`}>{item.badge}</span>}
+              </div>
+            );
+          })}
+        </div>
+        <div className="sidebar-footer">
+          <div>👤 {user.name || user.username}</div>
+          <div style={{marginTop:4,fontSize:11,color:"#334155"}}>Distributed Energy Infrastructure</div>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{marginTop:8,width:"100%",justifyContent:"center"}}
+            onClick={()=>{ msalInstance.logoutPopup(); setUser(null); }}
+          >Sign out</button>
+        </div>
+      </div>
+
+      <div className="main">
+        <div className="topbar">
+          <div className="topbar-title">{viewTitles[view]}</div>
+          <div className="topbar-actions">
+            <span style={{fontSize:12,color:"#34d399"}}>● Connected to SharePoint</span>
+          </div>
+        </div>
+        <div className="content">
+          {view === "overview"    && <OverviewView user={user} />}
+          {view === "engineering" && <EngineeringView />}
+          {view === "owner"       && <ComingSoon title="Owner Log" listName="DEI-BOM-Procurement" />}
+          {view === "permits"     && <ComingSoon title="Permit Matrix" listName="DEI-Permit-Matrix" />}
+          {view === "closeout"    && <ComingSoon title="Closeout Tracker" listName="DEI-Closeout-Items" />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
