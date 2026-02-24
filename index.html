@@ -404,7 +404,7 @@ const CONFIG = {
   tenantId: "ec357a32-5b85-438d-a765-ae33c8eb13b7",
   siteId:   "825ac03b-8ba9-4336-a5a1-63ea999f0d7e",
   siteUrl:  "https://distributedei.sharepoint.com/sites/Buildingaconnectedfuture",
-  lists: { rfi: "DEIRFISubmittalTracker" }
+  lists: { rfi: "DEI-RFI-Submittal-Tracker" }
 };
 
 const msalInstance = new msal.PublicClientApplication({
@@ -443,12 +443,43 @@ async function graph(method, path, body) {
 
 const SITE = `/sites/${CONFIG.siteId}`;
 
+// Resolve list display name to ID on first call, then cache it
+const listIdCache = {};
+async function resolveListId(displayName) {
+  if (listIdCache[displayName]) return listIdCache[displayName];
+  // Try display name directly first
+  try {
+    const list = await graph("GET", `${SITE}/lists/${encodeURIComponent(displayName)}`);
+    listIdCache[displayName] = list.id;
+    return list.id;
+  } catch {
+    // If that fails, enumerate lists and find by displayName
+    const allLists = await graph("GET", `${SITE}/lists`);
+    const match = (allLists.value || []).find(l =>
+      l.displayName === displayName ||
+      l.displayName.replace(/-/g, '') === displayName.replace(/-/g, '') ||
+      l.name === displayName ||
+      l.name === displayName.replace(/-/g, '')
+    );
+    if (!match) throw new Error(`The specified list was not found: ${displayName}`);
+    listIdCache[displayName] = match.id;
+    return match.id;
+  }
+}
+
 async function getItems(list) {
-  const d = await graph("GET", `${SITE}/lists/${list}/items?expand=fields&$top=500`);
+  const listId = await resolveListId(list);
+  const d = await graph("GET", `${SITE}/lists/${listId}/items?expand=fields&$top=500`);
   return (d.value||[]).map(i => ({id:i.id,...i.fields}));
 }
-async function addItem(list, fields) { return graph("POST", `${SITE}/lists/${list}/items`, {fields}); }
-async function editItem(list, id, fields) { return graph("PATCH", `${SITE}/lists/${list}/items/${id}/fields`, fields); }
+async function addItem(list, fields) {
+  const listId = await resolveListId(list);
+  return graph("POST", `${SITE}/lists/${listId}/items`, {fields});
+}
+async function editItem(list, id, fields) {
+  const listId = await resolveListId(list);
+  return graph("PATCH", `${SITE}/lists/${listId}/items/${id}/fields`, fields);
+}
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
