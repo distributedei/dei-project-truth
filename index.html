@@ -443,15 +443,30 @@ async function graph(method, path, body) {
 
 const SITE = `/sites/${CONFIG.siteId}`;
 
+// Map between SharePoint internal names and app display names
+const SP_TO_APP = { BallinCourt: "BallInCourt", Assignedto: "AssignedTo" };
+const APP_TO_SP = { BallInCourt: "BallinCourt", AssignedTo: "Assignedto" };
+
+function fromSP(fields) {
+  const out = {};
+  for (const [k,v] of Object.entries(fields)) out[SP_TO_APP[k]||k] = v;
+  return out;
+}
+function toSP(fields) {
+  const out = {};
+  for (const [k,v] of Object.entries(fields)) out[APP_TO_SP[k]||k] = v;
+  return out;
+}
+
 async function getItems(listId) {
   const d = await graph("GET", `${SITE}/lists/${listId}/items?expand=fields&$top=500`);
-  return (d.value||[]).map(i => ({id:i.id,...i.fields}));
+  return (d.value||[]).map(i => ({id:i.id,...fromSP(i.fields)}));
 }
 async function addItem(listId, fields) {
-  return graph("POST", `${SITE}/lists/${listId}/items`, {fields});
+  return graph("POST", `${SITE}/lists/${listId}/items`, {fields: toSP(fields)});
 }
 async function editItem(listId, id, fields) {
-  return graph("PATCH", `${SITE}/lists/${listId}/items/${id}/fields`, fields);
+  return graph("PATCH", `${SITE}/lists/${listId}/items/${id}/fields`, toSP(fields));
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
@@ -466,8 +481,8 @@ function Badge({status}) {
 }
 
 function BIC({val}) {
-  const m = {Engineering:"bic-eng",Construction:"bic-con",PM:"bic-pm",Owner:"bic-own",Vendor:"bic-ven","AHJ/Utility":"bic-ahj"};
-  const ic = {Engineering:"⚙",Construction:"🏗",PM:"📋",Owner:"👤",Vendor:"📦","AHJ/Utility":"🏛"};
+  const m = {Engineering:"bic-eng",Construction:"bic-con",PM:"bic-pm",Owner:"bic-own",Vendor:"bic-ven",AHJ:"bic-ahj",Utility:"bic-ahj"};
+  const ic = {Engineering:"⚙",Construction:"🏗",PM:"📋",Owner:"👤",Vendor:"📦",AHJ:"🏛",Utility:"🏛"};
   return <span className={`bic ${m[val]||"bic-ven"}`}>{ic[val]||"•"} {val||"—"}</span>;
 }
 
@@ -539,7 +554,7 @@ function AddModal({onClose, onSave}) {
         <div className="form-group">
           <label className="form-label">Ball in Court</label>
           <select className="form-select" value={f.BallInCourt} onChange={e=>s("BallInCourt",e.target.value)}>
-            {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(v=><option key={v}>{v}</option>)}
+            {["Engineering","Construction","PM","Owner","Vendor","AHJ","Utility"].map(v=><option key={v}>{v}</option>)}
           </select>
         </div>
         <div className="form-group">
@@ -597,7 +612,7 @@ function EditModal({item, onClose, onSave}) {
       <div className="form-group">
         <label className="form-label">Ball in Court</label>
         <select className="form-select" value={bic} onChange={e=>setBic(e.target.value)}>
-          {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(v=><option key={v}>{v}</option>)}
+          {["Engineering","Construction","PM","Owner","Vendor","AHJ","Utility"].map(v=><option key={v}>{v}</option>)}
         </select>
       </div>
       <div className="modal-actions">
@@ -789,7 +804,7 @@ function Engineering() {
             </select>
             <select className="filter-select" value={bicF} onChange={e=>setBicF(e.target.value)}>
               <option value="all">All Ball-in-Court</option>
-              {["Engineering","Construction","PM","Owner","Vendor","AHJ/Utility"].map(s=><option key={s}>{s}</option>)}
+              {["Engineering","Construction","PM","Owner","Vendor","AHJ","Utility"].map(s=><option key={s}>{s}</option>)}
             </select>
             <button className="btn btn-ghost btn-sm" onClick={load}>↺ Refresh</button>
             <button className="btn btn-gold btn-sm" onClick={()=>setModal("add")}>+ Add Item</button>
