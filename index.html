@@ -489,7 +489,13 @@ async function doLogin() {
 }
 
 function doSignOut() {
-  msalInstance.logoutRedirect({ postLogoutRedirectUri: REDIRECT });
+  msalInstance.logoutPopup({ postLogoutRedirectUri: REDIRECT }).then(function() {
+    window.location.reload();
+  }).catch(function(e) {
+    // Fallback: clear session and reload
+    sessionStorage.clear();
+    window.location.reload();
+  });
 }
 
 let sidebarView = 'overview';
