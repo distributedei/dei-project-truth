@@ -1881,13 +1881,14 @@ function renderRFIView() {
   if (filtered.length === 0) {
     html += '<div style="text-align:center;padding:50px;color:#8a9baa;"><div style="font-size:32px;margin-bottom:8px;opacity:0.5;">📋</div>No items match filters.</div>';
   } else {
-    html += '<table class="rfi-table"><thead><tr><th>#</th><th>Title</th><th>Project</th><th>Status</th><th>Ball in Court</th><th>Assigned</th><th>Due</th><th>Aging</th><th></th></tr></thead><tbody>';
+    html += '<table class="rfi-table"><thead><tr><th>Project</th><th>Type</th><th>#</th><th>Title</th><th>Status</th><th>Ball in Court</th><th>Assigned</th><th>Due</th><th>Aging</th><th></th></tr></thead><tbody>';
     filtered.forEach(function(item) {
       var od = rfiIsOverdue(item);
       html += '<tr class="' + (od ? "rfi-overdue" : "") + '" style="cursor:pointer;" onclick="rfiToggleExpand(' + item.id + ')">';
+      html += '<td style="color:#6b7c8a;font-size:12px;">' + esc(item.Project || "—") + '</td>';
+      html += '<td><span class="rfi-type-tag ' + (item.ItemType === "RFI" ? "rfi-type-rfi" : "rfi-type-sub") + '">' + esc(item.ItemType || "—") + '</span></td>';
       html += '<td><span style="font-family:\'Barlow Condensed\',sans-serif;color:var(--green);font-size:13px;">' + esc(rfiDisplayNumber(item)) + '</span></td>';
       html += '<td><div style="font-weight:600;">' + esc(item.Title || "—") + '</div>' + (item.Subject && item.Subject !== item.Title ? '<div style="color:#8a9baa;font-size:11px;margin-top:1px;">' + esc(item.Subject) + '</div>' : '') + '</td>';
-      html += '<td style="color:#6b7c8a;font-size:12px;">' + esc(item.Project || "—") + '</td>';
       html += '<td><span class="rfi-badge ' + (RFI_STATUS_CLASS[item.Status] || "rfi-draft") + '">' + esc(item.Status || "—") + '</span></td>';
       html += '<td><span class="bic-tag ' + (RFI_BIC_CLASS[item.BallInCourt] || "bic-ven") + '">' + (RFI_BIC_ICON[item.BallInCourt] || "•") + ' ' + esc(item.BallInCourt || "—") + '</span></td>';
       html += '<td style="color:#6b7c8a;font-size:12px;">' + esc(item.AssignedTo || "—") + '</td>';
@@ -1898,7 +1899,7 @@ function renderRFIView() {
 
       // Expanded detail row
       if (rfiExpanded === item.id) {
-        html += '<tr><td colspan="9" style="padding:0;background:transparent;"><div class="rfi-detail">';
+        html += '<tr><td colspan="10" style="padding:0;background:transparent;"><div class="rfi-detail">';
         html += '<div class="rfi-detail-grid">';
         html += '<div><div class="rfi-dl">Number</div><div class="rfi-dv">' + esc(item.Number || "—") + '</div></div>';
         html += '<div><div class="rfi-dl">Project</div><div class="rfi-dv">' + esc(item.Project || "—") + '</div></div>';
