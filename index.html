@@ -282,6 +282,32 @@
   .rfi-cmt-input input:focus{outline:none;border-color:var(--green);}
   .rfi-cmt-send{background:var(--green);color:#fff;border:none;padding:8px 16px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Barlow',sans-serif;}
   .rfi-cmt-send:hover{background:#5f8228;}
+
+  /* Document Panel */
+  .doc-panel{border-top:1px solid #e2e8f0;margin-top:14px;padding-top:14px;}
+  .doc-panel-title{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;}
+  .doc-list{margin-bottom:10px;}
+  .doc-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:4px;font-size:12px;transition:all 0.15s;}
+  .doc-item:hover{border-color:var(--green);background:#f8fff8;}
+  .doc-icon{font-size:18px;flex-shrink:0;}
+  .doc-info{flex:1;min-width:0;}
+  .doc-name{font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .doc-name a{color:var(--navy);text-decoration:none;}.doc-name a:hover{color:var(--green);text-decoration:underline;}
+  .doc-meta{font-size:10px;color:#8a9baa;margin-top:1px;}
+  .doc-version{display:inline-flex;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;background:rgba(119,157,54,0.1);color:var(--green);text-transform:uppercase;letter-spacing:0.5px;}
+  .doc-upload-zone{border:2px dashed #e2e8f0;border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:all 0.15s;position:relative;}
+  .doc-upload-zone:hover{border-color:var(--green);background:rgba(119,157,54,0.03);}
+  .doc-upload-zone.dragging{border-color:var(--green);background:rgba(119,157,54,0.08);}
+  .doc-upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .doc-upload-icon{font-size:24px;margin-bottom:4px;opacity:0.5;}
+  .doc-upload-text{font-size:12px;color:#8a9baa;}
+  .doc-upload-text strong{color:var(--green);}
+  .doc-progress{margin-top:8px;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;}
+  .doc-progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width 0.3s;}
+  .doc-link-row{display:flex;gap:6px;margin-top:8px;}
+  .doc-link-input{flex:1;padding:7px 10px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;font-family:'Barlow',sans-serif;}
+  .doc-link-input:focus{outline:none;border-color:var(--green);}
+  .doc-link-btn{padding:7px 14px;border-radius:5px;border:none;background:var(--green);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -387,8 +413,9 @@ const CONFIG = {
 const SITE = "/sites/" + CONFIG.siteId;
 const LIST = SITE + "/lists/" + CONFIG.listId;
 const RFI_LIST = SITE + "/lists/" + CONFIG.rfiListId;
-const SCOPES = ["Sites.Manage.All", "Sites.Selected", "User.Read", "Chat.Create", "Chat.ReadWrite", "User.ReadBasic.All"];
+const SCOPES = ["Sites.Manage.All", "Sites.Selected", "User.Read", "Chat.Create", "Chat.ReadWrite", "User.ReadBasic.All", "Files.ReadWrite.All"];
 const REDIRECT = window.location.origin + window.location.pathname;
+const DOC_ROOT = "RFI-Documents"; // Root folder in site's default drive
 
 const TEAM = [{"name": "Joshua Dean", "email": "jdean@distributedei.com", "nick": "Joshua"}, {"name": "Tom Guinta", "email": "tguinta@distributedei.com", "nick": "Tom"}, {"name": "Beth Harrington", "email": "bharrington@distributedei.com", "nick": "Beth"}, {"name": "Steve Maslen", "email": "smaslen@distributedei.com", "nick": "Steve"}, {"name": "David Moulton", "email": "dmoulton@distributedei.com", "nick": "David M"}, {"name": "Jessica Morse", "email": "jmorse@distributedei.com", "nick": "Jessica"}, {"name": "Daniel Spaizman", "email": "dspaizman@distributedei.com", "nick": "Daniel"}, {"name": "Jonas Bukh", "email": "jbukh@distributedei.com", "nick": "Jonas"}, {"name": "John Daly", "email": "jdaly@distributedei.com", "nick": "John"}, {"name": "Brian Follo", "email": "bfollo@distributedei.com", "nick": "Brian F"}, {"name": "Eli Cayer", "email": "ecayer@distributedei.com", "nick": "Eli"}, {"name": "Jackson Elwell", "email": "jelwell@distributedei.com", "nick": "Jackson"}, {"name": "Corinne Scanlon", "email": "cscanlon@distributedei.com", "nick": "Corinne"}, {"name": "Joshua Kuntz", "email": "jkuntz@distributedei.com", "nick": "Josh K"}, {"name": "Mike Wilkinson", "email": "mwilkinson@distributedei.com", "nick": "Mike W"}, {"name": "Matthew Sowle", "email": "msowle@distributedei.com", "nick": "Matt"}, {"name": "Caleb Schott", "email": "cschott@distributedei.com", "nick": "Caleb"}, {"name": "Stowe Duston", "email": "sduston@distributedei.com", "nick": "Stowe"}, {"name": "Thomas Hewitt", "email": "thewitt@distributedei.com", "nick": "Thomas"}, {"name": "Chris Shepard", "email": "cshepard@distributedei.com", "nick": "Chris"}, {"name": "Dipti Kothari", "email": "dkothari@distributedei.com", "nick": "Dipti"}, {"name": "Rusfid Haroon", "email": "rharoon@distributedei.com", "nick": "Rusfid"}, {"name": "Gabriel Murray", "email": "gmurray@distributedei.com", "nick": "Gabe"}, {"name": "David Caparelli", "email": "dcaparelli@distributeder.com", "nick": "David C"}, {"name": "Prateek Tare", "email": "ptare@distributeder.com", "nick": "Prateek"}, {"name": "Sean Harrington", "email": "sharrington@distributeder.com", "nick": "Sean"}, {"name": "Adam Regen", "email": "aregen@distributeder.com", "nick": "Adam"}, {"name": "Laura Gilman-Boutot", "email": "lgilman-boutot@distributeder.com", "nick": "Laura"}, {"name": "Trevor Maclachlan", "email": "tmaclachlan@distributeder.com", "nick": "Trevor"}, {"name": "Ryan Harrington", "email": "rharrington@distributeder.com", "nick": "Ryan"}, {"name": "Brian Parker", "email": "bparker@distributeder.com", "nick": "Brian P"}, {"name": "Joot Wright", "email": "jwright@distributeder.com", "nick": "Joot"}, {"name": "Alyssa DeBell", "email": "adebell@distributeder.com", "nick": "Alyssa"}, {"name": "David Sieczarski", "email": "dsieczarski@distributeder.com", "nick": "David S"}, {"name": "Carlton Tobler", "email": "ctobler@distributeder.com", "nick": "Carlton"}, {"name": "Peter Stanford", "email": "pstanford@distributeder.com", "nick": "Peter"}, {"name": "Alan Derosier", "email": "aderosier@distributeder.com", "nick": "Alan"}, {"name": "Ian Maclachlan", "email": "imaclachlan@distributeder.com", "nick": "Ian"}, {"name": "Julian Diaz", "email": "jdiaz@distributeder.com", "nick": "Julian"}];
 
@@ -430,6 +457,10 @@ const RFI_BIC_CLASS = {"Engineering":"bic-eng","Construction":"bic-con","PM":"bi
 const RFI_BIC_ICON = {"Engineering":"⚙","Construction":"🏗","PM":"📋","Owner":"👤","Vendor":"📦","AHJ":"🏛","Utility":"🏛"};
 const S2A = {BallinCourt:"BallInCourt",Assignedto:"AssignedTo"};
 const A2S = {BallInCourt:"BallinCourt",AssignedTo:"Assignedto"};
+
+// Document state
+let siteDriveId = null; // discovered on first use
+let rfiDocCache = {}; // itemId -> [{name, url, version, modified, size}]
 
 async function initAuth() {
   try {
@@ -1479,6 +1510,253 @@ function rfiNotifyOnAdd(fields, changedBy) {
   rfiSendTeams(fields.AssignedTo, subject, lines.join("<br>"), changedBy);
 }
 
+// ══════════════════════════════════════════════════
+// DOCUMENT MANAGEMENT
+// ══════════════════════════════════════════════════
+async function ensureDrive() {
+  if (siteDriveId) return siteDriveId;
+  try {
+    var resp = await graph("GET", SITE + "/drive");
+    siteDriveId = resp.id;
+    return siteDriveId;
+  } catch(e) { console.error("Drive discovery failed:", e); throw e; }
+}
+
+async function ensureFolder(path) {
+  // path like "RFI-Documents/Acton" — creates each segment if needed
+  var driveId = await ensureDrive();
+  var segments = path.split("/").filter(Boolean);
+  var currentPath = "";
+  for (var i = 0; i < segments.length; i++) {
+    var parent = currentPath ? currentPath : "root";
+    var seg = segments[i];
+    try {
+      await graph("GET", "/drives/" + driveId + "/root:/" + currentPath + (currentPath ? "/" : "") + seg);
+    } catch(e) {
+      // Folder doesn't exist, create it
+      var parentPath = currentPath ? "/drives/" + driveId + "/root:/" + currentPath + ":/children" : "/drives/" + driveId + "/root/children";
+      await graph("POST", parentPath, {
+        name: seg,
+        folder: {},
+        "@microsoft.graph.conflictBehavior": "replace"
+      });
+    }
+    currentPath = currentPath ? currentPath + "/" + seg : seg;
+  }
+  return currentPath;
+}
+
+function docFolderPath(project, itemType) {
+  var projSafe = (project || "Unassigned").replace(/[<>:"/\\|?*]/g, "_");
+  return DOC_ROOT + "/" + projSafe;
+}
+
+function docFileName(item, originalName, version) {
+  var prefix = (item.ItemType || "RFI") + "-" + (item.Number || item.id);
+  var ext = originalName.includes(".") ? "." + originalName.split(".").pop() : "";
+  var vStr = version > 1 ? "_V" + version : "";
+  var titleSlug = (item.Title || "").replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-").substring(0, 40);
+  return prefix + "_" + titleSlug + vStr + ext;
+}
+
+async function uploadDocToRFI(itemId, file) {
+  var item = RFI_DATA.find(function(i) { return i.id == itemId; });
+  if (!item) throw new Error("Item not found");
+
+  var driveId = await ensureDrive();
+  var folderPath = docFolderPath(item.Project, item.ItemType);
+  await ensureFolder(folderPath);
+
+  // Determine version number
+  var existing = rfiDocCache[itemId] || [];
+  var version = existing.length + 1;
+  var fileName = docFileName(item, file.name, version);
+
+  // Upload file (up to 4MB direct, larger needs upload session)
+  var uploadPath = "/drives/" + driveId + "/root:/" + folderPath + "/" + fileName + ":/content";
+
+  var token = await getToken();
+  var resp = await fetch("https://graph.microsoft.com/v1.0" + uploadPath, {
+    method: "PUT",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": file.type || "application/octet-stream"
+    },
+    body: file
+  });
+
+  if (!resp.ok) {
+    var err = await resp.json().catch(function() { return {}; });
+    throw new Error(err.error?.message || "Upload failed: " + resp.status);
+  }
+
+  var result = await resp.json();
+
+  // Store the link in the RFI item's EvidenceLink field (append if existing)
+  var currentLinks = item.EvidenceLink || "";
+  var newLink = result.webUrl || result["@microsoft.graph.downloadUrl"] || "";
+  var updatedLinks = currentLinks ? currentLinks + "\n" + newLink : newLink;
+  await rfiEditItem(itemId, { EvidenceLink: updatedLinks });
+
+  return result;
+}
+
+async function loadDocsForItem(itemId) {
+  var item = RFI_DATA.find(function(i) { return i.id == itemId; });
+  if (!item) return [];
+
+  try {
+    var driveId = await ensureDrive();
+    var folderPath = docFolderPath(item.Project, item.ItemType);
+    var prefix = (item.ItemType || "RFI") + "-" + (item.Number || item.id);
+
+    var resp = await graph("GET", "/drives/" + driveId + "/root:/" + folderPath + ":/children?$top=100");
+    var files = (resp.value || []).filter(function(f) {
+      return f.name.startsWith(prefix) && !f.folder;
+    }).map(function(f, idx) {
+      var vMatch = f.name.match(/_V(\d+)/);
+      return {
+        name: f.name,
+        url: f.webUrl,
+        downloadUrl: f["@microsoft.graph.downloadUrl"] || f.webUrl,
+        version: vMatch ? parseInt(vMatch[1]) : 1,
+        modified: f.lastModifiedDateTime,
+        size: f.size,
+        id: f.id
+      };
+    }).sort(function(a, b) { return b.version - a.version; });
+
+    rfiDocCache[itemId] = files;
+    return files;
+  } catch(e) {
+    // Folder might not exist yet — that's OK
+    rfiDocCache[itemId] = [];
+    return [];
+  }
+}
+
+async function linkExternalDoc(itemId, url) {
+  var item = RFI_DATA.find(function(i) { return i.id == itemId; });
+  if (!item) return;
+  var currentLinks = item.EvidenceLink || "";
+  var updatedLinks = currentLinks ? currentLinks + "\n" + url : url;
+  await rfiEditItem(itemId, { EvidenceLink: updatedLinks });
+}
+
+function fileIcon(name) {
+  var ext = (name || "").split(".").pop().toLowerCase();
+  if (["pdf"].includes(ext)) return "📄";
+  if (["doc","docx"].includes(ext)) return "📝";
+  if (["xls","xlsx"].includes(ext)) return "📊";
+  if (["ppt","pptx"].includes(ext)) return "📑";
+  if (["jpg","jpeg","png","gif","svg"].includes(ext)) return "🖼";
+  if (["dwg","dxf"].includes(ext)) return "📐";
+  if (["zip","rar"].includes(ext)) return "📦";
+  return "📎";
+}
+
+function formatFileSize(bytes) {
+  if (!bytes) return "";
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / 1048576).toFixed(1) + " MB";
+}
+
+function renderDocPanel(item) {
+  var docs = rfiDocCache[item.id] || [];
+  var links = (item.EvidenceLink || "").split("\n").filter(function(l) { return l.trim(); });
+
+  var html = '<div class="doc-panel">';
+  html += '<div class="doc-panel-title">📁 Documents & Files</div>';
+
+  // File list
+  if (docs.length > 0) {
+    html += '<div class="doc-list">';
+    docs.forEach(function(d) {
+      html += '<div class="doc-item">';
+      html += '<div class="doc-icon">' + fileIcon(d.name) + '</div>';
+      html += '<div class="doc-info"><div class="doc-name"><a href="' + esc(d.url) + '" target="_blank">' + esc(d.name) + '</a></div>';
+      html += '<div class="doc-meta"><span class="doc-version">V' + d.version + '</span> · ' + formatFileSize(d.size) + ' · ' + rfiFmtDate(d.modified) + '</div></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  } else if (links.length > 0) {
+    // Show evidence links if no uploaded docs found
+    html += '<div class="doc-list">';
+    links.forEach(function(link, idx) {
+      html += '<div class="doc-item"><div class="doc-icon">🔗</div><div class="doc-info"><div class="doc-name"><a href="' + esc(link) + '" target="_blank">' + esc(link.length > 60 ? link.substring(0, 60) + "..." : link) + '</a></div><div class="doc-meta">Linked document</div></div></div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div style="color:#8a9baa;font-size:12px;margin-bottom:10px;">No documents attached yet.</div>';
+  }
+
+  // Upload zone
+  html += '<div class="doc-upload-zone" id="docZone_' + item.id + '" ondragover="event.preventDefault();this.classList.add(\'dragging\');" ondragleave="this.classList.remove(\'dragging\');" ondrop="event.preventDefault();this.classList.remove(\'dragging\');handleDocDrop(event,' + item.id + ');">';
+  html += '<input type="file" multiple onchange="handleDocUpload(event,' + item.id + ')">';
+  html += '<div class="doc-upload-icon">📤</div>';
+  html += '<div class="doc-upload-text">Drag files here or <strong>click to upload</strong></div>';
+  html += '<div id="docProgress_' + item.id + '"></div>';
+  html += '</div>';
+
+  // Link external doc
+  html += '<div class="doc-link-row">';
+  html += '<input class="doc-link-input" id="docLinkInput_' + item.id + '" placeholder="Paste SharePoint/OneDrive URL...">';
+  html += '<button class="doc-link-btn" onclick="handleDocLink(' + item.id + ')">🔗 Link</button>';
+  html += '</div>';
+
+  // Load docs button if not cached
+  if (!rfiDocCache[item.id]) {
+    html += '<div style="margin-top:8px;text-align:center;"><button class="add-proj-btn" style="padding:4px 12px;font-size:11px;" onclick="refreshDocs(' + item.id + ')">↺ Load files from SharePoint</button></div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+async function handleDocUpload(event, itemId) {
+  var files = event.target.files;
+  if (!files || !files.length) return;
+  var progressEl = document.getElementById("docProgress_" + itemId);
+  if (progressEl) progressEl.innerHTML = '<div class="doc-progress"><div class="doc-progress-fill" style="width:0%"></div></div>';
+
+  for (var i = 0; i < files.length; i++) {
+    try {
+      if (progressEl) progressEl.querySelector(".doc-progress-fill").style.width = Math.round(((i + 0.5) / files.length) * 100) + "%";
+      await uploadDocToRFI(itemId, files[i]);
+    } catch(e) {
+      showToast("Upload failed: " + e.message, "err");
+    }
+  }
+  if (progressEl) progressEl.innerHTML = '';
+  await refreshDocs(itemId);
+  showToast(files.length + " file(s) uploaded ✓", "ok");
+}
+
+function handleDocDrop(event, itemId) {
+  var files = event.dataTransfer.files;
+  if (!files || !files.length) return;
+  // Simulate the upload flow
+  handleDocUpload({target: {files: files}}, itemId);
+}
+
+async function handleDocLink(itemId) {
+  var input = document.getElementById("docLinkInput_" + itemId);
+  if (!input || !input.value.trim()) return;
+  try {
+    await linkExternalDoc(itemId, input.value.trim());
+    input.value = "";
+    showToast("Document linked ✓", "ok");
+  } catch(e) {
+    showToast("Error: " + e.message, "err");
+  }
+}
+
+async function refreshDocs(itemId) {
+  await loadDocsForItem(itemId);
+  renderRFIView();
+}
+
 function rfiIsOverdue(item) {
   if (["Closed","Approved"].includes(item.Status)) return false;
   if (!item.DueDate) return false;
@@ -1497,6 +1775,29 @@ function rfiAgingHTML(date, status) {
 }
 
 function rfiFmtDate(d) { if (!d) return "—"; return new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
+
+function rfiDisplayNumber(item) {
+  if (!item.Number) return "—";
+  var type = (item.ItemType || "RFI").toUpperCase();
+  var num = item.Number;
+  // If Number already includes the type prefix, just return it
+  if (num.toUpperCase().startsWith("RFI") || num.toUpperCase().startsWith("SUB")) return num;
+  // Otherwise combine: RFI-001
+  return type.substring(0,3) + "-" + num;
+}
+
+function rfiNextNumber(itemType) {
+  var prefix = (itemType || "RFI").toUpperCase().substring(0,3);
+  var max = 0;
+  RFI_DATA.forEach(function(i) {
+    if ((i.ItemType || "").toUpperCase().substring(0,3) !== prefix) return;
+    var num = i.Number || "";
+    // Extract numeric part from patterns like "RFI-042", "SUB-007", or just "42"
+    var m = num.match(/(\d+)\s*$/);
+    if (m) { var n = parseInt(m[1]); if (n > max) max = n; }
+  });
+  return prefix + "-" + String(max + 1).padStart(3, "0");
+}
 
 function renderRFIView() {
   var overdue = RFI_DATA.filter(rfiIsOverdue);
@@ -1574,12 +1875,11 @@ function renderRFIView() {
   if (filtered.length === 0) {
     html += '<div style="text-align:center;padding:50px;color:#8a9baa;"><div style="font-size:32px;margin-bottom:8px;opacity:0.5;">📋</div>No items match filters.</div>';
   } else {
-    html += '<table class="rfi-table"><thead><tr><th>#</th><th>Type</th><th>Title</th><th>Project</th><th>Status</th><th>Ball in Court</th><th>Assigned</th><th>Due</th><th>Aging</th><th></th></tr></thead><tbody>';
+    html += '<table class="rfi-table"><thead><tr><th>#</th><th>Title</th><th>Project</th><th>Status</th><th>Ball in Court</th><th>Assigned</th><th>Due</th><th>Aging</th><th></th></tr></thead><tbody>';
     filtered.forEach(function(item) {
       var od = rfiIsOverdue(item);
       html += '<tr class="' + (od ? "rfi-overdue" : "") + '" style="cursor:pointer;" onclick="rfiToggleExpand(' + item.id + ')">';
-      html += '<td><span style="font-family:\'Barlow Condensed\',sans-serif;color:var(--green);font-size:13px;">' + esc(item.Number || "—") + '</span></td>';
-      html += '<td><span class="rfi-type-tag ' + (item.ItemType === "RFI" ? "rfi-type-rfi" : "rfi-type-sub") + '">' + esc(item.ItemType || "—") + '</span></td>';
+      html += '<td><span style="font-family:\'Barlow Condensed\',sans-serif;color:var(--green);font-size:13px;">' + esc(rfiDisplayNumber(item)) + '</span></td>';
       html += '<td><div style="font-weight:600;">' + esc(item.Title || "—") + '</div>' + (item.Subject && item.Subject !== item.Title ? '<div style="color:#8a9baa;font-size:11px;margin-top:1px;">' + esc(item.Subject) + '</div>' : '') + '</td>';
       html += '<td style="color:#6b7c8a;font-size:12px;">' + esc(item.Project || "—") + '</td>';
       html += '<td><span class="rfi-badge ' + (RFI_STATUS_CLASS[item.Status] || "rfi-draft") + '">' + esc(item.Status || "—") + '</span></td>';
@@ -1592,7 +1892,7 @@ function renderRFIView() {
 
       // Expanded detail row
       if (rfiExpanded === item.id) {
-        html += '<tr><td colspan="10" style="padding:0;background:transparent;"><div class="rfi-detail">';
+        html += '<tr><td colspan="9" style="padding:0;background:transparent;"><div class="rfi-detail">';
         html += '<div class="rfi-detail-grid">';
         html += '<div><div class="rfi-dl">Number</div><div class="rfi-dv">' + esc(item.Number || "—") + '</div></div>';
         html += '<div><div class="rfi-dl">Project</div><div class="rfi-dv">' + esc(item.Project || "—") + '</div></div>';
@@ -1610,6 +1910,8 @@ function renderRFIView() {
         if (!["Closed","Approved"].includes(item.Status)) html += '<button class="add-proj-btn" style="padding:5px 12px;font-size:12px;" onclick="rfiQuickAction(' + item.id + ',\'Approved\')">✓ Approve</button>';
         if (item.Status !== "Closed") html += '<button class="add-proj-btn" style="padding:5px 12px;font-size:12px;" onclick="rfiQuickAction(' + item.id + ',\'Closed\')">Archive</button>';
         html += '</div>';
+        // Documents
+        html += renderDocPanel(item);
         // Comments
         html += renderRFIComments(item);
         html += '</div></td></tr>';
@@ -1623,7 +1925,14 @@ function renderRFIView() {
   renderSidebarProjects();
 }
 
-function rfiToggleExpand(id) { rfiExpanded = rfiExpanded === id ? null : id; renderRFIView(); }
+function rfiToggleExpand(id) {
+  rfiExpanded = rfiExpanded === id ? null : id;
+  renderRFIView();
+  // Auto-load docs for expanded item
+  if (rfiExpanded === id && !rfiDocCache[id]) {
+    loadDocsForItem(id).then(function() { renderRFIView(); });
+  }
+}
 
 async function rfiQuickAction(id, status) {
   try { await rfiEditItem(id, {Status: status}); showToast(status + " ✓", "ok"); } catch(e) { showToast("Error: " + e.message, "err"); }
@@ -1690,8 +1999,8 @@ function showRFIAddModal() {
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
     '<div class="form-group" style="grid-column:1/-1;"><label class="form-label">Title *</label><input class="form-input" id="rfiTitle" placeholder="Brief title"></div>' +
     '<div class="form-group"><label class="form-label">Project</label><select class="form-input" id="rfiProject"><option value="">Select...</option>' + allProjects.map(function(p){return '<option>' + esc(p) + '</option>';}).join('') + '</select></div>' +
-    '<div class="form-group"><label class="form-label">Type</label><select class="form-input" id="rfiType"><option>RFI</option><option>Submittal</option></select></div>' +
-    '<div class="form-group"><label class="form-label">Number</label><input class="form-input" id="rfiNumber"></div>' +
+    '<div class="form-group"><label class="form-label">Type</label><select class="form-input" id="rfiType" onchange="document.getElementById(\'rfiNumber\').value=rfiNextNumber(this.value);"><option>RFI</option><option>Submittal</option></select></div>' +
+    '<div class="form-group"><label class="form-label">Number (auto)</label><input class="form-input" id="rfiNumber" value="' + rfiNextNumber("RFI") + '" style="font-weight:700;color:var(--green);"></div>' +
     '<div class="form-group"><label class="form-label">Status</label><select class="form-input" id="rfiStatus">' + RFI_STATUSES.map(function(s){return '<option>' + s + '</option>';}).join('') + '</select></div>' +
     '<div class="form-group"><label class="form-label">Ball in Court</label><select class="form-input" id="rfiBIC">' + RFI_BICS.map(function(b){return '<option>' + b + '</option>';}).join('') + '</select></div>' +
     '<div class="form-group"><label class="form-label">Assigned To</label><input class="form-input" id="rfiAssigned"></div>' +
