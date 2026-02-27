@@ -221,6 +221,67 @@
   .var-add-row{display:flex;gap:6px;margin-top:8px;}
   .var-add-input{flex:1;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;font-family:'Barlow',sans-serif;}.var-add-input:focus{outline:none;border-color:var(--green);}
   .var-add-btn{padding:6px 12px;border-radius:6px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+
+  /* RFI Styles */
+  .rfi-badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;font-family:'Barlow Condensed',sans-serif;}
+  .rfi-draft{background:#f0f4f8;color:#8a9baa;border:1px solid #e2e8f0;}
+  .rfi-submitted{background:rgba(55,86,115,0.08);color:#375673;border:1px solid rgba(55,86,115,0.2);}
+  .rfi-review{background:rgba(100,60,180,0.12);color:#9b6ad0;border:1px solid rgba(150,100,230,0.3);}
+  .rfi-returned{background:rgba(232,169,48,0.15);color:var(--amber);border:1px solid rgba(232,169,48,0.3);}
+  .rfi-approved{background:rgba(46,204,138,0.15);color:#2ecc8a;border:1px solid rgba(46,204,138,0.3);}
+  .rfi-rejected{background:rgba(224,82,82,0.15);color:var(--red);border:1px solid rgba(224,82,82,0.3);}
+  .rfi-closed{background:#f0f4f8;color:#8a9baa;border:1px solid #e2e8f0;}
+  .bic-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:'Barlow Condensed',sans-serif;}
+  .bic-eng{background:rgba(55,86,115,0.1);color:#375673;}
+  .bic-con{background:rgba(46,204,138,0.15);color:#2ecc8a;}
+  .bic-pm{background:rgba(200,168,75,0.15);color:var(--green);}
+  .bic-own{background:rgba(232,169,48,0.15);color:var(--amber);}
+  .bic-ven{background:#f0f4f8;color:#8a9baa;}
+  .bic-ahj{background:rgba(180,100,50,0.2);color:#e8a07a;}
+  .rfi-table{width:100%;border-collapse:collapse;}
+  .rfi-table th{text-align:left;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;}
+  .rfi-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid #f0f4f8;vertical-align:middle;color:#4a5568;}
+  .rfi-table tr:hover td{background:#f8fafb;}
+  .rfi-table tr.rfi-overdue td{background:rgba(224,82,82,0.04);}
+  .rfi-table tr.rfi-overdue:hover td{background:rgba(224,82,82,0.08);}
+  .rfi-type-tag{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
+  .rfi-type-rfi{background:rgba(21,56,108,0.15);color:#5a8ab4;}
+  .rfi-type-sub{background:rgba(200,168,75,0.15);color:var(--green);}
+  .rfi-kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
+  .rfi-kpi{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;position:relative;overflow:hidden;cursor:pointer;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+  .rfi-kpi:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+  .rfi-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),transparent);}
+  .rfi-kpi.alert::before{background:linear-gradient(90deg,var(--red),transparent);}
+  .rfi-kpi.active{border-color:var(--green);box-shadow:0 0 20px rgba(119,157,54,0.15);}
+  .rfi-kpi-label{font-size:10px;color:#8a9baa;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:6px;}
+  .rfi-kpi-value{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:var(--navy);}
+  .rfi-kpi-sub{font-size:11px;margin-top:4px;color:#8a9baa;}
+  .rfi-kpi-sub.red{color:var(--red);}
+  .rfi-kpi-sub.green{color:#2ecc8a;}
+  .rfi-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;padding:4px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;}
+  .rfi-tab{padding:7px 14px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;color:#6b7c8a;transition:all 0.15s;font-family:'Barlow Condensed',sans-serif;}
+  .rfi-tab:hover{color:var(--navy);background:#f0f4f8;}
+  .rfi-tab.active{background:rgba(119,157,54,0.12);color:var(--green);}
+  .rfi-tab.has-overdue::after{content:'';display:inline-block;width:6px;height:6px;background:var(--red);border-radius:50%;margin-left:4px;vertical-align:middle;}
+  .rfi-person-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+  .rfi-chip{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #e2e8f0;color:#6b7c8a;transition:all 0.15s;background:#fff;}
+  .rfi-chip:hover{border-color:var(--navy);color:var(--navy);}
+  .rfi-chip.active{border-color:var(--green);color:var(--green);background:rgba(119,157,54,0.08);}
+  .rfi-detail{background:#f8fafb;border:1px solid #e2e8f0;border-radius:10px;padding:20px;margin:4px 14px 12px;}
+  .rfi-detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+  .rfi-dl{color:#8a9baa;font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:3px;}
+  .rfi-dv{color:var(--navy);font-weight:500;font-size:13px;}
+  .rfi-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+  .rfi-wrap-head{padding:14px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#f8fafb;}
+  .rfi-wrap-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--navy);}
+  .rfi-cmt-box{border-top:1px solid #e2e8f0;margin-top:14px;padding-top:14px;}
+  .rfi-cmt-item{padding:8px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:6px;font-size:12px;}
+  .rfi-cmt-meta{color:#8a9baa;font-size:10px;margin-bottom:3px;font-weight:600;}
+  .rfi-cmt-input{display:flex;gap:8px;margin-top:8px;}
+  .rfi-cmt-input input{flex:1;background:#f8fafb;border:1px solid #e2e8f0;padding:8px 12px;border-radius:5px;font-size:13px;font-family:'Barlow',sans-serif;}
+  .rfi-cmt-input input:focus{outline:none;border-color:var(--green);}
+  .rfi-cmt-send{background:var(--green);color:#fff;border:none;padding:8px 16px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Barlow',sans-serif;}
+  .rfi-cmt-send:hover{background:#5f8228;}
 </style>
 </head>
 <body>
@@ -320,10 +381,12 @@ const CONFIG = {
   clientId: "613928f8-0497-47ea-bb0f-c1725a1f156a",
   tenantId: "ec357a32-5b85-438d-a765-ae33c8eb13b7",
   siteId: "8103997e-0688-4832-a5b4-bf18de7f96f5",
-  listId: "c0443281-dca9-49e0-856f-2748d4681399"
+  listId: "c0443281-dca9-49e0-856f-2748d4681399",
+  rfiListId: "38fd99d2-dad5-41d8-a898-4f5e425ad340"
 };
 const SITE = "/sites/" + CONFIG.siteId;
 const LIST = SITE + "/lists/" + CONFIG.listId;
+const RFI_LIST = SITE + "/lists/" + CONFIG.rfiListId;
 const SCOPES = ["Sites.Manage.All", "Sites.Selected", "User.Read", "Chat.Create", "Chat.ReadWrite", "User.ReadBasic.All"];
 const REDIRECT = window.location.origin + window.location.pathname;
 
@@ -351,6 +414,22 @@ let openComment = null; // {project, category, topic, itemId}
 let comments = {}; // itemId -> [{author, text, time}]
 let saveTimers = {};
 let currentUser = null;
+
+// RFI State
+let RFI_DATA = [];
+let rfiProjFilter = "all";
+let rfiPersonFilter = "all";
+let rfiTypeFilter = "all";
+let rfiStatFilter = "all";
+let rfiExpanded = null;
+
+const RFI_STATUSES = ["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"];
+const RFI_BICS = ["Engineering","Construction","PM","Owner","Vendor","AHJ","Utility"];
+const RFI_STATUS_CLASS = {"Draft":"rfi-draft","Submitted":"rfi-submitted","In Review":"rfi-review","Returned - Revise":"rfi-returned","Approved":"rfi-approved","Rejected":"rfi-rejected","Closed":"rfi-closed"};
+const RFI_BIC_CLASS = {"Engineering":"bic-eng","Construction":"bic-con","PM":"bic-pm","Owner":"bic-own","Vendor":"bic-ven","AHJ":"bic-ahj","Utility":"bic-ahj"};
+const RFI_BIC_ICON = {"Engineering":"⚙","Construction":"🏗","PM":"📋","Owner":"👤","Vendor":"📦","AHJ":"🏛","Utility":"🏛"};
+const S2A = {BallinCourt:"BallInCourt",Assignedto:"AssignedTo"};
+const A2S = {BallInCourt:"BallinCourt",AssignedTo:"Assignedto"};
 
 async function initAuth() {
   try {
@@ -393,7 +472,11 @@ function setSidebarView(view) {
     return;
   }
   if (view === 'rfi') {
-    document.getElementById("mainContent").innerHTML = '<iframe src="https://distributedei.github.io/dei-project-truth-v3/" style="width:100%;height:calc(100vh - 40px);border:none;border-radius:8px;"></iframe>';
+    if (RFI_DATA.length === 0) {
+      loadRFIData();
+    } else {
+      renderRFIView();
+    }
     return;
   }
   // Placeholder for future views
@@ -1306,6 +1389,395 @@ async function executeDeleteProject() {
   var msg = "🗑 " + projectName + " deleted — " + deleted + " items removed";
   if (failed > 0) msg += " (" + failed + " failed)";
   showToast(msg, failed > 0 ? "info" : "ok");
+}
+
+// ══════════════════════════════════════════════════
+// RFI / SUBMITTAL ENGINE
+// ══════════════════════════════════════════════════
+function fromSP(f) { var o = {}; for (var k in f) { o[S2A[k] || k] = f[k]; } return o; }
+function toSP(f) { var o = {}; for (var k in f) { if (f[k] !== "" && f[k] != null) o[A2S[k] || k] = f[k]; } return o; }
+
+async function loadRFIData() {
+  document.getElementById("mainContent").innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading RFI & Submittal data...</div>';
+  RFI_DATA = [];
+  try {
+    var url = RFI_LIST + "/items?$expand=fields&$top=999";
+    while (url) {
+      var resp = await graph("GET", url);
+      if (resp.value) {
+        resp.value.forEach(function(item) { RFI_DATA.push(Object.assign({id: item.id}, fromSP(item.fields))); });
+      }
+      url = resp["@odata.nextLink"] ? resp["@odata.nextLink"].replace("https://graph.microsoft.com/v1.0", "") : null;
+    }
+    showToast("Loaded " + RFI_DATA.length + " RFI/Submittal items", "ok");
+    renderRFIView();
+  } catch(e) {
+    document.getElementById("mainContent").innerHTML = '<div class="loading" style="color:var(--red);">Failed to load RFI data: ' + e.message + '</div>';
+  }
+}
+
+async function rfiAddItem(fields) {
+  await graph("POST", RFI_LIST + "/items", {fields: toSP(fields)});
+  rfiNotifyOnAdd(fields, currentUser);
+  await loadRFIData();
+}
+
+async function rfiEditItem(id, fields) {
+  var oldItem = RFI_DATA.find(function(i) { return i.id == id; });
+  await graph("PATCH", RFI_LIST + "/items/" + id + "/fields", toSP(fields));
+  if (oldItem) rfiNotifyOnChange(oldItem, fields, currentUser);
+  await loadRFIData();
+}
+
+// Teams Notifications
+function nameToEmail(name) {
+  if (!name || name === "Unassigned") return null;
+  var parts = name.trim().split(/\s+/);
+  if (parts.length < 2) return null;
+  return parts[0].toLowerCase().charAt(0) + parts[parts.length-1].toLowerCase() + "@distributedei.com";
+}
+
+async function rfiSendTeams(assignedTo, subject, body, changedBy) {
+  try {
+    var email = nameToEmail(assignedTo);
+    if (!email) return;
+    var userResp = await graph("GET", "/users/" + encodeURIComponent(email) + "?$select=id,displayName");
+    if (!userResp || !userResp.id) return;
+    var me = await graph("GET", "/me?$select=id");
+    if (me.id === userResp.id) return;
+    var chat = await graph("POST", "/chats", {
+      chatType: "oneOnOne",
+      members: [
+        {"@odata.type":"#microsoft.graph.aadUserConversationMember",roles:["owner"],"user@odata.bind":"https://graph.microsoft.com/v1.0/users('" + me.id + "')"},
+        {"@odata.type":"#microsoft.graph.aadUserConversationMember",roles:["owner"],"user@odata.bind":"https://graph.microsoft.com/v1.0/users('" + userResp.id + "')"}
+      ]
+    });
+    await graph("POST", "/chats/" + chat.id + "/messages", {
+      body: {contentType: "html", content: "<b>📋 Project Truth Update</b><br><br><b>" + subject + "</b><br>" + body + "<br><br><i>Changed by " + changedBy + "</i>"}
+    });
+  } catch(e) { console.warn("Teams notification failed:", e); }
+}
+
+function rfiNotifyOnChange(item, changes, changedBy) {
+  var assignee = changes.AssignedTo || item.AssignedTo;
+  if (!assignee) return;
+  var subject = item.Title || item.Subject || "Item #" + item.Number;
+  var lines = [];
+  if (changes.Project || item.Project) lines.push("Project: " + (changes.Project || item.Project));
+  if (changes.Status) lines.push("Status → <b>" + changes.Status + "</b>");
+  if (changes.BallInCourt) lines.push("Ball in Court → <b>" + changes.BallInCourt + "</b>");
+  if (changes.AssignedTo) lines.push("Assigned to → <b>" + changes.AssignedTo + "</b>");
+  rfiSendTeams(assignee, subject, lines.join("<br>"), changedBy);
+}
+
+function rfiNotifyOnAdd(fields, changedBy) {
+  if (!fields.AssignedTo) return;
+  var subject = fields.Title || "New Item";
+  var lines = ["<b>New item created</b>"];
+  if (fields.Project) lines.push("Project: " + fields.Project);
+  if (fields.ItemType) lines.push("Type: " + fields.ItemType);
+  rfiSendTeams(fields.AssignedTo, subject, lines.join("<br>"), changedBy);
+}
+
+function rfiIsOverdue(item) {
+  if (["Closed","Approved"].includes(item.Status)) return false;
+  if (!item.DueDate) return false;
+  return Math.floor((new Date() - new Date(item.DueDate)) / 86400000) > 0;
+}
+
+function rfiAgingDays(d) { if (!d) return null; return Math.floor((new Date() - new Date(d)) / 86400000); }
+
+function rfiAgingHTML(date, status) {
+  if (["Closed","Approved"].includes(status)) return '<span style="color:#2ecc8a;font-size:12px;">● Done</span>';
+  var d = rfiAgingDays(date);
+  if (d === null) return '<span style="color:#8a9baa;">—</span>';
+  if (d <= 0) return '<span style="color:#2ecc8a;font-size:12px;">● On Track</span>';
+  if (d < 7) return '<span style="color:var(--amber);font-size:12px;">▲ ' + d + 'd</span>';
+  return '<span style="color:var(--red);font-size:12px;font-weight:700;">⚠ ' + d + 'd</span>';
+}
+
+function rfiFmtDate(d) { if (!d) return "—"; return new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
+
+function renderRFIView() {
+  var overdue = RFI_DATA.filter(rfiIsOverdue);
+  var projects = [...new Set(RFI_DATA.map(function(i){return i.Project;}).filter(Boolean))].sort();
+
+  // Person counts
+  var personMap = {};
+  RFI_DATA.forEach(function(i) { var p = i.AssignedTo || "Unassigned"; personMap[p] = (personMap[p] || 0) + 1; });
+  var people = Object.entries(personMap).sort(function(a,b){return b[1]-a[1];});
+
+  // Overdue by project
+  var projOD = {};
+  overdue.forEach(function(i) { var p = i.Project || "?"; projOD[p] = (projOD[p] || 0) + 1; });
+
+  // Filter
+  var filtered = RFI_DATA.filter(function(i) {
+    return (rfiProjFilter === "all" || i.Project === rfiProjFilter)
+      && (rfiPersonFilter === "all" || (i.AssignedTo || "Unassigned") === rfiPersonFilter)
+      && (rfiTypeFilter === "all" || i.ItemType === rfiTypeFilter)
+      && (rfiStatFilter === "all" || (rfiStatFilter === "overdue" ? rfiIsOverdue(i) : i.Status === rfiStatFilter));
+  }).sort(function(a,b) {
+    var ao = rfiIsOverdue(a) ? 0 : 1, bo = rfiIsOverdue(b) ? 0 : 1;
+    if (ao !== bo) return ao - bo;
+    if (!a.DueDate) return 1; if (!b.DueDate) return -1;
+    return new Date(a.DueDate) - new Date(b.DueDate);
+  });
+
+  var html = '';
+
+  // Section head
+  html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">';
+  html += '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:26px;font-weight:800;color:var(--navy);">RFI & Submittal <span style="color:var(--green);">Log</span></div>';
+  html += '<div style="font-size:14px;color:#8a9baa;margin-top:4px;">' + RFI_DATA.length + ' items across ' + projects.length + ' projects</div></div>';
+  html += '<div style="display:flex;gap:8px;"><button class="add-proj-btn" onclick="loadRFIData()">↺ Refresh</button><button class="add-proj-btn" style="background:linear-gradient(135deg,#779d36,#5f8228);color:#fff;border-color:#779d36;" onclick="showRFIAddModal()">+ Add Item</button></div>';
+  html += '</div>';
+
+  // KPIs
+  html += '<div class="rfi-kpi-grid">';
+  html += '<div class="rfi-kpi' + (rfiStatFilter === "all" && rfiProjFilter === "all" ? " active" : "") + '" onclick="rfiStatFilter=\'all\';rfiProjFilter=\'all\';rfiPersonFilter=\'all\';rfiTypeFilter=\'all\';renderRFIView();"><div class="rfi-kpi-label">Total</div><div class="rfi-kpi-value">' + RFI_DATA.length + '</div><div class="rfi-kpi-sub">All items</div></div>';
+  html += '<div class="rfi-kpi' + (overdue.length > 0 ? " alert" : "") + (rfiStatFilter === "overdue" ? " active" : "") + '" onclick="rfiStatFilter=rfiStatFilter===\'overdue\'?\'all\':\'overdue\';renderRFIView();"><div class="rfi-kpi-label">Overdue</div><div class="rfi-kpi-value">' + overdue.length + '</div><div class="rfi-kpi-sub ' + (overdue.length > 0 ? "red" : "green") + '">' + (overdue.length > 0 ? "Click to filter" : "On track") + '</div></div>';
+  var rfiCount = RFI_DATA.filter(function(i){return i.ItemType==="RFI";}).length;
+  var subCount = RFI_DATA.filter(function(i){return i.ItemType==="Submittal";}).length;
+  html += '<div class="rfi-kpi' + (rfiTypeFilter === "RFI" ? " active" : "") + '" onclick="rfiTypeFilter=rfiTypeFilter===\'RFI\'?\'all\':\'RFI\';renderRFIView();"><div class="rfi-kpi-label">RFIs</div><div class="rfi-kpi-value">' + rfiCount + '</div><div class="rfi-kpi-sub">' + RFI_DATA.filter(function(i){return i.ItemType==="RFI"&&!["Closed","Approved"].includes(i.Status);}).length + ' open</div></div>';
+  html += '<div class="rfi-kpi' + (rfiTypeFilter === "Submittal" ? " active" : "") + '" onclick="rfiTypeFilter=rfiTypeFilter===\'Submittal\'?\'all\':\'Submittal\';renderRFIView();"><div class="rfi-kpi-label">Submittals</div><div class="rfi-kpi-value">' + subCount + '</div><div class="rfi-kpi-sub">' + RFI_DATA.filter(function(i){return i.ItemType==="Submittal"&&!["Closed","Approved"].includes(i.Status);}).length + ' open</div></div>';
+  html += '</div>';
+
+  // Project tabs
+  html += '<div class="rfi-tabs">';
+  html += '<div class="rfi-tab' + (rfiProjFilter === "all" ? " active" : "") + '" onclick="rfiProjFilter=\'all\';renderRFIView();">All Jobs <span style="color:#8a9baa;font-size:10px;">(' + RFI_DATA.length + ')</span></div>';
+  projects.forEach(function(p) {
+    var cnt = RFI_DATA.filter(function(i){return i.Project === p;}).length;
+    html += '<div class="rfi-tab' + (rfiProjFilter === p ? " active" : "") + (projOD[p] ? " has-overdue" : "") + '" onclick="rfiProjFilter=rfiProjFilter===\'' + esc(p).replace(/'/g,"\\'") + '\'?\'all\':\'' + esc(p).replace(/'/g,"\\'") + '\';renderRFIView();">' + esc(p) + ' <span style="color:#8a9baa;font-size:10px;">(' + cnt + ')</span></div>';
+  });
+  html += '</div>';
+
+  // Person filter chips
+  if (people.length > 1) {
+    html += '<div class="rfi-person-bar"><span style="font-size:10px;color:#8a9baa;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Person:</span>';
+    html += '<div class="rfi-chip' + (rfiPersonFilter === "all" ? " active" : "") + '" onclick="rfiPersonFilter=\'all\';renderRFIView();">All</div>';
+    people.slice(0,15).forEach(function(e) {
+      var name = e[0], cnt = e[1];
+      var od = overdue.filter(function(i){return (i.AssignedTo||"Unassigned") === name;}).length;
+      html += '<div class="rfi-chip' + (rfiPersonFilter === name ? " active" : "") + '" onclick="rfiPersonFilter=rfiPersonFilter===\'' + esc(name).replace(/'/g,"\\'") + '\'?\'all\':\'' + esc(name).replace(/'/g,"\\'") + '\';renderRFIView();">' + esc(name.split(" ")[0]) + ' <span style="color:#8a9baa;font-size:10px;">(' + cnt + ')' + (od > 0 ? ' ⚠' + od : '') + '</span></div>';
+    });
+    html += '</div>';
+  }
+
+  // Table
+  html += '<div class="rfi-wrap"><div class="rfi-wrap-head">';
+  html += '<div class="rfi-wrap-title">' + (rfiProjFilter !== "all" ? esc(rfiProjFilter) : "All Projects") + ' — ' + filtered.length + ' items' + (rfiStatFilter === "overdue" ? '<span style="color:var(--red);margin-left:8px;">⚠ Overdue only</span>' : '') + '</div>';
+  html += '<select style="background:#fff;border:1px solid #e2e8f0;padding:5px 10px;border-radius:5px;font-size:12px;font-family:\'Barlow\',sans-serif;" onchange="rfiStatFilter=this.value;renderRFIView();"><option value="all">All Statuses</option><option value="overdue">⚠ Overdue</option>';
+  RFI_STATUSES.forEach(function(s) { html += '<option value="' + s + '"' + (rfiStatFilter === s ? ' selected' : '') + '>' + s + '</option>'; });
+  html += '</select></div>';
+
+  if (filtered.length === 0) {
+    html += '<div style="text-align:center;padding:50px;color:#8a9baa;"><div style="font-size:32px;margin-bottom:8px;opacity:0.5;">📋</div>No items match filters.</div>';
+  } else {
+    html += '<table class="rfi-table"><thead><tr><th>#</th><th>Type</th><th>Title</th><th>Project</th><th>Status</th><th>Ball in Court</th><th>Assigned</th><th>Due</th><th>Aging</th><th></th></tr></thead><tbody>';
+    filtered.forEach(function(item) {
+      var od = rfiIsOverdue(item);
+      html += '<tr class="' + (od ? "rfi-overdue" : "") + '" style="cursor:pointer;" onclick="rfiToggleExpand(' + item.id + ')">';
+      html += '<td><span style="font-family:\'Barlow Condensed\',sans-serif;color:var(--green);font-size:13px;">' + esc(item.Number || "—") + '</span></td>';
+      html += '<td><span class="rfi-type-tag ' + (item.ItemType === "RFI" ? "rfi-type-rfi" : "rfi-type-sub") + '">' + esc(item.ItemType || "—") + '</span></td>';
+      html += '<td><div style="font-weight:600;">' + esc(item.Title || "—") + '</div>' + (item.Subject && item.Subject !== item.Title ? '<div style="color:#8a9baa;font-size:11px;margin-top:1px;">' + esc(item.Subject) + '</div>' : '') + '</td>';
+      html += '<td style="color:#6b7c8a;font-size:12px;">' + esc(item.Project || "—") + '</td>';
+      html += '<td><span class="rfi-badge ' + (RFI_STATUS_CLASS[item.Status] || "rfi-draft") + '">' + esc(item.Status || "—") + '</span></td>';
+      html += '<td><span class="bic-tag ' + (RFI_BIC_CLASS[item.BallInCourt] || "bic-ven") + '">' + (RFI_BIC_ICON[item.BallInCourt] || "•") + ' ' + esc(item.BallInCourt || "—") + '</span></td>';
+      html += '<td style="color:#6b7c8a;font-size:12px;">' + esc(item.AssignedTo || "—") + '</td>';
+      html += '<td style="color:#8a9baa;font-size:12px;">' + rfiFmtDate(item.DueDate) + '</td>';
+      html += '<td>' + rfiAgingHTML(item.DueDate, item.Status) + '</td>';
+      html += '<td><button class="add-proj-btn" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();showRFIEditModal(' + item.id + ')">✏</button></td>';
+      html += '</tr>';
+
+      // Expanded detail row
+      if (rfiExpanded === item.id) {
+        html += '<tr><td colspan="10" style="padding:0;background:transparent;"><div class="rfi-detail">';
+        html += '<div class="rfi-detail-grid">';
+        html += '<div><div class="rfi-dl">Number</div><div class="rfi-dv">' + esc(item.Number || "—") + '</div></div>';
+        html += '<div><div class="rfi-dl">Project</div><div class="rfi-dv">' + esc(item.Project || "—") + '</div></div>';
+        html += '<div><div class="rfi-dl">Type</div><div class="rfi-dv">' + esc(item.ItemType || "—") + '</div></div>';
+        html += '<div><div class="rfi-dl">Status</div><div class="rfi-dv"><span class="rfi-badge ' + (RFI_STATUS_CLASS[item.Status] || "rfi-draft") + '">' + esc(item.Status || "—") + '</span></div></div>';
+        html += '<div><div class="rfi-dl">Ball in Court</div><div class="rfi-dv"><span class="bic-tag ' + (RFI_BIC_CLASS[item.BallInCourt] || "bic-ven") + '">' + (RFI_BIC_ICON[item.BallInCourt] || "•") + ' ' + esc(item.BallInCourt || "—") + '</span></div></div>';
+        html += '<div><div class="rfi-dl">Assigned To</div><div class="rfi-dv">' + esc(item.AssignedTo || "—") + '</div></div>';
+        html += '<div><div class="rfi-dl">Due Date</div><div class="rfi-dv">' + rfiFmtDate(item.DueDate) + '</div></div>';
+        html += '<div><div class="rfi-dl">Response Date</div><div class="rfi-dv">' + rfiFmtDate(item.ResponseDate) + '</div></div>';
+        html += '<div><div class="rfi-dl">Aging</div><div class="rfi-dv">' + rfiAgingHTML(item.DueDate, item.Status) + '</div></div>';
+        html += '</div>';
+        if (item.EvidenceLink) html += '<div style="margin-bottom:12px;"><div class="rfi-dl">Evidence</div><a href="' + esc(item.EvidenceLink) + '" target="_blank" style="color:var(--green);font-size:13px;">📎 ' + esc(item.EvidenceLink) + '</a></div>';
+        html += '<div style="display:flex;gap:8px;margin-top:12px;">';
+        html += '<button class="add-proj-btn" style="background:linear-gradient(135deg,#779d36,#5f8228);color:#fff;border-color:#779d36;padding:5px 12px;font-size:12px;" onclick="showRFIEditModal(' + item.id + ')">✏ Edit All Fields</button>';
+        if (!["Closed","Approved"].includes(item.Status)) html += '<button class="add-proj-btn" style="padding:5px 12px;font-size:12px;" onclick="rfiQuickAction(' + item.id + ',\'Approved\')">✓ Approve</button>';
+        if (item.Status !== "Closed") html += '<button class="add-proj-btn" style="padding:5px 12px;font-size:12px;" onclick="rfiQuickAction(' + item.id + ',\'Closed\')">Archive</button>';
+        html += '</div>';
+        // Comments
+        html += renderRFIComments(item);
+        html += '</div></td></tr>';
+      }
+    });
+    html += '</tbody></table>';
+  }
+  html += '</div>';
+
+  document.getElementById("mainContent").innerHTML = html;
+  renderSidebarProjects();
+}
+
+function rfiToggleExpand(id) { rfiExpanded = rfiExpanded === id ? null : id; renderRFIView(); }
+
+async function rfiQuickAction(id, status) {
+  try { await rfiEditItem(id, {Status: status}); showToast(status + " ✓", "ok"); } catch(e) { showToast("Error: " + e.message, "err"); }
+}
+
+function renderRFIComments(item) {
+  var desc = item.Description || "";
+  var lines = desc.split("\n");
+  var comments = [], descLines = [];
+  lines.forEach(function(line) {
+    var m = line.match(/^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2})\|([^\]]+)\] (.+)$/);
+    if (m) comments.push({date: m[1], who: m[2], msg: m[3]});
+    else if (line.trim() && comments.length === 0) descLines.push(line);
+  });
+  var descText = descLines.join("\n").trim();
+
+  var html = '<div class="rfi-cmt-box"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">💬 Comments & Activity</div>';
+  if (descText) html += '<div style="padding:8px 12px;background:#f0f4f8;border-radius:6px;margin-bottom:10px;font-size:12px;color:#4a5568;"><div style="font-weight:600;font-size:10px;color:#8a9baa;margin-bottom:2px;">ORIGINAL DESCRIPTION</div>' + esc(descText) + '</div>';
+  if (comments.length > 0) {
+    html += '<div style="max-height:200px;overflow-y:auto;margin-bottom:10px;">';
+    comments.forEach(function(c) { html += '<div class="rfi-cmt-item"><div class="rfi-cmt-meta">' + esc(c.who) + ' · ' + esc(c.date) + '</div><div style="color:#4a5568;line-height:1.4;">' + esc(c.msg) + '</div></div>'; });
+    html += '</div>';
+  }
+  if (comments.length === 0 && !descText) html += '<div style="color:#8a9baa;font-size:12px;margin-bottom:10px;">No comments yet.</div>';
+  html += '<div class="rfi-cmt-input"><input id="rfiCmt_' + item.id + '" placeholder="Add a comment..." onkeydown="if(event.key===\'Enter\')rfiSendComment(' + item.id + ')"><button class="rfi-cmt-send" onclick="rfiSendComment(' + item.id + ')">Send</button></div>';
+  html += '</div>';
+  return html;
+}
+
+async function rfiSendComment(id) {
+  var input = document.getElementById("rfiCmt_" + id);
+  if (!input || !input.value.trim()) return;
+  var text = input.value.trim();
+  input.disabled = true;
+  try {
+    var item = RFI_DATA.find(function(i){return i.id == id;});
+    var now = new Date();
+    var ts = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0") + "-" + String(now.getDate()).padStart(2,"0") + " " + String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
+    var who = currentUser || "Unknown";
+    var newComment = "[" + ts + "|" + who + "] " + text;
+    var existing = item.Description || "";
+    var updatedDesc = existing ? (existing + "\n" + newComment) : newComment;
+    await rfiEditItem(id, {Description: updatedDesc});
+    showToast("Comment added", "ok");
+  } catch(e) {
+    showToast("Error: " + e.message, "err");
+    input.disabled = false;
+  }
+}
+
+// RFI Add Modal
+function showRFIAddModal() {
+  var projects = [...new Set(RFI_DATA.map(function(i){return i.Project;}).filter(Boolean))].sort();
+  // Also include PMO projects
+  var pmoProjects = [...new Set(DATA.map(function(i){return i.Project;}).filter(Boolean))];
+  var allProjects = [...new Set(projects.concat(pmoProjects))].sort();
+
+  var modal = document.getElementById("addProjectModal");
+  modal.style.display = "";
+  modal.innerHTML = '<div class="modal-overlay" onclick="if(event.target===this)closeAddProject()">' +
+    '<div class="modal" style="width:640px;">' +
+    '<div class="modal-head"><div class="modal-title">Add RFI / Submittal</div><button class="modal-close" onclick="closeAddProject()">✕</button></div>' +
+    '<div class="modal-body">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+    '<div class="form-group" style="grid-column:1/-1;"><label class="form-label">Title *</label><input class="form-input" id="rfiTitle" placeholder="Brief title"></div>' +
+    '<div class="form-group"><label class="form-label">Project</label><select class="form-input" id="rfiProject"><option value="">Select...</option>' + allProjects.map(function(p){return '<option>' + esc(p) + '</option>';}).join('') + '</select></div>' +
+    '<div class="form-group"><label class="form-label">Type</label><select class="form-input" id="rfiType"><option>RFI</option><option>Submittal</option></select></div>' +
+    '<div class="form-group"><label class="form-label">Number</label><input class="form-input" id="rfiNumber"></div>' +
+    '<div class="form-group"><label class="form-label">Status</label><select class="form-input" id="rfiStatus">' + RFI_STATUSES.map(function(s){return '<option>' + s + '</option>';}).join('') + '</select></div>' +
+    '<div class="form-group"><label class="form-label">Ball in Court</label><select class="form-input" id="rfiBIC">' + RFI_BICS.map(function(b){return '<option>' + b + '</option>';}).join('') + '</select></div>' +
+    '<div class="form-group"><label class="form-label">Assigned To</label><input class="form-input" id="rfiAssigned"></div>' +
+    '<div class="form-group"><label class="form-label">Due Date</label><input class="form-input" id="rfiDue" type="date"></div>' +
+    '<div class="form-group" style="grid-column:1/-1;"><label class="form-label">Subject</label><input class="form-input" id="rfiSubject"></div>' +
+    '<div class="form-group" style="grid-column:1/-1;"><label class="form-label">Description</label><textarea class="form-input" id="rfiDesc" rows="3" style="resize:vertical;"></textarea></div>' +
+    '<div class="form-group" style="grid-column:1/-1;"><label class="form-label">Evidence Link</label><input class="form-input" id="rfiEvidence"></div>' +
+    '</div></div>' +
+    '<div class="modal-footer"><button class="btn-cancel" onclick="closeAddProject()">Cancel</button><button class="btn-create" id="btnRFIAdd" onclick="doRFIAdd()">⚡ Save to SharePoint</button></div>' +
+    '</div></div>';
+}
+
+async function doRFIAdd() {
+  var title = document.getElementById("rfiTitle").value.trim();
+  if (!title) { showToast("Title is required", "err"); return; }
+  var btn = document.getElementById("btnRFIAdd");
+  btn.disabled = true; btn.textContent = "Saving...";
+  try {
+    await rfiAddItem({
+      Title: title,
+      Project: document.getElementById("rfiProject").value,
+      ItemType: document.getElementById("rfiType").value,
+      Number: document.getElementById("rfiNumber").value,
+      Status: document.getElementById("rfiStatus").value,
+      BallInCourt: document.getElementById("rfiBIC").value,
+      AssignedTo: document.getElementById("rfiAssigned").value,
+      DueDate: document.getElementById("rfiDue").value,
+      Subject: document.getElementById("rfiSubject").value,
+      Description: document.getElementById("rfiDesc").value,
+      EvidenceLink: document.getElementById("rfiEvidence").value
+    });
+    closeAddProject();
+    showToast("Item added ✓", "ok");
+  } catch(e) {
+    showToast("Error: " + e.message, "err");
+    btn.disabled = false; btn.textContent = "⚡ Save to SharePoint";
+  }
+}
+
+// RFI Edit Modal
+function showRFIEditModal(id) {
+  var item = RFI_DATA.find(function(i){return i.id == id;});
+  if (!item) return;
+  var projects = [...new Set(RFI_DATA.map(function(i){return i.Project;}).filter(Boolean).concat(DATA.map(function(i){return i.Project;}).filter(Boolean)))].sort();
+  var dueVal = item.DueDate ? (item.DueDate + "").split("T")[0] : "";
+
+  var modal = document.getElementById("addProjectModal");
+  modal.style.display = "";
+  modal.innerHTML = '<div class="modal-overlay" onclick="if(event.target===this)closeAddProject()">' +
+    '<div class="modal" style="width:640px;">' +
+    '<div class="modal-head"><div class="modal-title">Edit — ' + esc(item.Title || item.Number || "Item") + '</div><button class="modal-close" onclick="closeAddProject()">✕</button></div>' +
+    '<div class="modal-body">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+    '<div class="form-group"><label class="form-label">Status</label><select class="form-input" id="rfiEStatus">' + RFI_STATUSES.map(function(s){return '<option' + (s === item.Status ? ' selected' : '') + '>' + s + '</option>';}).join('') + '</select></div>' +
+    '<div class="form-group"><label class="form-label">Ball in Court</label><select class="form-input" id="rfiEBIC">' + RFI_BICS.map(function(b){return '<option' + (b === item.BallInCourt ? ' selected' : '') + '>' + b + '</option>';}).join('') + '</select></div>' +
+    '<div class="form-group"><label class="form-label">Assigned To</label><input class="form-input" id="rfiEAssigned" value="' + esc(item.AssignedTo || "") + '"></div>' +
+    '<div class="form-group"><label class="form-label">Due Date</label><input class="form-input" id="rfiEDue" type="date" value="' + dueVal + '"></div>' +
+    '<div class="form-group"><label class="form-label">Project</label><select class="form-input" id="rfiEProject"><option value="">Select...</option>' + projects.map(function(p){return '<option' + (p === item.Project ? ' selected' : '') + '>' + esc(p) + '</option>';}).join('') + '</select></div>' +
+    '<div class="form-group"><label class="form-label">Number</label><input class="form-input" id="rfiENumber" value="' + esc(item.Number || "") + '"></div>' +
+    '<div class="form-group" style="grid-column:1/-1;"><label class="form-label">Subject</label><input class="form-input" id="rfiESubject" value="' + esc(item.Subject || "") + '"></div>' +
+    '<div class="form-group" style="grid-column:1/-1;"><label class="form-label">Evidence Link</label><input class="form-input" id="rfiEEvidence" value="' + esc(item.EvidenceLink || "") + '"></div>' +
+    '</div></div>' +
+    '<div class="modal-footer"><button class="btn-cancel" onclick="closeAddProject()">Cancel</button><button class="btn-create" id="btnRFIEdit" onclick="doRFIEdit(' + id + ')">⚡ Update SharePoint</button></div>' +
+    '</div></div>';
+}
+
+async function doRFIEdit(id) {
+  var btn = document.getElementById("btnRFIEdit");
+  btn.disabled = true; btn.textContent = "Saving...";
+  try {
+    await rfiEditItem(id, {
+      Status: document.getElementById("rfiEStatus").value,
+      BallInCourt: document.getElementById("rfiEBIC").value,
+      AssignedTo: document.getElementById("rfiEAssigned").value,
+      DueDate: document.getElementById("rfiEDue").value,
+      Project: document.getElementById("rfiEProject").value,
+      Number: document.getElementById("rfiENumber").value,
+      Subject: document.getElementById("rfiESubject").value,
+      EvidenceLink: document.getElementById("rfiEEvidence").value
+    });
+    closeAddProject();
+    showToast("Updated ✓", "ok");
+  } catch(e) {
+    showToast("Error: " + e.message, "err");
+    btn.disabled = false; btn.textContent = "⚡ Update SharePoint";
+  }
 }
 
 // Init
