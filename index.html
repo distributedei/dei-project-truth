@@ -1,1018 +1,1315 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DEI Project Truth | Distributed Energy Infrastructure</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-  <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
-  <style>
-    :root {
-      --navy:     #0a1628;
-      --navy-mid: #0f2040;
-      --navy-lt:  #162d54;
-      --slate:    #1e3a5f;
-      --steel:    #2d5282;
-      --gold:     #c8a84b;
-      --gold-lt:  #e8c96b;
-      --white:    #f8f9fa;
-      --gray:     #8fa3bb;
-      --gray-lt:  #b8cce0;
-      --border:   rgba(255,255,255,0.08);
-      --green:    #2ecc8a;
-      --red:      #e05252;
-      --amber:    #e8a930;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Barlow', sans-serif;
-      background: var(--navy);
-      color: var(--white);
-      min-height: 100vh;
-      background-image:
-        radial-gradient(ellipse at 0% 0%, rgba(21,56,108,0.4) 0%, transparent 60%),
-        radial-gradient(ellipse at 100% 100%, rgba(200,168,75,0.06) 0%, transparent 50%);
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEI Truth — Project Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+<style>
+  :root{--navy:#375673;--green:#779d36;--amber:#e8a930;--red:#e05252;--bg:#f5f7fa;--sidebar-w:240px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Barlow',sans-serif;background:var(--bg);color:#1a1a1a;}
 
-    /* ── LAYOUT ── */
-    .app { display: flex; min-height: 100vh; }
-    .sidebar {
-      width: 260px; background: rgba(10,22,40,0.95);
-      border-right: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
-      backdrop-filter: blur(12px);
-    }
-    .main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; }
-    .topbar {
-      background: rgba(10,22,40,0.9);
-      border-bottom: 1px solid var(--border);
-      padding: 0 28px; height: 60px;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 50;
-      backdrop-filter: blur(12px);
-    }
-    .content { padding: 32px; flex: 1; }
+  /* Layout */
+  .app-layout{display:flex;min-height:100vh;}
 
-    /* ── SIDEBAR ── */
-    .sidebar-logo {
-      padding: 24px 20px 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .logo-wordmark {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 800; font-size: 20px;
-      letter-spacing: 0.5px;
-      color: var(--white);
-      line-height: 1.1;
-    }
-    .logo-wordmark span { color: var(--gold); }
-    .logo-tagline {
-      font-size: 10px; color: var(--gray);
-      text-transform: uppercase; letter-spacing: 2px;
-      margin-top: 4px;
-    }
-    .logo-divider {
-      height: 2px; background: linear-gradient(90deg, var(--gold), transparent);
-      margin-top: 12px; border-radius: 2px;
-    }
+  /* Sidebar */
+  .sidebar{width:var(--sidebar-w);background:linear-gradient(180deg,#2d4a63 0%,#1e3548 100%);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform 0.2s;}
+  .sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08);}
+  .sidebar-logo h1{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;display:flex;align-items:center;gap:8px;}
+  .sidebar-logo h1 span{color:#a8c76a;}
+  .sidebar-logo .sub{font-size:11px;color:rgba(255,255,255,0.35);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
+  .sidebar-nav{flex:1;overflow-y:auto;padding:12px 0;}
+  .sidebar-section{padding:0 16px;margin-bottom:16px;}
+  .sidebar-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.3);padding:8px 8px 6px;display:flex;align-items:center;gap:6px;}
+  .sidebar-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.65);cursor:pointer;transition:all 0.15s;margin-bottom:2px;position:relative;}
+  .sidebar-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);}
+  .sidebar-item.active{background:var(--green);color:#fff;}
+  .sidebar-item .icon{font-size:16px;width:22px;text-align:center;flex-shrink:0;}
+  .sidebar-item .badge{position:absolute;right:10px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;}
+  .sidebar-divider{height:1px;background:rgba(255,255,255,0.06);margin:8px 16px;}
+  .sidebar-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.1);}
+  .sidebar-user-role{display:inline-block;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+  .sidebar-user-role.admin{background:var(--green);color:#fff;}
+  .sidebar-user-name{font-size:14px;font-weight:700;color:#fff;}
+  .sidebar-user-email{font-size:11px;color:rgba(255,255,255,0.45);margin-top:1px;}
+  .sidebar-signout{display:block;width:100%;margin-top:12px;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.6);font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.15s;}
+  .sidebar-signout:hover{background:rgba(255,255,255,0.08);color:#fff;border-color:rgba(255,255,255,0.3);}
+  .sidebar-projects{max-height:40vh;overflow-y:auto;}
+  .sidebar-proj{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:6px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.55);cursor:pointer;transition:all 0.15s;margin-bottom:1px;}
+  .sidebar-proj:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.85);}
+  .sidebar-proj.active{background:rgba(119,157,54,0.2);color:#a8c76a;}
+  .sidebar-proj .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .sidebar-proj .pname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sidebar-proj .ppct{font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);}
 
-    .nav { padding: 12px 10px; flex: 1; overflow-y: auto; }
-    .nav-section {
-      font-size: 10px; font-weight: 700; color: var(--gray);
-      text-transform: uppercase; letter-spacing: 2px;
-      padding: 16px 10px 6px;
-    }
-    .nav-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 14px; border-radius: 6px;
-      cursor: pointer; font-size: 14px; font-weight: 500;
-      color: var(--gray-lt); transition: all 0.2s;
-      margin: 2px 0; position: relative;
-    }
-    .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--white); }
-    .nav-item.active {
-      background: linear-gradient(135deg, rgba(200,168,75,0.15), rgba(21,56,108,0.3));
-      color: var(--gold-lt);
-      border-left: 2px solid var(--gold);
-      padding-left: 12px;
-    }
-    .nav-icon { width: 20px; text-align: center; font-size: 16px; }
-    .nav-badge {
-      margin-left: auto; background: var(--red);
-      color: #fff; font-size: 10px; font-weight: 700;
-      padding: 2px 7px; border-radius: 12px;
-    }
-    .nav-badge.warn { background: var(--amber); color: var(--navy); }
+  /* Main content area */
+  .main-area{margin-left:var(--sidebar-w);flex:1;min-height:100vh;}
+  .container{max-width:1400px;margin:0 auto;padding:20px 24px;}
 
-    .sidebar-user {
-      padding: 16px 20px; border-top: 1px solid var(--border);
-      font-size: 12px;
-    }
-    .user-name { font-weight: 600; color: var(--white); font-size: 13px; }
-    .user-org { color: var(--gray); font-size: 11px; margin-top: 2px; }
-    .signout-btn {
-      margin-top: 10px; width: 100%; background: transparent;
-      border: 1px solid var(--border); color: var(--gray);
-      padding: 6px; border-radius: 5px; cursor: pointer;
-      font-size: 12px; font-family: 'Barlow', sans-serif;
-      transition: all 0.2s;
-    }
-    .signout-btn:hover { border-color: var(--gold); color: var(--gold); }
+  /* Login card */
+  .login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);}
+  .login-card{background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.08);width:420px;overflow:hidden;}
+  .login-card-head{padding:32px 32px 24px;text-align:center;}
+  .login-card-logo{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--navy);margin-bottom:4px;}
+  .login-card-logo span{color:var(--green);}
+  .login-card-sub{font-size:13px;color:#8a9baa;}
+  .login-card-body{padding:0 32px 32px;}
+  .login-card-divider{height:1px;background:#e2e8f0;margin-bottom:24px;}
+  .login-card-ms{width:100%;padding:14px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;font-family:'Barlow',sans-serif;font-size:14px;font-weight:600;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.15s;}
+  .login-card-ms:hover{border-color:#0078d4;background:#f8fbff;box-shadow:0 2px 8px rgba(0,120,212,0.1);}
+  .login-card-ms svg{flex-shrink:0;}
+  .login-card-footer{padding:16px 32px;background:#fafbfc;border-top:1px solid #e2e8f0;text-align:center;font-size:11px;color:#b0bac4;}
 
-    /* ── TOPBAR ── */
-    .topbar-left { display: flex; align-items: center; gap: 16px; }
-    .topbar-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 20px; font-weight: 700;
-      color: var(--white); letter-spacing: 0.5px;
-    }
-    .topbar-breadcrumb { font-size: 12px; color: var(--gray); }
-    .topbar-right { display: flex; align-items: center; gap: 12px; }
-    .live-dot {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 12px; color: var(--green);
-    }
-    .live-dot::before {
-      content: ''; width: 7px; height: 7px;
-      background: var(--green); border-radius: 50%;
-      animation: pulse-dot 2s infinite;
-    }
-    @keyframes pulse-dot {
-      0%,100% { opacity:1; transform:scale(1); }
-      50% { opacity:0.5; transform:scale(1.3); }
-    }
+  .loading{text-align:center;padding:60px;color:#8a9baa;font-size:14px;}
+  .loading .spinner{display:inline-block;width:24px;height:24px;border:3px solid #e2e8f0;border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ── BUTTONS ── */
-    .btn {
-      padding: 7px 16px; border-radius: 5px; border: 1px solid;
-      cursor: pointer; font-size: 13px; font-weight: 600;
-      font-family: 'Barlow', sans-serif;
-      transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px;
-      letter-spacing: 0.3px;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #1a4a8a, #0f2d5e);
-      border-color: var(--steel); color: var(--white);
-    }
-    .btn-primary:hover { background: linear-gradient(135deg, #2258a0, #1a3d78); border-color: var(--gold); }
-    .btn-gold {
-      background: linear-gradient(135deg, var(--gold), #a8882e);
-      border-color: var(--gold); color: var(--navy);
-    }
-    .btn-gold:hover { background: linear-gradient(135deg, var(--gold-lt), var(--gold)); }
-    .btn-ghost { background: transparent; border-color: var(--border); color: var(--gray-lt); }
-    .btn-ghost:hover { border-color: var(--gray); color: var(--white); background: rgba(255,255,255,0.04); }
-    .btn-sm { padding: 5px 11px; font-size: 12px; }
-    .btn-danger { background: rgba(224,82,82,0.15); border-color: var(--red); color: var(--red); }
+  /* Project Tabs */
+  .proj-tabs{display:flex;gap:6px;overflow-x:auto;padding:16px 0;border-bottom:1px solid #e2e8f0;margin-bottom:20px;}
+  .proj-tab{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid #e2e8f0;background:#fff;color:#4a5568;transition:all 0.15s;}
+  .proj-tab:hover{border-color:var(--green);color:var(--green);}
+  .proj-tab.active{background:var(--green);color:#fff;border-color:var(--green);}
 
-    /* ── KPI CARDS ── */
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 16px; margin-bottom: 28px; }
-    .kpi-card {
-      background: linear-gradient(135deg, rgba(15,32,64,0.8), rgba(10,22,40,0.9));
-      border: 1px solid var(--border); border-radius: 10px; padding: 20px;
-      position: relative; overflow: hidden; transition: transform 0.2s, border-color 0.2s;
-    }
-    .kpi-card:hover { transform: translateY(-2px); border-color: rgba(200,168,75,0.3); }
-    .kpi-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0;
-      height: 2px; background: linear-gradient(90deg, var(--gold), transparent);
-    }
-    .kpi-card.alert { border-color: rgba(224,82,82,0.4); }
-    .kpi-card.alert::before { background: linear-gradient(90deg, var(--red), transparent); }
-    .kpi-card.warn { border-color: rgba(232,169,48,0.4); }
-    .kpi-card.warn::before { background: linear-gradient(90deg, var(--amber), transparent); }
-    .kpi-card.good::before { background: linear-gradient(90deg, var(--green), transparent); }
-    .kpi-label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
-    .kpi-value { font-family: 'Barlow Condensed', sans-serif; font-size: 36px; font-weight: 700; color: var(--white); line-height: 1; }
-    .kpi-sub { font-size: 12px; margin-top: 6px; color: var(--gray); }
-    .kpi-sub.red { color: var(--red); }
-    .kpi-sub.green { color: var(--green); }
-    .kpi-sub.amber { color: var(--amber); }
+  /* Search + Add */
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;}
+  .search-box{padding:8px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;width:280px;font-family:'Barlow',sans-serif;background:#fff;}
+  .search-box:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 2px rgba(119,157,54,0.1);}
+  .add-proj-btn{padding:8px 18px;border-radius:8px;border:none;background:linear-gradient(135deg,#779d36,#5f8228);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .add-proj-btn:hover{filter:brightness(1.1);}
+  .sync-status{font-size:11px;color:#8a9baa;margin-left:auto;}
+  .sync-status.syncing{color:var(--amber);}
+  .sync-status.error{color:var(--red);}
 
-    /* ── TABLE ── */
-    .table-wrap {
-      background: linear-gradient(135deg, rgba(15,32,64,0.7), rgba(10,22,40,0.8));
-      border: 1px solid var(--border); border-radius: 10px;
-      overflow: hidden; margin-bottom: 24px;
-    }
-    .table-header {
-      padding: 18px 22px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; flex-wrap: wrap;
-      background: rgba(10,22,40,0.4);
-    }
-    .table-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 17px; font-weight: 700; color: var(--white); letter-spacing: 0.3px;
-    }
-    .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .filter-select {
-      background: rgba(15,32,64,0.8); border: 1px solid var(--border);
-      color: var(--gray-lt); padding: 6px 10px; border-radius: 5px;
-      font-size: 12px; font-family: 'Barlow', sans-serif;
-      cursor: pointer;
-    }
-    .filter-select:focus { outline: none; border-color: var(--gold); }
-    table { width: 100%; border-collapse: collapse; }
-    th {
-      text-align: left; padding: 11px 18px;
-      font-size: 10px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 1px; color: var(--gray);
-      border-bottom: 1px solid var(--border);
-      background: rgba(10,22,40,0.5);
-    }
-    td { padding: 13px 18px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255,255,255,0.03); }
+  /* Category sections */
+  .cat-section{margin-bottom:16px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;}
+  .cat-header{padding:12px 20px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
+  .cat-header:hover{opacity:0.9;}
+  .cat-chevron{font-size:12px;transition:transform 0.2s;color:rgba(255,255,255,0.7);}
+  .cat-header.collapsed .cat-chevron{transform:rotate(-90deg);}
+  .cat-body{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(0,0,0,0.05);}
+  .cat-body.hidden{display:none;}
 
-    /* ── BADGES ── */
-    .badge {
-      display: inline-flex; align-items: center;
-      padding: 3px 10px; border-radius: 20px;
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      font-family: 'Barlow Condensed', sans-serif;
-    }
-    .badge-draft     { background: rgba(255,255,255,0.07); color: var(--gray); border: 1px solid var(--border); }
-    .badge-submitted { background: rgba(21,56,108,0.5); color: #7eb3e8; border: 1px solid rgba(100,160,230,0.3); }
-    .badge-review    { background: rgba(100,60,180,0.3); color: #b89af0; border: 1px solid rgba(150,100,230,0.3); }
-    .badge-approved  { background: rgba(46,204,138,0.15); color: var(--green); border: 1px solid rgba(46,204,138,0.3); }
-    .badge-rejected  { background: rgba(224,82,82,0.15); color: var(--red); border: 1px solid rgba(224,82,82,0.3); }
-    .badge-closed    { background: rgba(255,255,255,0.05); color: var(--gray); border: 1px solid var(--border); }
-    .badge-returned  { background: rgba(232,169,48,0.15); color: var(--amber); border: 1px solid rgba(232,169,48,0.3); }
+  /* Topic rows */
+  .topic-row{display:grid;grid-template-columns:36px 1fr 30px;border-bottom:1px solid #f0f4f8;border-right:1px solid #f0f4f8;min-height:40px;align-items:stretch;}
+  .topic-row:last-child{border-bottom:none;}
+  .topic-label{padding:6px 10px;font-size:12px;font-weight:600;color:var(--navy);background:#fafbfc;border-bottom:1px solid #f0f4f8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .topic-val{padding:4px 8px;font-size:13px;color:#4a5568;position:relative;}
+  .topic-check{display:flex;align-items:center;justify-content:center;padding:6px 4px;border-right:1px solid #f0f4f8;background:#fafbfc;cursor:pointer;}
+  .topic-check input[type="checkbox"]{width:16px;height:16px;cursor:pointer;accent-color:var(--green);margin:0;}
+  .topic-row.completed .topic-label{color:#8a9baa;text-decoration:line-through;text-decoration-color:#c4d0dc;}
+  .topic-row.completed .topic-val textarea{color:#b0bac4;}
+  .topic-val textarea{width:100%;border:1px solid transparent;background:transparent;font-family:'Barlow',sans-serif;font-size:12px;color:#4a5568;resize:none;overflow:hidden;min-height:22px;padding:3px 6px;border-radius:4px;line-height:1.4;transition:all 0.15s;}
+  .topic-val textarea:hover{border-color:#e2e8f0;background:#fff;}
+  .topic-val textarea:focus{border-color:var(--green);background:#fff;outline:none;box-shadow:0 0 0 2px rgba(119,157,54,0.15);}
+  .topic-val textarea.empty{color:#c4d0dc;font-style:italic;}
 
-    /* ── BIC ── */
-    .bic {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 10px; border-radius: 4px;
-      font-size: 11px; font-weight: 600;
-      font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px;
-    }
-    .bic-eng  { background: rgba(21,56,108,0.4); color: #7eb3e8; }
-    .bic-con  { background: rgba(46,204,138,0.15); color: var(--green); }
-    .bic-pm   { background: rgba(200,168,75,0.15); color: var(--gold-lt); }
-    .bic-own  { background: rgba(232,169,48,0.15); color: var(--amber); }
-    .bic-ven  { background: rgba(255,255,255,0.06); color: var(--gray); }
-    .bic-ahj  { background: rgba(180,100,50,0.2); color: #e8a07a; }
+  /* Comment button */
+  .comment-btn{display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c4d0dc;background:#fafbfc;transition:color 0.15s;padding:0 4px;border-left:1px solid #f0f4f8;font-size:12px;}
+  .comment-btn:hover{color:var(--navy);}
+  .comment-btn.has-comments{color:var(--green);}
 
-    /* ── AGING ── */
-    .aging-ok     { color: var(--green); font-size: 12px; }
-    .aging-warn   { color: var(--amber); font-size: 12px; }
-    .aging-danger { color: var(--red); font-size: 12px; font-weight: 700; }
+  /* Comment panel */
+  .comment-panel{position:fixed;right:0;top:0;width:380px;height:100vh;background:#fff;box-shadow:-4px 0 20px rgba(0,0,0,0.1);z-index:300;display:flex;flex-direction:column;animation:slideIn 0.2s ease-out;}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+  .comment-panel-head{padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;}
+  .comment-panel-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--navy);}
+  .comment-panel-topic{font-size:12px;color:#8a9baa;margin-top:2px;}
+  .comment-close{background:none;border:none;font-size:20px;cursor:pointer;color:#8a9baa;padding:4px 8px;border-radius:4px;}.comment-close:hover{background:#f0f4f8;}
+  .comment-list{flex:1;overflow-y:auto;padding:16px 20px;}
+  .comment-item{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f0f4f8;}
+  .comment-item:last-child{border-bottom:none;}
+  .comment-author{font-size:12px;font-weight:700;color:var(--navy);}
+  .comment-time{font-size:10px;color:#b0bac4;margin-left:8px;}
+  .comment-text{font-size:13px;color:#4a5568;margin-top:4px;line-height:1.5;}
+  .comment-text .mention{color:var(--green);font-weight:600;}
+  .comment-input-area{padding:16px 20px;border-top:1px solid #e2e8f0;position:relative;}
+  .comment-input{width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-family:'Barlow',sans-serif;font-size:13px;resize:none;min-height:60px;line-height:1.4;}
+  .comment-input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 2px rgba(119,157,54,0.15);}
+  .comment-send{margin-top:8px;padding:8px 16px;border-radius:6px;border:none;background:var(--green);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;cursor:pointer;float:right;}
+  .comment-send:hover{filter:brightness(1.1);}
+  .comment-send:disabled{opacity:0.5;cursor:not-allowed;}
 
-    /* ── MODAL ── */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(5,12,25,0.85);
-      z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px;
-      backdrop-filter: blur(4px);
-    }
-    .modal {
-      background: linear-gradient(135deg, #0f2040, #0a1628);
-      border: 1px solid rgba(200,168,75,0.2);
-      border-radius: 12px; padding: 28px;
-      width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-    }
-    .modal-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 20px; font-weight: 700; margin-bottom: 20px;
-      color: var(--white);
-    }
-    .form-group { margin-bottom: 16px; }
-    .form-label { font-size: 11px; color: var(--gray); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-    .form-input, .form-select, .form-textarea {
-      width: 100%;
-      background: rgba(10,22,40,0.8); border: 1px solid var(--border);
-      color: var(--white); padding: 9px 12px; border-radius: 5px;
-      font-size: 14px; font-family: 'Barlow', sans-serif;
-      transition: border-color 0.2s;
-    }
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      outline: none; border-color: var(--gold);
-    }
-    .form-textarea { resize: vertical; min-height: 80px; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
+  /* Mention autocomplete */
+  .mention-dropdown{position:absolute;bottom:100%;left:20px;right:20px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 -4px 16px rgba(0,0,0,0.08);max-height:200px;overflow-y:auto;display:none;z-index:10;}
+  .mention-dropdown.show{display:block;}
+  .mention-item{padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;transition:background 0.1s;}
+  .mention-item:hover,.mention-item.selected{background:rgba(119,157,54,0.08);}
+  .mention-avatar{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+  .mention-name{font-weight:600;color:var(--navy);}
+  .mention-email{font-size:11px;color:#8a9baa;}
 
-    /* ── SECTION ── */
-    .section-head { margin-bottom: 24px; }
-    .section-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 26px; font-weight: 800; color: var(--white);
-      letter-spacing: 0.5px; line-height: 1;
-    }
-    .section-title span { color: var(--gold); }
-    .section-sub { font-size: 14px; color: var(--gray); margin-top: 6px; }
+  /* Category colors */
+  .cat-general{background:linear-gradient(135deg,#375673,#2d4a63);color:#fff;}
+  .cat-permitting{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;}
+  .cat-engineering{background:linear-gradient(135deg,#779d36,#5f8228);color:#fff;}
+  .cat-procurement{background:linear-gradient(135deg,#e8a930,#d49a20);color:#fff;}
+  .cat-construction{background:linear-gradient(135deg,#e05252,#c0392b);color:#fff;}
+  .cat-milestones{background:linear-gradient(135deg,#2ecc8a,#27ae60);color:#fff;}
+  .cat-finance{background:linear-gradient(135deg,#0078d4,#0060aa);color:#fff;}
 
-    /* ── LOADING / EMPTY ── */
-    .loading { display: flex; align-items: center; justify-content: center; padding: 60px; flex-direction: column; gap: 16px; color: var(--gray); }
-    .spinner {
-      width: 32px; height: 32px;
-      border: 3px solid rgba(255,255,255,0.08);
-      border-top-color: var(--gold); border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--gray); }
-    .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+  .toast{position:fixed;bottom:20px;right:20px;padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:400;box-shadow:0 4px 12px rgba(0,0,0,0.15);color:#fff;}
+  .toast.show{opacity:1;}
+  .toast.ok{background:var(--green);}
+  .toast.err{background:var(--red);}
+  .toast.info{background:var(--navy);}
 
-    /* ── BANNERS ── */
-    .banner-error   { background: rgba(224,82,82,0.1); border: 1px solid rgba(224,82,82,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #f08080; font-size: 13px; }
-    .banner-success { background: rgba(46,204,138,0.1); border: 1px solid rgba(46,204,138,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: var(--green); font-size: 13px; }
+  .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:290;}
 
-    /* ── LOGIN ── */
-    .login-screen {
-      display: flex; align-items: center; justify-content: center;
-      min-height: 100vh;
-      background: var(--navy);
-      background-image:
-        radial-gradient(ellipse at 20% 20%, rgba(21,56,108,0.5) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(200,168,75,0.08) 0%, transparent 50%);
-    }
-    .login-card {
-      background: linear-gradient(135deg, rgba(15,32,64,0.95), rgba(10,22,40,0.98));
-      border: 1px solid rgba(200,168,75,0.2);
-      border-radius: 16px; padding: 48px 40px; text-align: center;
-      max-width: 420px; width: 100%;
-      box-shadow: 0 40px 100px rgba(0,0,0,0.5);
-    }
-    .login-logo-area { margin-bottom: 28px; }
-    .login-wordmark {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 28px; font-weight: 800;
-      color: var(--white); letter-spacing: 1px;
-    }
-    .login-wordmark span { color: var(--gold); }
-    .login-tagline { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; }
-    .login-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 24px 0; }
-    .login-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-    .login-sub { font-size: 13px; color: var(--gray); margin-bottom: 28px; line-height: 1.5; }
-    .ms-btn {
-      background: #0078d4; border: none; color: #fff;
-      padding: 13px 28px; border-radius: 6px;
-      font-size: 14px; font-weight: 700; cursor: pointer;
-      font-family: 'Barlow', sans-serif; letter-spacing: 0.3px;
-      display: flex; align-items: center; gap: 10px; margin: 0 auto;
-      transition: background 0.2s;
-    }
-    .ms-btn:hover { background: #106ebe; }
-    .login-footer { margin-top: 24px; font-size: 11px; color: var(--gray); }
+  /* KPI Dashboard */
+  .kpi-dash{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px;}
+  .kpi-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;}
+  .kpi-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.06);}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .kpi-card.kpi-overall::before{background:linear-gradient(90deg,var(--green),var(--amber));}
+  .kpi-card.kpi-cat::before{background:var(--navy);}
+  .kpi-card.kpi-general::before{background:linear-gradient(90deg,#375673,#2d4a63);}
+  .kpi-card.kpi-permitting::before{background:linear-gradient(90deg,#7c3aed,#6d28d9);}
+  .kpi-card.kpi-engineering::before{background:linear-gradient(90deg,#779d36,#5f8228);}
+  .kpi-card.kpi-procurement::before{background:linear-gradient(90deg,#e8a930,#d49a20);}
+  .kpi-card.kpi-construction::before{background:linear-gradient(90deg,#e05252,#c0392b);}
+  .kpi-card.kpi-milestones::before{background:linear-gradient(90deg,#2ecc8a,#27ae60);}
+  .kpi-card.kpi-finance::before{background:linear-gradient(90deg,#0078d4,#0060aa);}
+  .kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;margin-bottom:6px;}
+  .kpi-value{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--navy);line-height:1;}
+  .kpi-sub{font-size:12px;color:#8a9baa;margin-top:4px;}
+  .kpi-bar-track{height:6px;background:#e9edf2;border-radius:3px;margin-top:10px;overflow:hidden;}
+  .kpi-bar-fill{height:100%;border-radius:3px;transition:width 0.6s ease-out;}
+  .kpi-bar-fill.green{background:linear-gradient(90deg,#779d36,#5f8228);}
+  .kpi-bar-fill.amber{background:linear-gradient(90deg,#e8a930,#d49a20);}
+  .kpi-bar-fill.red{background:linear-gradient(90deg,#e05252,#c0392b);}
+  .kpi-bar-fill.done{background:linear-gradient(90deg,#2ecc8a,#27ae60);}
+  .kpi-big-ring{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;position:relative;}
+  .kpi-big-ring svg{transform:rotate(-90deg);}
+  .kpi-big-pct{position:absolute;font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--navy);}
+  .kpi-portfolio{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:14px;}
+  .kpi-proj-mini{background:#fafbfc;border:1px solid #e9edf2;border-radius:8px;padding:10px 12px;text-align:center;cursor:pointer;transition:all 0.15s;}
+  .kpi-proj-mini:hover{border-color:var(--green);background:#f0faf0;}
+  .kpi-proj-mini.active{border-color:var(--green);background:#f0faf0;box-shadow:0 0 0 2px rgba(119,157,54,0.15);}
+  .kpi-proj-name{font-size:11px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .kpi-proj-pct{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;margin-top:2px;}
+  .kpi-proj-bar{height:4px;background:#e9edf2;border-radius:2px;margin-top:6px;overflow:hidden;}
+  .kpi-proj-bar-fill{height:100%;border-radius:2px;transition:width 0.4s;}
+  .kpi-toggle{display:flex;gap:4px;margin-bottom:14px;}
+  .kpi-toggle-btn{padding:6px 14px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;cursor:pointer;color:#4a5568;transition:all 0.15s;}
+  .kpi-toggle-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
 
-    /* ── COMING SOON ── */
-    .coming-soon {
-      background: linear-gradient(135deg, rgba(15,32,64,0.6), rgba(10,22,40,0.7));
-      border: 1px dashed rgba(200,168,75,0.3); border-radius: 10px;
-      padding: 48px; text-align: center;
-    }
-    .coming-soon-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.6; }
-    .coming-soon-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-    .coming-soon-sub { color: var(--gray); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
-    code { background: rgba(200,168,75,0.15); color: var(--gold-lt); padding: 2px 8px; border-radius: 4px; font-size: 13px; }
-
-    /* ── CONNECTED BANNER ── */
-    .connected-banner {
-      display: flex; align-items: center; gap: 16px;
-      background: linear-gradient(135deg, rgba(46,204,138,0.08), rgba(15,32,64,0.5));
-      border: 1px solid rgba(46,204,138,0.2); border-radius: 8px;
-      padding: 14px 20px; margin-bottom: 24px;
-    }
-    .connected-icon { font-size: 24px; }
-    .connected-text { flex: 1; }
-    .connected-label { font-weight: 600; font-size: 14px; }
-    .connected-url { font-size: 12px; color: var(--gray); margin-top: 2px; }
-    .connected-url a { color: var(--gold); }
-
-    /* ── MONO ── */
-    .mono { font-family: 'Barlow Condensed', sans-serif; color: var(--gold-lt); font-size: 13px; }
-
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: var(--navy); }
-    ::-webkit-scrollbar-thumb { background: var(--slate); border-radius: 3px; }
-  </style>
+  /* Modal */
+  .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:400;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.15s;}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{background:#fff;border-radius:12px;width:480px;max-height:80vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:slideUp 0.2s ease-out;}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal-head{padding:20px 24px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;}
+  .modal-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--navy);}
+  .modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:#8a9baa;padding:4px 8px;border-radius:4px;}.modal-close:hover{background:#f0f4f8;}
+  .modal-body{padding:24px;overflow-y:auto;max-height:60vh;}
+  .modal-footer{padding:16px 24px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:8px;}
+  .form-group{margin-bottom:16px;}
+  .form-label{display:block;font-size:12px;font-weight:700;color:#8a9baa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+  .form-input{width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-family:'Barlow',sans-serif;font-size:14px;transition:all 0.15s;}
+  .form-input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 2px rgba(119,157,54,0.15);}
+  .form-hint{font-size:11px;color:#b0bac4;margin-top:4px;}
+  .btn-cancel{padding:8px 18px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;color:#4a5568;font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}.btn-cancel:hover{background:#f8fafb;}
+  .btn-create{padding:8px 18px;border-radius:6px;border:none;background:linear-gradient(135deg,#779d36,#5f8228);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}.btn-create:hover{filter:brightness(1.1);}.btn-create:disabled{opacity:0.5;cursor:not-allowed;}
+  .btn-delete{padding:8px 18px;border-radius:6px;border:none;background:linear-gradient(135deg,#e05252,#c0392b);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}.btn-delete:hover{filter:brightness(1.1);}.btn-delete:disabled{opacity:0.5;cursor:not-allowed;}
+  .del-proj-btn{padding:8px 14px;border-radius:8px;border:1px solid #e05252;background:#fff;color:#e05252;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+  .del-proj-btn:hover{background:#e05252;color:#fff;}
+  .var-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .var-tag{padding:4px 10px;border-radius:16px;font-size:11px;font-weight:600;background:#f0f4f8;color:#4a5568;border:1px solid #e2e8f0;display:flex;align-items:center;gap:4px;}
+  .var-tag .x{cursor:pointer;color:#b0bac4;font-size:14px;line-height:1;}.var-tag .x:hover{color:var(--red);}
+  .var-add-row{display:flex;gap:6px;margin-top:8px;}
+  .var-add-input{flex:1;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;font-family:'Barlow',sans-serif;}.var-add-input:focus{outline:none;border-color:var(--green);}
+  .var-add-btn{padding:6px 12px;border-radius:6px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+</style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const { useState, useEffect, useCallback } = React;
 
+<!-- Login Screen (shown before auth) -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-card-head">
+      <img src="logo.png" alt="Distributed Energy Infrastructure" style="width:260px;margin-bottom:12px;">
+      <div class="login-card-sub" style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--navy);letter-spacing:1px;">PROJECT TRUTH</div>
+    </div>
+    <div class="login-card-body">
+      <div class="login-card-divider"></div>
+      <button class="login-card-ms" onclick="doLogin()">
+        <svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg>
+        Sign in with Microsoft
+      </button>
+    </div>
+    <div class="login-card-footer">Connected to SharePoint · Real-time read/write</div>
+  </div>
+</div>
+
+<!-- App Layout (shown after auth) -->
+<div id="appLayout" class="app-layout" style="display:none;">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="logo.png" alt="DEI" style="width:160px;margin-bottom:6px;filter:brightness(0) invert(1);">
+      <div class="sub">Project Truth</div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Dashboard</div>
+        <div class="sidebar-item active" onclick="setSidebarView('overview')">
+          <span class="icon">📊</span> Overview
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Projects</div>
+        <div id="sidebarProjects" class="sidebar-projects"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Logs</div>
+        <div class="sidebar-item" onclick="setSidebarView('rfi')">
+          <span class="icon">📝</span> RFI &amp; Submittal Log
+        </div>
+        <div class="sidebar-item" onclick="setSidebarView('cost')">
+          <span class="icon">💰</span> Cost
+        </div>
+        <div class="sidebar-item" onclick="setSidebarView('progress')">
+          <span class="icon">📈</span> Progress
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Admin</div>
+        <div class="sidebar-item" onclick="setSidebarView('settings')">
+          <span class="icon">⚙️</span> Settings
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-user-role admin" id="userRole">ADMIN</div>
+      <div class="sidebar-user-name" id="sidebarUserName">—</div>
+      <div class="sidebar-user-email" id="sidebarUserEmail">—</div>
+      <button class="sidebar-signout" onclick="doSignOut()">Sign out</button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main-area">
+    <div class="container">
+      <div id="mainContent">
+        <div class="loading"><div class="spinner"></div><br>Loading PMO data from SharePoint...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="addProjectModal" style="display:none;"></div>
+<div id="commentPanel"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════
 const CONFIG = {
   clientId: "613928f8-0497-47ea-bb0f-c1725a1f156a",
   tenantId: "ec357a32-5b85-438d-a765-ae33c8eb13b7",
-  siteId:   "8103997e-0688-4832-a5b4-bf18de7f96f5",
-  siteUrl:  "https://distributedei.sharepoint.com",
-  lists: { rfi: "38fd99d2-dad5-41d8-a898-4f5e425ad340" }
+  siteId: "8103997e-0688-4832-a5b4-bf18de7f96f5",
+  listId: "c0443281-dca9-49e0-856f-2748d4681399"
 };
+const SITE = "/sites/" + CONFIG.siteId;
+const LIST = SITE + "/lists/" + CONFIG.listId;
+const SCOPES = ["Sites.Manage.All", "Sites.Selected", "User.Read", "Chat.Create", "Chat.ReadWrite", "User.ReadBasic.All"];
+const REDIRECT = window.location.origin + window.location.pathname;
 
+const TEAM = [{"name": "Joshua Dean", "email": "jdean@distributedei.com", "nick": "Joshua"}, {"name": "Tom Guinta", "email": "tguinta@distributedei.com", "nick": "Tom"}, {"name": "Beth Harrington", "email": "bharrington@distributedei.com", "nick": "Beth"}, {"name": "Steve Maslen", "email": "smaslen@distributedei.com", "nick": "Steve"}, {"name": "David Moulton", "email": "dmoulton@distributedei.com", "nick": "David M"}, {"name": "Jessica Morse", "email": "jmorse@distributedei.com", "nick": "Jessica"}, {"name": "Daniel Spaizman", "email": "dspaizman@distributedei.com", "nick": "Daniel"}, {"name": "Jonas Bukh", "email": "jbukh@distributedei.com", "nick": "Jonas"}, {"name": "John Daly", "email": "jdaly@distributedei.com", "nick": "John"}, {"name": "Brian Follo", "email": "bfollo@distributedei.com", "nick": "Brian F"}, {"name": "Eli Cayer", "email": "ecayer@distributedei.com", "nick": "Eli"}, {"name": "Jackson Elwell", "email": "jelwell@distributedei.com", "nick": "Jackson"}, {"name": "Corinne Scanlon", "email": "cscanlon@distributedei.com", "nick": "Corinne"}, {"name": "Joshua Kuntz", "email": "jkuntz@distributedei.com", "nick": "Josh K"}, {"name": "Mike Wilkinson", "email": "mwilkinson@distributedei.com", "nick": "Mike W"}, {"name": "Matthew Sowle", "email": "msowle@distributedei.com", "nick": "Matt"}, {"name": "Caleb Schott", "email": "cschott@distributedei.com", "nick": "Caleb"}, {"name": "Stowe Duston", "email": "sduston@distributedei.com", "nick": "Stowe"}, {"name": "Thomas Hewitt", "email": "thewitt@distributedei.com", "nick": "Thomas"}, {"name": "Chris Shepard", "email": "cshepard@distributedei.com", "nick": "Chris"}, {"name": "Dipti Kothari", "email": "dkothari@distributedei.com", "nick": "Dipti"}, {"name": "Rusfid Haroon", "email": "rharoon@distributedei.com", "nick": "Rusfid"}, {"name": "Gabriel Murray", "email": "gmurray@distributedei.com", "nick": "Gabe"}, {"name": "David Caparelli", "email": "dcaparelli@distributeder.com", "nick": "David C"}, {"name": "Prateek Tare", "email": "ptare@distributeder.com", "nick": "Prateek"}, {"name": "Sean Harrington", "email": "sharrington@distributeder.com", "nick": "Sean"}, {"name": "Adam Regen", "email": "aregen@distributeder.com", "nick": "Adam"}, {"name": "Laura Gilman-Boutot", "email": "lgilman-boutot@distributeder.com", "nick": "Laura"}, {"name": "Trevor Maclachlan", "email": "tmaclachlan@distributeder.com", "nick": "Trevor"}, {"name": "Ryan Harrington", "email": "rharrington@distributeder.com", "nick": "Ryan"}, {"name": "Brian Parker", "email": "bparker@distributeder.com", "nick": "Brian P"}, {"name": "Joot Wright", "email": "jwright@distributeder.com", "nick": "Joot"}, {"name": "Alyssa DeBell", "email": "adebell@distributeder.com", "nick": "Alyssa"}, {"name": "David Sieczarski", "email": "dsieczarski@distributeder.com", "nick": "David S"}, {"name": "Carlton Tobler", "email": "ctobler@distributeder.com", "nick": "Carlton"}, {"name": "Peter Stanford", "email": "pstanford@distributeder.com", "nick": "Peter"}, {"name": "Alan Derosier", "email": "aderosier@distributeder.com", "nick": "Alan"}, {"name": "Ian Maclachlan", "email": "imaclachlan@distributeder.com", "nick": "Ian"}, {"name": "Julian Diaz", "email": "jdiaz@distributeder.com", "nick": "Julian"}];
+
+const CATEGORIES = ["General", "Permitting", "Engineering", "Procurement (Subcontractors)", "Construction", "Milestones", "Finance"];
+const CAT_CLASSES = {"General":"cat-general","Permitting":"cat-permitting","Engineering":"cat-engineering","Procurement (Subcontractors)":"cat-procurement","Construction":"cat-construction","Milestones":"cat-milestones","Finance":"cat-finance"};
+const CAT_ICONS = {"General":"📋","Permitting":"🏛","Engineering":"⚙️","Procurement (Subcontractors)":"🔨","Construction":"🏗️","Milestones":"🎯","Finance":"💰"};
+
+// ══════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════
 const msalInstance = new msal.PublicClientApplication({
-  auth: {
-    clientId: CONFIG.clientId,
-    authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`,
-    redirectUri: window.location.origin,
-  },
+  auth: { clientId: CONFIG.clientId, authority: "https://login.microsoftonline.com/" + CONFIG.tenantId, redirectUri: REDIRECT, navigateToLoginRequestUrl: true },
   cache: { cacheLocation: "sessionStorage" }
 });
 
-const SCOPES = ["Sites.Selected", "Files.Read.All", "User.Read"];
+let account = null;
+let DATA = [];
+let spItemMap = {}; // key -> SP item id
+let selProject = null;
+let searchQ = "";
+let collapsed = {};
+let openComment = null; // {project, category, topic, itemId}
+let comments = {}; // itemId -> [{author, text, time}]
+let saveTimers = {};
+let currentUser = null;
+
+async function initAuth() {
+  try {
+    await msalInstance.initialize();
+    const resp = await msalInstance.handleRedirectPromise();
+    if (resp) { account = resp.account; }
+    else {
+      const accounts = msalInstance.getAllAccounts();
+      if (accounts.length) account = accounts[0];
+    }
+    if (account) {
+      currentUser = account.name;
+      // Switch from login screen to app layout
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("appLayout").style.display = "flex";
+      // Populate sidebar user info
+      document.getElementById("sidebarUserName").textContent = account.name || "User";
+      document.getElementById("sidebarUserEmail").textContent = account.username || "";
+      loadFromSharePoint();
+    }
+  } catch (e) { console.error("Init:", e); }
+}
+
+async function doLogin() {
+  try { await msalInstance.loginRedirect({ scopes: SCOPES }); } catch (e) { showToast("Login failed: " + e.message, "err"); }
+}
+
+function doSignOut() {
+  msalInstance.logoutRedirect({ postLogoutRedirectUri: REDIRECT });
+}
+
+let sidebarView = 'overview';
+function setSidebarView(view) {
+  sidebarView = view;
+  document.querySelectorAll('.sidebar-item').forEach(function(el) { el.classList.remove('active'); });
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+
+  if (view === 'overview') {
+    renderAll();
+    return;
+  }
+  if (view === 'rfi') {
+    document.getElementById("mainContent").innerHTML = '<iframe src="https://distributedei.github.io/dei-project-truth-v3/" style="width:100%;height:calc(100vh - 40px);border:none;border-radius:8px;"></iframe>';
+    return;
+  }
+  // Placeholder for future views
+  showToast(view.charAt(0).toUpperCase() + view.slice(1) + " — coming soon", "info");
+}
 
 async function getToken() {
-  const accounts = msalInstance.getAllAccounts();
-  if (!accounts.length) throw new Error("Not signed in");
-  try {
-    const r = await msalInstance.acquireTokenSilent({ scopes: SCOPES, account: accounts[0] });
-    return r.accessToken;
-  } catch {
-    const r = await msalInstance.acquireTokenPopup({ scopes: SCOPES });
-    return r.accessToken;
-  }
+  try { return (await msalInstance.acquireTokenSilent({ scopes: SCOPES, account })).accessToken; }
+  catch (e) { await msalInstance.acquireTokenRedirect({ scopes: SCOPES }); }
 }
 
 async function graph(method, path, body) {
   const token = await getToken();
-  const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
-    method: method || "GET",
-    headers: { Authorization: `Bearer ${token}`, ...(body ? {"Content-Type":"application/json"} : {}) },
-    ...(body ? { body: JSON.stringify(body) } : {})
-  });
-  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || `Error ${res.status}`); }
-  return res.status === 204 ? null : res.json();
+  const opts = { method: method || "GET", headers: { Authorization: "Bearer " + token } };
+  if (body) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
+  const r = await fetch("https://graph.microsoft.com/v1.0" + path, opts);
+  if (!r.ok) {
+    let msg = "HTTP " + r.status;
+    try { const e = await r.json(); msg = e.error?.message || msg; } catch(x) {}
+    throw new Error(msg);
+  }
+  return r.status === 204 ? null : r.json();
 }
 
-const SITE = `/sites/${CONFIG.siteId}`;
+// ══════════════════════════════════════════════════
+// LOAD DATA FROM SHAREPOINT
+// ══════════════════════════════════════════════════
+async function loadFromSharePoint() {
+  document.getElementById("mainContent").innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading PMO data from SharePoint...</div>';
+  DATA = [];
+  spItemMap = {};
 
-// Map between SharePoint internal names and app display names
-const SP_TO_APP = { BallinCourt: "BallInCourt", Assignedto: "AssignedTo" };
-const APP_TO_SP = { BallInCourt: "BallinCourt", AssignedTo: "Assignedto" };
-
-function fromSP(fields) {
-  const out = {};
-  for (const [k,v] of Object.entries(fields)) out[SP_TO_APP[k]||k] = v;
-  return out;
-}
-function toSP(fields) {
-  const out = {};
-  for (const [k,v] of Object.entries(fields)) out[APP_TO_SP[k]||k] = v;
-  return out;
-}
-
-async function getItems(listId) {
-  const d = await graph("GET", `${SITE}/lists/${listId}/items?expand=fields&$top=500`);
-  return (d.value||[]).map(i => ({id:i.id,...fromSP(i.fields)}));
-}
-async function addItem(listId, fields) {
-  return graph("POST", `${SITE}/lists/${listId}/items`, {fields: toSP(fields)});
-}
-async function editItem(listId, id, fields) {
-  return graph("PATCH", `${SITE}/lists/${listId}/items/${id}/fields`, toSP(fields));
-}
-
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-
-function Badge({status}) {
-  const m = {
-    "Draft":"badge-draft","Submitted":"badge-submitted","In Review":"badge-review",
-    "Returned - Revise":"badge-returned","Approved":"badge-approved",
-    "Rejected":"badge-rejected","Closed":"badge-closed"
-  };
-  return <span className={`badge ${m[status]||"badge-draft"}`}>{status||"—"}</span>;
-}
-
-function BIC({val}) {
-  const m = {Engineering:"bic-eng",Construction:"bic-con",PM:"bic-pm",Owner:"bic-own",Vendor:"bic-ven",AHJ:"bic-ahj",Utility:"bic-ahj"};
-  const ic = {Engineering:"⚙",Construction:"🏗",PM:"📋",Owner:"👤",Vendor:"📦",AHJ:"🏛",Utility:"🏛"};
-  return <span className={`bic ${m[val]||"bic-ven"}`}>{ic[val]||"•"} {val||"—"}</span>;
-}
-
-function Aging({date}) {
-  if (!date) return <span style={{color:"var(--gray)"}}>—</span>;
-  const d = Math.floor((new Date()-new Date(date))/86400000);
-  if (d<=0) return <span className="aging-ok">● On Track</span>;
-  if (d<7)  return <span className="aging-warn">▲ {d}d overdue</span>;
-  return <span className="aging-danger">⚠ {d}d overdue</span>;
-}
-
-function fmtDate(d) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
-}
-
-// ── MODAL ────────────────────────────────────────────────────────────────────
-
-function Modal({title, onClose, children}) {
-  return (
-    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="modal">
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-          <div className="modal-title">{title}</div>
-          <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function AddModal({onClose, onSave}) {
-  const [f, setF] = useState({
-    Title:"",Project:"",ItemType:"RFI",Number:"",Subject:"",
-    Status:"Draft",BallInCourt:"Engineering",AssignedTo:"",DueDate:"",
-    Description:"",EvidenceLink:""
-  });
-  const [saving, setSaving] = useState(false);
-  const s = (k,v) => setF(p=>({...p,[k]:v}));
-
-  return (
-    <Modal title="Add RFI / Submittal" onClose={onClose}>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-        <div className="form-group" style={{gridColumn:"1/-1"}}>
-          <label className="form-label">Title *</label>
-          <input className="form-input" value={f.Title} onChange={e=>s("Title",e.target.value)} placeholder="Brief descriptive title" />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Project</label>
-          <input className="form-input" value={f.Project} onChange={e=>s("Project",e.target.value)} placeholder="Project name" />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Type</label>
-          <select className="form-select" value={f.ItemType} onChange={e=>s("ItemType",e.target.value)}>
-            <option>RFI</option><option>Submittal</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label className="form-label">Number</label>
-          <input className="form-input" value={f.Number} onChange={e=>s("Number",e.target.value)} placeholder="RFI-001" />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Status</label>
-          <select className="form-select" value={f.Status} onChange={e=>s("Status",e.target.value)}>
-            {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(v=><option key={v}>{v}</option>)}
-          </select>
-        </div>
-        <div className="form-group">
-          <label className="form-label">Ball in Court</label>
-          <select className="form-select" value={f.BallInCourt} onChange={e=>s("BallInCourt",e.target.value)}>
-            {["Engineering","Construction","PM","Owner","Vendor","AHJ","Utility"].map(v=><option key={v}>{v}</option>)}
-          </select>
-        </div>
-        <div className="form-group">
-          <label className="form-label">Assigned To</label>
-          <input className="form-input" value={f.AssignedTo} onChange={e=>s("AssignedTo",e.target.value)} placeholder="Person / team" />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Due Date</label>
-          <input className="form-input" type="date" value={f.DueDate} onChange={e=>s("DueDate",e.target.value)} />
-        </div>
-        <div className="form-group" style={{gridColumn:"1/-1"}}>
-          <label className="form-label">Subject</label>
-          <input className="form-input" value={f.Subject} onChange={e=>s("Subject",e.target.value)} placeholder="Technical subject" />
-        </div>
-        <div className="form-group" style={{gridColumn:"1/-1"}}>
-          <label className="form-label">Description</label>
-          <textarea className="form-textarea" value={f.Description} onChange={e=>s("Description",e.target.value)} placeholder="Detailed description..." />
-        </div>
-        <div className="form-group" style={{gridColumn:"1/-1"}}>
-          <label className="form-label">Evidence / SharePoint Link</label>
-          <input className="form-input" value={f.EvidenceLink} onChange={e=>s("EvidenceLink",e.target.value)} placeholder="https://distributedei.sharepoint.com/..." />
-        </div>
-      </div>
-      <div className="modal-actions">
-        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-gold" disabled={saving||!f.Title} onClick={async()=>{
-          setSaving(true);
-          try { await onSave(f); onClose(); }
-          catch(e) { alert("Error: "+e.message); setSaving(false); }
-        }}>
-          {saving ? "Saving..." : "⚡ Save to SharePoint"}
-        </button>
-      </div>
-    </Modal>
-  );
-}
-
-function EditModal({item, onClose, onSave}) {
-  const [status, setStatus] = useState(item.Status||"Draft");
-  const [bic, setBic]       = useState(item.BallInCourt||"Engineering");
-  const [saving, setSaving] = useState(false);
-
-  return (
-    <Modal title={`Update — ${item.Title||item.Number||"Item"}`} onClose={onClose}>
-      <div style={{marginBottom:16}}>
-        <span style={{color:"var(--gray)",fontSize:13}}>Current: </span>
-        <Badge status={item.Status} />
-      </div>
-      <div className="form-group">
-        <label className="form-label">New Status</label>
-        <select className="form-select" value={status} onChange={e=>setStatus(e.target.value)}>
-          {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(v=><option key={v}>{v}</option>)}
-        </select>
-      </div>
-      <div className="form-group">
-        <label className="form-label">Ball in Court</label>
-        <select className="form-select" value={bic} onChange={e=>setBic(e.target.value)}>
-          {["Engineering","Construction","PM","Owner","Vendor","AHJ","Utility"].map(v=><option key={v}>{v}</option>)}
-        </select>
-      </div>
-      <div className="modal-actions">
-        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-gold" disabled={saving} onClick={async()=>{
-          setSaving(true);
-          try { await onSave(item.id,{Status:status,BallInCourt:bic}); onClose(); }
-          catch(e) { alert("Error: "+e.message); setSaving(false); }
-        }}>
-          {saving ? "Saving..." : "⚡ Update SharePoint"}
-        </button>
-      </div>
-    </Modal>
-  );
-}
-
-// ── VIEWS ─────────────────────────────────────────────────────────────────────
-
-function Overview({user}) {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(()=>{
-    getItems(CONFIG.lists.rfi).then(items=>{
-      const today = new Date();
-      setStats({
-        total: items.length,
-        open: items.filter(i=>!["Closed","Approved"].includes(i.Status)).length,
-        overdue: items.filter(i=>i.DueDate&&new Date(i.DueDate)<today&&!["Closed","Approved"].includes(i.Status)).length,
-        rfis: items.filter(i=>i.ItemType==="RFI").length,
-        subs: items.filter(i=>i.ItemType==="Submittal").length,
-      });
-    }).catch(()=>setStats(null)).finally(()=>setLoading(false));
-  },[]);
-
-  const first = (user?.name||user?.username||"there").split(" ")[0];
-
-  return (
-    <div>
-      <div className="section-head">
-        <div className="section-title">Welcome back, <span>{first}</span></div>
-        <div className="section-sub">DEI Project Truth — your live PMO control plane</div>
-      </div>
-
-      <div className="connected-banner">
-        <div className="connected-icon">🔗</div>
-        <div className="connected-text">
-          <div className="connected-label" style={{color:"var(--green)"}}>Connected to SharePoint</div>
-          <div className="connected-url">
-            <a href={CONFIG.siteUrl} target="_blank" rel="noreferrer">
-              distributedei.sharepoint.com / Building a Connected Future
-            </a>
-          </div>
-        </div>
-        <div className="live-dot">Live</div>
-      </div>
-
-      {loading ? <div className="loading"><div className="spinner"/><div>Loading from SharePoint...</div></div>
-      : stats ? (
-        <div className="kpi-grid">
-          <div className="kpi-card good">
-            <div className="kpi-label">Total Items</div>
-            <div className="kpi-value">{stats.total}</div>
-            <div className="kpi-sub green">Tracked in SharePoint</div>
-          </div>
-          <div className={`kpi-card ${stats.overdue>0?"alert":""}`}>
-            <div className="kpi-label">Overdue</div>
-            <div className="kpi-value">{stats.overdue}</div>
-            <div className={`kpi-sub ${stats.overdue>0?"red":"green"}`}>
-              {stats.overdue>0?"Action required":"All on track"}
-            </div>
-          </div>
-          <div className="kpi-card">
-            <div className="kpi-label">Open Items</div>
-            <div className="kpi-value">{stats.open}</div>
-            <div className="kpi-sub">Active</div>
-          </div>
-          <div className="kpi-card">
-            <div className="kpi-label">RFIs</div>
-            <div className="kpi-value">{stats.rfis}</div>
-            <div className="kpi-sub">{stats.subs} submittals</div>
-          </div>
-        </div>
-      ) : <div className="banner-error">⚠ Could not load data — check SharePoint connection and permissions.</div>}
-
-      <div style={{background:"linear-gradient(135deg,rgba(15,32,64,0.7),rgba(10,22,40,0.8))",border:"1px solid var(--border)",borderRadius:10,padding:24,marginTop:8}}>
-        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:18,fontWeight:700,marginBottom:16,color:"var(--white)",letterSpacing:"0.5px"}}>
-          MVP BUILD STATUS
-        </div>
-        {[
-          ["✅","Azure AD Authentication","Signed in — "+( user?.username||"active"),"good"],
-          ["✅","SharePoint Connection","Live read/write to DEI site","good"],
-          ["✅","RFI & Submittal Tracker","Full CRUD — create, edit, filter, aging","good"],
-          ["🔜","Permit Matrix","Create DEI-Permit-Matrix list in SharePoint","pending"],
-          ["🔜","BOM / Procurement","Create DEI-BOM-Procurement list","pending"],
-          ["🔜","Invoicing","Create DEI-Invoices list","pending"],
-          ["🔜","Closeout Tracker","Create DEI-Closeout-Items list","pending"],
-        ].map(([icon,label,sub,type])=>(
-          <div key={label} style={{display:"flex",alignItems:"center",gap:14,padding:"10px 0",borderBottom:"1px solid var(--border)"}}>
-            <span style={{fontSize:18,width:24,textAlign:"center"}}>{icon}</span>
-            <div style={{flex:1}}>
-              <div style={{fontWeight:600,fontSize:14,color:type==="good"?"var(--white)":"var(--gray-lt)"}}>{label}</div>
-              <div style={{fontSize:12,color:"var(--gray)",marginTop:2}}>{sub}</div>
-            </div>
-            {type==="good"
-              ? <span style={{fontSize:11,color:"var(--green)",background:"rgba(46,204,138,0.1)",padding:"3px 10px",borderRadius:20,border:"1px solid rgba(46,204,138,0.2)"}}>LIVE</span>
-              : <span style={{fontSize:11,color:"var(--amber)",background:"rgba(232,169,48,0.1)",padding:"3px 10px",borderRadius:20,border:"1px solid rgba(232,169,48,0.2)"}}>NEXT</span>
-            }
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Engineering() {
-  const [items, setItems]   = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [typeF, setTypeF]   = useState("all");
-  const [statF, setStatF]   = useState("all");
-  const [bicF, setBicF]     = useState("all");
-  const [modal, setModal]   = useState(null);
-  const [sel, setSel]       = useState(null);
-
-  const load = useCallback(async()=>{
-    setLoading(true); setError(null);
-    try { setItems(await getItems(CONFIG.lists.rfi)); }
-    catch(e) { setError(e.message); }
-    finally { setLoading(false); }
-  },[]);
-
-  useEffect(()=>{ load(); },[load]);
-
-  const flash = msg => { setSuccess(msg); setTimeout(()=>setSuccess(null),3000); };
-
-  const filtered = items
-    .filter(i=>(typeF==="all"||i.ItemType===typeF)&&(statF==="all"||i.Status===statF)&&(bicF==="all"||i.BallInCourt===bicF))
-    .sort((a,b)=>{ if(!a.DueDate) return 1; if(!b.DueDate) return -1; return new Date(a.DueDate)-new Date(b.DueDate); });
-
-  const overdue = items.filter(i=>i.DueDate&&new Date(i.DueDate)<new Date()&&!["Closed","Approved"].includes(i.Status));
-
-  return (
-    <div>
-      <div className="section-head">
-        <div className="section-title">Engineering <span>Log</span></div>
-        <div className="section-sub">RFIs and Submittals — live from SharePoint</div>
-      </div>
-
-      {error   && <div className="banner-error">⚠ {error}</div>}
-      {success && <div className="banner-success">✅ {success}</div>}
-
-      <div className="kpi-grid">
-        <div className="kpi-card">
-          <div className="kpi-label">Total Items</div>
-          <div className="kpi-value">{items.length}</div>
-          <div className="kpi-sub">In SharePoint</div>
-        </div>
-        <div className={`kpi-card ${overdue.length>0?"alert":""}`}>
-          <div className="kpi-label">Overdue</div>
-          <div className="kpi-value">{overdue.length}</div>
-          <div className={`kpi-sub ${overdue.length>0?"red":"green"}`}>{overdue.length>0?"Action required":"All on track"}</div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-label">RFIs Open</div>
-          <div className="kpi-value">{items.filter(i=>i.ItemType==="RFI"&&i.Status!=="Closed").length}</div>
-          <div className="kpi-sub">{items.filter(i=>i.ItemType==="RFI").length} total</div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-label">Submittals Open</div>
-          <div className="kpi-value">{items.filter(i=>i.ItemType==="Submittal"&&i.Status!=="Closed").length}</div>
-          <div className="kpi-sub">{items.filter(i=>i.ItemType==="Submittal").length} total</div>
-        </div>
-      </div>
-
-      <div className="table-wrap">
-        <div className="table-header">
-          <div className="table-title">Items ({filtered.length})</div>
-          <div className="filters">
-            <select className="filter-select" value={typeF} onChange={e=>setTypeF(e.target.value)}>
-              <option value="all">All Types</option>
-              <option value="RFI">RFI</option>
-              <option value="Submittal">Submittal</option>
-            </select>
-            <select className="filter-select" value={statF} onChange={e=>setStatF(e.target.value)}>
-              <option value="all">All Statuses</option>
-              {["Draft","Submitted","In Review","Returned - Revise","Approved","Rejected","Closed"].map(s=><option key={s}>{s}</option>)}
-            </select>
-            <select className="filter-select" value={bicF} onChange={e=>setBicF(e.target.value)}>
-              <option value="all">All Ball-in-Court</option>
-              {["Engineering","Construction","PM","Owner","Vendor","AHJ","Utility"].map(s=><option key={s}>{s}</option>)}
-            </select>
-            <button className="btn btn-ghost btn-sm" onClick={load}>↺ Refresh</button>
-            <button className="btn btn-gold btn-sm" onClick={()=>setModal("add")}>+ Add Item</button>
-          </div>
-        </div>
-
-        {loading ? <div className="loading"><div className="spinner"/><div>Loading from SharePoint...</div></div>
-        : filtered.length===0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📋</div>
-            <div style={{marginBottom:12}}>{items.length===0?"No items yet — add your first one.":"No items match the filters."}</div>
-            {items.length===0 && <button className="btn btn-gold" onClick={()=>setModal("add")}>+ Add First Item</button>}
-          </div>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>#</th><th>Type</th><th>Title</th><th>Project</th>
-                <th>Status</th><th>Ball in Court</th><th>Assigned</th>
-                <th>Due Date</th><th>Aging</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(item=>(
-                <tr key={item.id}>
-                  <td><span className="mono">{item.Number||"—"}</span></td>
-                  <td>
-                    <span style={{
-                      background: item.ItemType==="RFI"?"rgba(21,56,108,0.4)":"rgba(200,168,75,0.15)",
-                      color: item.ItemType==="RFI"?"#7eb3e8":"var(--gold-lt)",
-                      padding:"2px 8px",borderRadius:4,fontSize:11,fontWeight:700,
-                      fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.5px"
-                    }}>{item.ItemType||"—"}</span>
-                  </td>
-                  <td>
-                    <div style={{fontWeight:600,color:"var(--white)"}}>{item.Title}</div>
-                    {item.Subject&&<div style={{color:"var(--gray)",fontSize:11,marginTop:2}}>{item.Subject}</div>}
-                    {item.EvidenceLink&&<a href={item.EvidenceLink} target="_blank" rel="noreferrer" style={{fontSize:11,color:"var(--gold)",display:"block",marginTop:3}}>📎 Evidence</a>}
-                  </td>
-                  <td style={{color:"var(--gray-lt)",fontSize:12}}>{item.Project||"—"}</td>
-                  <td><Badge status={item.Status}/></td>
-                  <td><BIC val={item.BallInCourt}/></td>
-                  <td style={{color:"var(--gray-lt)",fontSize:13}}>{item.AssignedTo||"—"}</td>
-                  <td style={{color:"var(--gray)",fontSize:12}}>{fmtDate(item.DueDate)}</td>
-                  <td><Aging date={item.DueDate}/></td>
-                  <td>
-                    <button className="btn btn-ghost btn-sm" onClick={()=>{setSel(item);setModal("edit");}}>
-                      ✏ Update
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {modal==="add" && <AddModal onClose={()=>setModal(null)} onSave={async f=>{await addItem(CONFIG.lists.rfi,f);flash("Added to SharePoint ✓");load();}}/>}
-      {modal==="edit" && sel && <EditModal item={sel} onClose={()=>setModal(null)} onSave={async(id,f)=>{await editItem(CONFIG.lists.rfi,id,f);flash("Updated in SharePoint ✓");load();}}/>}
-    </div>
-  );
-}
-
-function ComingSoon({title, listName}) {
-  return (
-    <div>
-      <div className="section-head">
-        <div className="section-title">{title.split(" ")[0]} <span>{title.split(" ").slice(1).join(" ")}</span></div>
-      </div>
-      <div className="coming-soon">
-        <div className="coming-soon-icon">🔜</div>
-        <div className="coming-soon-title">SharePoint List Required</div>
-        <div className="coming-soon-sub">
-          To enable this view, create a new SharePoint list named <code>{listName}</code> on your DEI site, then we'll add the columns together.
-        </div>
-        <a href={CONFIG.siteUrl} target="_blank" rel="noreferrer" className="btn btn-gold">
-          Open DEI SharePoint Site →
-        </a>
-      </div>
-    </div>
-  );
-}
-
-// ── LOGIN ─────────────────────────────────────────────────────────────────────
-
-function Login({onLogin}) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
-
-  const login = async () => {
-    setLoading(true); setError(null);
+  try {
+    // Ensure Complete column exists
     try {
-      await msalInstance.initialize();
-      const r = await msalInstance.loginPopup({scopes: SCOPES});
-      onLogin(r.account);
-    } catch(e) { setError(e.message); setLoading(false); }
-  };
+      await graph("POST", LIST + "/columns", { name: "Complete", displayName: "Complete", boolean: {} });
+      console.log("Complete column created");
+    } catch(e) { console.log("Complete column exists or error:", e.message); }
 
-  return (
-    <div className="login-screen">
-      <div className="login-card">
-        <div className="login-logo-area">
-          <div className="login-wordmark">DISTRIBUTED <span>ENERGY</span> INFRASTRUCTURE</div>
-          <div className="login-tagline">Building a Connected Future</div>
-        </div>
-        <div className="login-divider" />
-        <div className="login-title">Project Truth</div>
-        <div className="login-sub">Sign in with your DEI Microsoft account to access the PMO control plane.</div>
-        {error && <div className="banner-error" style={{marginBottom:16,textAlign:"left"}}>⚠ {error}</div>}
-        <button className="ms-btn" onClick={login} disabled={loading}>
-          <svg width="20" height="20" viewBox="0 0 21 21">
-            <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
-            <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
-            <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
-            <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
-          </svg>
-          {loading ? "Signing in..." : "Sign in with Microsoft"}
-        </button>
-        <div className="login-footer">Restricted to Distributed Energy Infrastructure accounts only</div>
-      </div>
-    </div>
-  );
+    let url = LIST + "/items?$expand=fields&$top=999";
+    let page = 0;
+    while (url) {
+      const resp = await graph("GET", url);
+      if (resp.value) {
+        resp.value.forEach(item => {
+          const f = item.fields;
+          const row = {
+            id: item.id,
+            Project: f.Project || "",
+            Category: f.Category || "",
+            Topic: f.Topic || "",
+            Value: f.Value || "",
+            SortOrder: f.SortOrder || 0,
+            Complete: f.Complete === true || f.Complete === "true"
+          };
+          DATA.push(row);
+          spItemMap[row.Project + "|" + row.Category + "|" + row.Topic] = item.id;
+        });
+      }
+      url = resp["@odata.nextLink"] ? resp["@odata.nextLink"].replace("https://graph.microsoft.com/v1.0", "") : null;
+      page++;
+    }
+
+    // Determine projects from data
+    const projects = [...new Set(DATA.map(r => r.Project))].filter(Boolean).sort();
+    selProject = projects[0];
+    showToast("Loaded " + DATA.length + " items from SharePoint", "ok");
+    renderAll(projects);
+  } catch (e) {
+    document.getElementById("mainContent").innerHTML = '<div class="loading" style="color:var(--red);">Failed to load: ' + e.message + '</div>';
+    showToast("Load failed: " + e.message, "err");
+  }
 }
 
-// ── APP ───────────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════
+// SAVE TO SHAREPOINT
+// ══════════════════════════════════════════════════
+function queueSave(itemId, field, value) {
+  const key = itemId + "_" + field;
+  clearTimeout(saveTimers[key]);
+  saveTimers[key] = setTimeout(() => doSave(itemId, field, value), 800);
+  setSyncStatus("syncing");
+}
 
-function App() {
-  const [user, setUser]   = useState(null);
-  const [view, setView]   = useState("overview");
-  const [ready, setReady] = useState(false);
+async function doSave(itemId, field, value) {
+  try {
+    const body = {};
+    body[field] = value;
+    await graph("PATCH", LIST + "/items/" + itemId + "/fields", body);
+    setSyncStatus("saved");
+  } catch (e) {
+    setSyncStatus("error", e.message);
+  }
+}
 
-  useEffect(()=>{
-    msalInstance.initialize().then(()=>{
-      const accts = msalInstance.getAllAccounts();
-      if (accts.length) setUser(accts[0]);
-      setReady(true);
+function setSyncStatus(state, msg) {
+  const el = document.getElementById("syncStatus");
+  if (!el) return;
+  if (state === "syncing") { el.textContent = "⟳ Saving..."; el.className = "sync-status syncing"; }
+  else if (state === "saved") { el.textContent = "✓ Saved to SharePoint"; el.className = "sync-status"; setTimeout(() => { if (el.textContent.includes("Saved")) el.textContent = ""; }, 2000); }
+  else if (state === "error") { el.textContent = "✗ Save failed: " + (msg || ""); el.className = "sync-status error"; }
+}
+
+// ══════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════
+let kpiView = 'project'; // 'project' or 'portfolio'
+
+function getCompletionStats(project, category) {
+  const items = DATA.filter(r => (!project || r.Project === project) && (!category || r.Category === category));
+  const total = items.length;
+  const done = items.filter(r => r.Complete).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  return { total, done, pct };
+}
+
+function barColor(pct) {
+  if (pct >= 100) return 'done';
+  if (pct >= 60) return 'green';
+  if (pct >= 30) return 'amber';
+  return 'red';
+}
+
+function ringSVG(pct, size, stroke, color) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+  return '<svg width="'+size+'" height="'+size+'"><circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="#e9edf2" stroke-width="'+stroke+'"/><circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="'+stroke+'" stroke-dasharray="'+circ+'" stroke-dashoffset="'+offset+'" stroke-linecap="round"/></svg>';
+}
+
+function renderKPI() {
+  const projects = [...new Set(DATA.map(r => r.Project))].filter(Boolean).sort();
+  let h = '';
+
+  h += '<div class="kpi-toggle">';
+  h += '<div class="kpi-toggle-btn' + (kpiView === 'project' ? ' active' : '') + '" onclick="kpiView=\'project\';renderAll()">Selected Project</div>';
+  h += '<div class="kpi-toggle-btn' + (kpiView === 'portfolio' ? ' active' : '') + '" onclick="kpiView=\'portfolio\';renderAll()">Portfolio Overview</div>';
+  h += '</div>';
+
+  if (kpiView === 'portfolio') {
+    // Portfolio view - all projects summary
+    const allStats = getCompletionStats(null);
+    let totalAll = 0, doneAll = 0;
+    projects.forEach(p => { const s = getCompletionStats(p); totalAll += s.total; doneAll += s.done; });
+    const pctAll = totalAll > 0 ? Math.round((doneAll / totalAll) * 100) : 0;
+
+    h += '<div style="display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start;margin-bottom:16px;">';
+    // Big ring
+    h += '<div style="text-align:center;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px 28px;">';
+    h += '<div class="kpi-big-ring">' + ringSVG(pctAll, 80, 7, pctAll >= 60 ? '#779d36' : pctAll >= 30 ? '#e8a930' : '#e05252') + '<span class="kpi-big-pct">' + pctAll + '%</span></div>';
+    h += '<div class="kpi-label" style="margin-bottom:0;">Portfolio Complete</div>';
+    h += '<div class="kpi-sub">' + doneAll + ' / ' + totalAll + ' items</div>';
+    h += '</div>';
+    // Project grid
+    h += '<div class="kpi-portfolio">';
+    projects.forEach(p => {
+      const s = getCompletionStats(p);
+      const col = barColor(s.pct);
+      const fillColor = col === 'done' ? '#2ecc8a' : col === 'green' ? '#779d36' : col === 'amber' ? '#e8a930' : '#e05252';
+      h += '<div class="kpi-proj-mini' + (p === selProject ? ' active' : '') + '" data-project="' + esc(p) + '" onclick="selProject=this.dataset.project;kpiView=\'project\';renderAll()">';
+      h += '<div class="kpi-proj-name">' + esc(p) + '</div>';
+      h += '<div class="kpi-proj-pct" style="color:' + fillColor + ';">' + s.pct + '%</div>';
+      h += '<div class="kpi-proj-bar"><div class="kpi-proj-bar-fill ' + col + '" style="width:' + s.pct + '%;"></div></div>';
+      h += '<div class="kpi-sub">' + s.done + '/' + s.total + '</div>';
+      h += '</div>';
     });
-  },[]);
+    h += '</div></div>';
 
-  if (!ready) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><div className="spinner"/></div>;
-  if (!user)  return <Login onLogin={setUser}/>;
+  } else {
+    // Single project KPI
+    const overall = getCompletionStats(selProject);
+    const ringColor = overall.pct >= 60 ? '#779d36' : overall.pct >= 30 ? '#e8a930' : '#e05252';
 
-  const nav = [
-    {section:"PROJECT"},
-    {id:"overview",   icon:"🏠", label:"Overview"},
-    {section:"LOGS"},
-    {id:"engineering",icon:"⚙", label:"Engineering Log"},
-    {id:"owner",      icon:"👤", label:"Owner Log"},
-    {id:"permits",    icon:"🏛", label:"Permits"},
-    {id:"closeout",   icon:"📋", label:"Closeout"},
-  ];
+    h += '<div class="kpi-dash">';
 
-  const titles = {
-    overview:"Overview", engineering:"Engineering Log",
-    owner:"Owner Log", permits:"Permit Matrix", closeout:"Closeout"
-  };
+    // Overall progress card with ring
+    h += '<div class="kpi-card kpi-overall" style="grid-row:span 2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:160px;">';
+    h += '<div class="kpi-big-ring" style="width:90px;height:90px;">' + ringSVG(overall.pct, 90, 8, ringColor) + '<span class="kpi-big-pct" style="font-size:26px;">' + overall.pct + '%</span></div>';
+    h += '<div class="kpi-label" style="margin-top:8px;">Overall Completion</div>';
+    h += '<div class="kpi-sub">' + overall.done + ' of ' + overall.total + ' items complete</div>';
+    h += '</div>';
 
-  return (
-    <div className="app">
-      <div className="sidebar">
-        <div className="sidebar-logo">
-          <div className="logo-wordmark">DISTRIBUTED <span>ENERGY</span> INFRA</div>
-          <div className="logo-tagline">Project Truth — PMO</div>
-          <div className="logo-divider"/>
-        </div>
-        <div className="nav">
-          {nav.map((item,i)=>{
-            if (item.section) return <div key={i} className="nav-section">{item.section}</div>;
-            return (
-              <div key={item.id} className={`nav-item ${view===item.id?"active":""}`} onClick={()=>setView(item.id)}>
-                <span className="nav-icon">{item.icon}</span>
-                <span>{item.label}</span>
-                {item.badge>0 && <span className={`nav-badge ${item.badgeType||""}`}>{item.badge}</span>}
-              </div>
-            );
-          })}
-        </div>
-        <div className="sidebar-user">
-          <div className="user-name">{user.name||"User"}</div>
-          <div className="user-org">{user.username}</div>
-          <button className="signout-btn" onClick={()=>{msalInstance.logoutPopup();setUser(null);}}>
-            Sign out
-          </button>
-        </div>
-      </div>
+    // Per-category cards
+    CATEGORIES.forEach(cat => {
+      const s = getCompletionStats(selProject, cat);
+      if (s.total === 0) return;
+      const catClass = 'kpi-' + cat.toLowerCase().replace(/[^a-z]/g, '');
+      const col = barColor(s.pct);
+      h += '<div class="kpi-card ' + catClass + '">';
+      h += '<div class="kpi-label">' + (CAT_ICONS[cat] || '') + ' ' + esc(cat) + '</div>';
+      h += '<div style="display:flex;justify-content:space-between;align-items:baseline;">';
+      h += '<div class="kpi-value">' + s.done + '<span style="font-size:16px;font-weight:600;color:#b0bac4;">/' + s.total + '</span></div>';
+      h += '<div style="font-family:Barlow Condensed;font-size:18px;font-weight:700;color:' + (s.pct >= 100 ? '#2ecc8a' : s.pct >= 60 ? '#779d36' : s.pct >= 30 ? '#e8a930' : '#e05252') + ';">' + s.pct + '%</div>';
+      h += '</div>';
+      h += '<div class="kpi-bar-track"><div class="kpi-bar-fill ' + col + '" style="width:' + s.pct + '%;"></div></div>';
+      h += '</div>';
+    });
 
-      <div className="main">
-        <div className="topbar">
-          <div className="topbar-left">
-            <div className="topbar-title">{titles[view]}</div>
-          </div>
-          <div className="topbar-right">
-            <div className="live-dot">SharePoint Connected</div>
-          </div>
-        </div>
-        <div className="content">
-          {view==="overview"    && <Overview user={user}/>}
-          {view==="engineering" && <Engineering/>}
-          {view==="owner"       && <ComingSoon title="Owner Log"       listName="DEI-BOM-Procurement"/>}
-          {view==="permits"     && <ComingSoon title="Permit Matrix"   listName="DEI-Permit-Matrix"/>}
-          {view==="closeout"    && <ComingSoon title="Closeout Tracker" listName="DEI-Closeout-Items"/>}
-        </div>
-      </div>
-    </div>
-  );
+    h += '</div>';
+  }
+
+  return h;
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+function renderAll(projects) {
+  if (!projects) projects = [...new Set(DATA.map(r => r.Project))].filter(Boolean).sort();
+
+  let html = '';
+  // Project tabs
+  html += '<div class="proj-tabs" id="projTabs">';
+  projects.forEach(p => {
+    html += '<div class="proj-tab' + (p === selProject ? ' active' : '') + '" data-project="' + esc(p) + '" onclick="selectProject(this.dataset.project)">' + esc(p) + '</div>';
+  });
+  html += '</div>';
+
+  // Toolbar
+  html += '<div class="toolbar"><input class="search-box" placeholder="🔍 Search topics..." oninput="doSearch(this.value)" value="' + (searchQ||'') + '"><button class="add-proj-btn" onclick="showAddProject()">+ New Project</button><button class="del-proj-btn" onclick="confirmDeleteProject()">🗑 Delete Project</button><span class="sync-status" id="syncStatus"></span></div>';
+
+  // KPI Dashboard
+  html += '<div id="kpiDash">' + renderKPI() + '</div>';
+
+  // Content
+  html += '<div id="catContent">';
+  html += renderCategories();
+  html += '</div>';
+
+  document.getElementById("mainContent").innerHTML = html;
+  setTimeout(autoGrowAll, 0);
+  renderSidebarProjects();
+}
+
+function renderCategories() {
+  const items = DATA.filter(r => r.Project === selProject);
+  const groups = {};
+  items.forEach(r => { if (!groups[r.Category]) groups[r.Category] = []; groups[r.Category].push(r); });
+
+  let html = "";
+  CATEGORIES.forEach(cat => {
+    let rows = groups[cat];
+    if (!rows) return;
+    rows.sort((a,b) => (a.SortOrder||0) - (b.SortOrder||0));
+
+    if (searchQ) {
+      rows = rows.filter(r => r.Topic.toLowerCase().includes(searchQ) || (r.Value||"").toLowerCase().includes(searchQ));
+      if (!rows.length) return;
+    }
+
+    const catId = cat.replace(/[^a-zA-Z]/g, "");
+    const isCollapsed = collapsed[cat];
+    const cls = CAT_CLASSES[cat] || "cat-general";
+    const icon = CAT_ICONS[cat] || "";
+    const doneCount = rows.filter(r => r.Complete).length;
+    const countStyle = doneCount === rows.length && rows.length > 0 ? "color:#2ecc8a;" : "";
+
+    html += '<div class="cat-section">';
+    html += '<div class="cat-header ' + cls + (isCollapsed ? ' collapsed' : '') + '" data-cat="' + esc(cat) + '" onclick="toggleCat(this.dataset.cat)"><span>' + icon + ' ' + esc(cat) + '</span><span style="display:flex;align-items:center;gap:12px;"><span style="font-size:12px;font-weight:600;' + countStyle + '">' + doneCount + '/' + rows.length + '</span><span class="cat-chevron">▼</span></span></div>';
+    html += '<div class="cat-body' + (isCollapsed ? ' hidden' : '') + '">';
+
+    rows.forEach(r => {
+      const val = r.Value || "";
+      const emptyCls = val ? "" : " empty";
+      const escaped = val.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+      const key = r.Project + "|" + r.Category + "|" + r.Topic;
+      const itemId = spItemMap[key] || "";
+      const hasComm = comments[itemId] && comments[itemId].length > 0;
+
+      html += '<div class="topic-row' + (r.Complete ? ' completed' : '') + '">';
+      html += '<div class="topic-check"><input type="checkbox" ' + (r.Complete ? 'checked ' : '') + 'data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" onchange="toggleComplete(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)"></div>';
+      html += '<div style="display:flex;flex-direction:column;overflow:hidden;">';
+      html += '<div class="topic-label">' + esc(r.Topic) + '</div>';
+      html += '<div class="topic-val"><textarea rows="1" class="' + emptyCls + '" data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" oninput="autoGrow(this)" onblur="onEdit(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)" onfocus="this.classList.remove(&quot;empty&quot;)">' + escaped + '</textarea></div>';
+      html += '</div>';
+      html += '<div class="comment-btn' + (hasComm ? ' has-comments' : '') + '" data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" data-itemid="' + itemId + '" onclick="openCommentPanel(this.dataset.proj,this.dataset.cat,this.dataset.topic,this.dataset.itemid)" title="Comments">💬</div>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+
+    // Add Row button at bottom of each category (spans both columns)
+    html += '<div class="add-row-area" style="grid-column:1/-1;padding:8px 16px;border-top:1px solid #f0f4f8;">';
+    html += '<div class="add-row-inline" id="addRowInline_' + catId + '" style="display:none;margin-bottom:8px;">';
+    html += '<div style="display:flex;gap:8px;align-items:center;">';
+    html += '<input class="form-input" id="addRowInput_' + catId + '" placeholder="New topic name..." style="flex:1;padding:6px 10px;font-size:12px;" data-cat="' + esc(cat) + '" onkeydown="if(event.key===\'Enter\')doAddRow(this.dataset.cat,\'' + catId + '\')">';
+    html += '<button style="padding:6px 14px;border-radius:6px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;" data-cat="' + esc(cat) + '" onclick="doAddRow(this.dataset.cat,\'' + catId + '\')">Add</button>';
+    html += '<button style="padding:6px 10px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;color:#8a9baa;font-size:12px;cursor:pointer;" onclick="document.getElementById(\'addRowInline_' + catId + '\').style.display=\'none\'">Cancel</button>';
+    html += '</div></div>';
+    html += '<div class="add-row-trigger" style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#8a9baa;font-size:12px;font-weight:600;padding:4px 0;transition:color 0.15s;" onclick="showAddRow(\'' + catId + '\')" onmouseover="this.style.color=\'var(--green)\'" onmouseout="this.style.color=\'#8a9baa\'">';
+    html += '<span style="font-size:14px;">+</span> Add row to ' + esc(cat);
+    html += '</div></div>';
+
+    html += '</div>';
+  });
+  return html;
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function autoGrowAll() {
+  document.querySelectorAll('.topic-val textarea').forEach(function(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  });
+}
+function selectProject(p) { selProject = p; renderAll(); }
+
+function renderSidebarProjects() {
+  var el = document.getElementById("sidebarProjects");
+  if (!el) return;
+  var projects = [...new Set(DATA.map(function(r){return r.Project;}))].filter(Boolean).sort();
+  var html = "";
+  projects.forEach(function(p) {
+    var s = getCompletionStats(p);
+    var col = s.pct >= 100 ? '#2ecc8a' : s.pct >= 60 ? '#779d36' : s.pct >= 30 ? '#e8a930' : '#e05252';
+    html += '<div class="sidebar-proj' + (p === selProject ? ' active' : '') + '" data-project="' + esc(p) + '" onclick="selectProject(this.dataset.project)">';
+    html += '<span class="dot" style="background:' + col + ';"></span>';
+    html += '<span class="pname">' + esc(p) + '</span>';
+    html += '<span class="ppct">' + s.pct + '%</span>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+function doSearch(q) { searchQ = q.toLowerCase(); document.getElementById("catContent").innerHTML = renderCategories(); setTimeout(autoGrowAll, 0); }
+function toggleCat(cat) {
+  collapsed[cat] = !collapsed[cat];
+  document.getElementById("catContent").innerHTML = renderCategories();
+  setTimeout(autoGrowAll, 0);
+}
+
+function showAddRow(catId) {
+  var inline = document.getElementById("addRowInline_" + catId);
+  if (inline) {
+    inline.style.display = "";
+    var input = document.getElementById("addRowInput_" + catId);
+    if (input) input.focus();
+  }
+}
+
+async function doAddRow(category, catId) {
+  var input = document.getElementById("addRowInput_" + catId);
+  var topicName = input ? input.value.trim() : "";
+  if (!topicName || !selProject) return;
+
+  // Check for duplicate topic in this project+category
+  var exists = DATA.some(function(r) {
+    return r.Project === selProject && r.Category === category && r.Topic === topicName;
+  });
+  if (exists) {
+    showToast("Topic '" + topicName + "' already exists in " + category, "err");
+    return;
+  }
+
+  // Find the max SortOrder for this project+category and add 1
+  var catRows = DATA.filter(function(r) { return r.Project === selProject && r.Category === category; });
+  var maxSort = 0;
+  catRows.forEach(function(r) { if ((r.SortOrder || 0) > maxSort) maxSort = r.SortOrder || 0; });
+  var newSort = maxSort + 1;
+
+  var newRow = {
+    Title: selProject + " \u2014 " + topicName,
+    Project: selProject,
+    Category: category,
+    Topic: topicName,
+    Value: "",
+    SortOrder: newSort,
+    Complete: false
+  };
+
+  // Create in SharePoint
+  try {
+    var resp = await graph("POST", LIST + "/items", { fields: {
+      Title: newRow.Title, Project: newRow.Project, Category: newRow.Category,
+      Topic: newRow.Topic, Value: "", SortOrder: newRow.SortOrder
+    }});
+    if (resp && resp.id) {
+      spItemMap[selProject + "|" + category + "|" + topicName] = resp.id;
+      newRow.id = resp.id;
+    }
+    DATA.push(newRow);
+    renderAll();
+    showToast("+ Added '" + topicName + "' to " + category, "ok");
+  } catch(e) {
+    console.error("Failed to add row:", e);
+    showToast("Failed to add row: " + e.message, "err");
+  }
+}
+
+// ══════════════════════════════════════════════════
+// EDIT + COMPLETE
+// ══════════════════════════════════════════════════
+function onEdit(project, category, topic, textarea) {
+  const key = project + "|" + category + "|" + topic;
+  const itemId = spItemMap[key];
+  const idx = DATA.findIndex(r => r.Project === project && r.Category === category && r.Topic === topic);
+  if (idx >= 0) DATA[idx].Value = textarea.value;
+  textarea.className = textarea.value ? "" : "empty";
+  if (itemId) queueSave(itemId, "Value", textarea.value);
+}
+
+function toggleComplete(project, category, topic, checkbox) {
+  const key = project + "|" + category + "|" + topic;
+  const itemId = spItemMap[key];
+  const idx = DATA.findIndex(r => r.Project === project && r.Category === category && r.Topic === topic);
+  if (idx >= 0) DATA[idx].Complete = checkbox.checked;
+  const row = checkbox.closest(".topic-row");
+  if (checkbox.checked) row.classList.add("completed"); else row.classList.remove("completed");
+  if (itemId) queueSave(itemId, "Complete", checkbox.checked);
+  // Update counter + KPI
+  document.getElementById("catContent").innerHTML = renderCategories();
+  setTimeout(autoGrowAll, 0);
+  var kpiEl = document.getElementById("kpiDash");
+  if (kpiEl) kpiEl.innerHTML = renderKPI();
+  showToast(checkbox.checked ? "✓ Marked complete" : "↩ Reopened", "ok");
+}
+
+// ══════════════════════════════════════════════════
+// COMMENTS + @MENTIONS
+// ══════════════════════════════════════════════════
+function openCommentPanel(project, category, topic, itemId) {
+  openComment = { project, category, topic, itemId };
+  // Load comments from localStorage (or could be SP)
+  if (!comments[itemId]) {
+    try { comments = JSON.parse(localStorage.getItem("pmo_comments") || "{}"); } catch(e) { comments = {}; }
+  }
+  renderCommentPanel();
+}
+
+function closeCommentPanel() {
+  openComment = null;
+  document.getElementById("commentPanel").innerHTML = "";
+}
+
+function renderCommentPanel() {
+  if (!openComment) return;
+  const c = openComment;
+  const itemComments = comments[c.itemId] || [];
+
+  let html = '<div class="overlay" onclick="closeCommentPanel()"></div>';
+  html += '<div class="comment-panel">';
+  html += '<div class="comment-panel-head"><div><div class="comment-panel-title">💬 Comments</div><div class="comment-panel-topic">' + c.project + ' → ' + c.topic + '</div></div><button class="comment-close" onclick="closeCommentPanel()">✕</button></div>';
+
+  html += '<div class="comment-list" id="commentList">';
+  if (itemComments.length === 0) {
+    html += '<div style="text-align:center;padding:40px;color:#c4d0dc;font-size:13px;">No comments yet.<br>Type @ to mention someone.</div>';
+  } else {
+    itemComments.forEach(cm => {
+      const text = cm.text.replace(/@(\w[\w\s]*?\w)/g, '<span class="mention">@$1</span>');
+      html += '<div class="comment-item"><span class="comment-author">' + cm.author + '</span><span class="comment-time">' + cm.time + '</span><div class="comment-text">' + text + '</div></div>';
+    });
+  }
+  html += '</div>';
+
+  html += '<div class="comment-input-area"><div class="mention-dropdown" id="mentionDropdown"></div>';
+  html += '<textarea class="comment-input" id="commentInput" placeholder="Add a comment... Type @ to mention someone" oninput="onCommentInput(this)" onkeydown="onCommentKeydown(event)"></textarea>';
+  html += '<button class="comment-send" onclick="sendComment()">Send</button>';
+  html += '</div></div>';
+
+  document.getElementById("commentPanel").innerHTML = html;
+  setTimeout(() => document.getElementById("commentInput").focus(), 100);
+}
+
+let mentionIdx = -1;
+let mentionMatches = [];
+
+function onCommentInput(textarea) {
+  const val = textarea.value;
+  const pos = textarea.selectionStart;
+  // Find @ trigger
+  const before = val.substring(0, pos);
+  const atIdx = before.lastIndexOf("@");
+
+  if (atIdx >= 0 && (atIdx === 0 || before[atIdx-1] === " " || before[atIdx-1] === "\n")) {
+    const query = before.substring(atIdx + 1).toLowerCase();
+    if (query.length >= 0 && !query.includes(" ") || query.split(" ").length <= 2) {
+      mentionMatches = TEAM.filter(t => t.name.toLowerCase().includes(query) || t.nick.toLowerCase().includes(query)).slice(0, 6);
+      if (mentionMatches.length > 0) {
+        mentionIdx = 0;
+        renderMentionDropdown();
+        return;
+      }
+    }
+  }
+  hideMentionDropdown();
+}
+
+function onCommentKeydown(e) {
+  const dd = document.getElementById("mentionDropdown");
+  if (!dd.classList.contains("show")) return;
+
+  if (e.key === "ArrowDown") { e.preventDefault(); mentionIdx = Math.min(mentionIdx + 1, mentionMatches.length - 1); renderMentionDropdown(); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); mentionIdx = Math.max(mentionIdx - 1, 0); renderMentionDropdown(); }
+  else if (e.key === "Enter" || e.key === "Tab") {
+    if (mentionMatches.length > 0) { e.preventDefault(); insertMention(mentionMatches[mentionIdx]); }
+  }
+  else if (e.key === "Escape") { hideMentionDropdown(); }
+}
+
+function renderMentionDropdown() {
+  const dd = document.getElementById("mentionDropdown");
+  dd.innerHTML = mentionMatches.map((t, i) => {
+    const initials = t.name.split(" ").map(n => n[0]).join("").substring(0, 2);
+    return '<div class="mention-item' + (i === mentionIdx ? ' selected' : '') + '" data-email="' + esc(t.email) + '" onclick="insertMention(TEAM.find(function(x){return x.email===this.dataset.email}.bind(this)))"><div class="mention-avatar">' + initials + '</div><div><div class="mention-name">' + esc(t.name) + '</div><div class="mention-email">' + esc(t.email) + '</div></div></div>';
+  }).join("");
+  dd.classList.add("show");
+}
+
+function hideMentionDropdown() {
+  const dd = document.getElementById("mentionDropdown");
+  if (dd) dd.classList.remove("show");
+  mentionIdx = -1;
+  mentionMatches = [];
+}
+
+function insertMention(person) {
+  const textarea = document.getElementById("commentInput");
+  const val = textarea.value;
+  const pos = textarea.selectionStart;
+  const before = val.substring(0, pos);
+  const atIdx = before.lastIndexOf("@");
+  const after = val.substring(pos);
+
+  textarea.value = before.substring(0, atIdx) + "@" + person.name + " " + after;
+  textarea.selectionStart = textarea.selectionEnd = atIdx + person.name.length + 2;
+  textarea.focus();
+  hideMentionDropdown();
+}
+
+async function sendComment() {
+  if (!openComment) return;
+  const textarea = document.getElementById("commentInput");
+  const text = textarea.value.trim();
+  if (!text) return;
+
+  const c = openComment;
+  const now = new Date();
+  const timeStr = now.toLocaleDateString() + " " + now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+
+  // Save comment locally
+  if (!comments[c.itemId]) comments[c.itemId] = [];
+  comments[c.itemId].push({ author: currentUser || "You", text, time: timeStr });
+  localStorage.setItem("pmo_comments", JSON.stringify(comments));
+
+  // Find @mentions and send Teams messages
+  const mentions = text.match(/@([\w][\w\s-]*[\w])/g);
+  if (mentions) {
+    for (const m of mentions) {
+      const name = m.substring(1).trim();
+      const person = TEAM.find(t => t.name.toLowerCase() === name.toLowerCase());
+      if (person) {
+        sendTeamsMessage(person, c, text);
+      }
+    }
+  }
+
+  renderCommentPanel();
+  // Scroll to bottom
+  const list = document.getElementById("commentList");
+  if (list) list.scrollTop = list.scrollHeight;
+
+  // Update comment icon
+  document.getElementById("catContent").innerHTML = renderCategories();
+  setTimeout(autoGrowAll, 0);
+}
+
+async function sendTeamsMessage(person, context, commentText) {
+  try {
+    // Get the user's ID from their email
+    const user = await graph("GET", "/users/" + encodeURIComponent(person.email));
+    const userId = user.id;
+
+    // Get current user ID
+    const me = await graph("GET", "/me");
+
+    // Create 1:1 chat
+    const chat = await graph("POST", "/chats", {
+      chatType: "oneOnOne",
+      members: [
+        { "@odata.type": "#microsoft.graph.aadUserConversationMember", roles: ["owner"], "user@odata.bind": "https://graph.microsoft.com/v1.0/users('" + me.id + "')" },
+        { "@odata.type": "#microsoft.graph.aadUserConversationMember", roles: ["owner"], "user@odata.bind": "https://graph.microsoft.com/v1.0/users('" + userId + "')" }
+      ]
+    });
+
+    // Send message
+    const msgBody = "📋 <b>PMO Update — " + context.project + "</b><br>" +
+      "<b>" + context.topic + "</b> (" + context.category + ")<br><br>" +
+      commentText.replace(/@([\w][\w\s-]*[\w])/g, '<b>@$1</b>') +
+      "<br><br><i>— " + (currentUser || "PMO Dashboard") + "</i>";
+
+    await graph("POST", "/chats/" + chat.id + "/messages", {
+      body: { contentType: "html", content: msgBody }
+    });
+
+    showToast("💬 Teams message sent to " + person.name, "ok");
+  } catch (e) {
+    console.error("Teams msg failed:", e);
+    showToast("Teams notification failed: " + e.message, "err");
+  }
+}
+
+// ══════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════
+function showToast(msg, type) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show " + (type || "ok");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+// ══════════════════════════════════════════════════
+// NEW PROJECT
+// ══════════════════════════════════════════════════
+let _newVars = [];
+
+// Hardcoded project template — 87 standard topics across 7 categories
+const PROJECT_TEMPLATE = [
+  // General (8)
+  {cat:"General",topic:"Contract",sort:1},
+  {cat:"General",topic:"Contract Action Item List",sort:2},
+  {cat:"General",topic:"Contract Flow Down Provisions",sort:3},
+  {cat:"General",topic:"Insurance - through GC Pay",sort:4},
+  {cat:"General",topic:"Bond",sort:5},
+  {cat:"General",topic:"DEI",sort:6},
+  {cat:"General",topic:"Subcontractor",sort:7},
+  {cat:"General",topic:"NTP/LNTP",sort:8},
+  // Permitting (5)
+  {cat:"Permitting",topic:"Building Permit",sort:9},
+  {cat:"Permitting",topic:"Electrical Permit",sort:10},
+  {cat:"Permitting",topic:"SWPPP/ENOI",sort:11},
+  {cat:"Permitting",topic:"Fire Permit",sort:12},
+  {cat:"Permitting",topic:"Driveway Permit",sort:13},
+  // Engineering (24)
+  {cat:"Engineering",topic:"Civil IFCs",sort:14},
+  {cat:"Engineering",topic:"Site topo done and confirmed included in design?",sort:15},
+  {cat:"Engineering",topic:"Site topo done if array grading was involved?",sort:16},
+  {cat:"Engineering",topic:"Electrical IFCs",sort:17},
+  {cat:"Engineering",topic:"Racking IFCs",sort:18},
+  {cat:"Engineering",topic:"Structural IFCs",sort:19},
+  {cat:"Engineering",topic:"DAS",sort:20},
+  {cat:"Engineering",topic:"IE/Client Approved?",sort:21},
+  {cat:"Engineering",topic:"Procurement (Equipment/Materials)",sort:22},
+  {cat:"Engineering",topic:"Modules",sort:23},
+  {cat:"Engineering",topic:"Racking",sort:24},
+  {cat:"Engineering",topic:"Yellow Jackets,if required?",sort:25},
+  {cat:"Engineering",topic:"Inverters",sort:26},
+  {cat:"Engineering",topic:"Combiner Boxes",sort:27},
+  {cat:"Engineering",topic:"Switchboards",sort:28},
+  {cat:"Engineering",topic:"MV XFMR",sort:29},
+  {cat:"Engineering",topic:"GXFMR",sort:30},
+  {cat:"Engineering",topic:"Aux Panelboard/XFMR",sort:31},
+  {cat:"Engineering",topic:"GOAB",sort:32},
+  {cat:"Engineering",topic:"Recloser",sort:33},
+  {cat:"Engineering",topic:"Metering Cluster/Meter",sort:34},
+  {cat:"Engineering",topic:"ESS",sort:36},
+  {cat:"Engineering",topic:"DC/DC Converters",sort:37},
+  {cat:"Engineering",topic:"Controller/EMS",sort:38},
+  // Procurement (Subcontractors) (8)
+  {cat:"Procurement (Subcontractors)",topic:"Survey",sort:39},
+  {cat:"Procurement (Subcontractors)",topic:"Civil Work",sort:40},
+  {cat:"Procurement (Subcontractors)",topic:"Post Install",sort:41},
+  {cat:"Procurement (Subcontractors)",topic:"Rack & Module Install",sort:42},
+  {cat:"Procurement (Subcontractors)",topic:"LV Electrical Work + DAS",sort:43},
+  {cat:"Procurement (Subcontractors)",topic:"MV ElectricalWork",sort:44},
+  {cat:"Procurement (Subcontractors)",topic:"Fence",sort:45},
+  {cat:"Procurement (Subcontractors)",topic:"Landscaping/Seeding, if different",sort:46},
+  // Construction (31)
+  {cat:"Construction",topic:"Safety/HASP",sort:47},
+  {cat:"Construction",topic:"QA/QC Workbook",sort:48},
+  {cat:"Construction",topic:"Premob checklist",sort:49},
+  {cat:"Construction",topic:"Page Turn",sort:50},
+  {cat:"Construction",topic:"Pre-Con Meeting with Town",sort:51},
+  {cat:"Construction",topic:"Mobilization ready",sort:52},
+  {cat:"Construction",topic:"AI Clearing",sort:53},
+  {cat:"Construction",topic:"SWPPP Inspection",sort:54},
+  {cat:"Construction",topic:"AHJ inspection",sort:55},
+  {cat:"Construction",topic:"Soil Test",sort:56},
+  {cat:"Construction",topic:"Seeding Status",sort:57},
+  {cat:"Construction",topic:"Interconnection Status",sort:58},
+  {cat:"Construction",topic:"Close-Out Set-Up?",sort:59},
+  {cat:"Construction",topic:"Schedule",sort:60},
+  {cat:"Construction",topic:"Mobilization",sort:61},
+  {cat:"Construction",topic:"Civil Work Start",sort:62},
+  {cat:"Construction",topic:"Civil Work Finish",sort:63},
+  {cat:"Construction",topic:"Trenching + Pads Start",sort:64},
+  {cat:"Construction",topic:"Trenching + Pads Finish",sort:65},
+  {cat:"Construction",topic:"Post Install Start",sort:66},
+  {cat:"Construction",topic:"Post Install Finish",sort:67},
+  {cat:"Construction",topic:"Rack Install Start",sort:68},
+  {cat:"Construction",topic:"Rack Install Finish",sort:69},
+  {cat:"Construction",topic:"Module Install Start",sort:70},
+  {cat:"Construction",topic:"Module Install Finish",sort:71},
+  {cat:"Construction",topic:"DC Work Start",sort:72},
+  {cat:"Construction",topic:"DC Work Finish",sort:73},
+  {cat:"Construction",topic:"AC Work Start",sort:74},
+  {cat:"Construction",topic:"AC Work Finish",sort:75},
+  {cat:"Construction",topic:"MV Work Start",sort:76},
+  {cat:"Construction",topic:"MV Work Finish",sort:77},
+  // Milestones (6)
+  {cat:"Milestones",topic:"NTP/Mob",sort:78},
+  {cat:"Milestones",topic:"MC",sort:79},
+  {cat:"Milestones",topic:"WT",sort:80},
+  {cat:"Milestones",topic:"PTO",sort:81},
+  {cat:"Milestones",topic:"SC",sort:82},
+  {cat:"Milestones",topic:"FC",sort:83},
+  // Finance (4)
+  {cat:"Finance",topic:"IRA/Dom Content Set-up & Progress?",sort:84},
+  {cat:"Finance",topic:"Buyout sheet",sort:85},
+  {cat:"Finance",topic:"Contract Change Orders?",sort:86},
+  {cat:"Finance",topic:"Current/Upcoming Invoice Status",sort:87}
+];
+
+function showAddProject() {
+  const modal = document.getElementById("addProjectModal");
+  modal.style.display = "";
+  modal.innerHTML = '<div class="modal-overlay" onclick="if(event.target===this)closeAddProject()">' +
+    '<div class="modal">' +
+    '<div class="modal-head"><div class="modal-title">+ New Project</div><button class="modal-close" onclick="closeAddProject()">\u2715</button></div>' +
+    '<div class="modal-body">' +
+    '<div class="form-group"><label class="form-label">Project Name *</label><input class="form-input" id="newProjName" placeholder="e.g. Discovery Way" oninput="validateNewProj()"></div>' +
+    '<div class="form-group"><label class="form-label">Client</label><input class="form-input" id="newProjClient" placeholder="e.g. NextEra, Bluewave"></div>' +
+    '<div class="form-group"><label class="form-label">State</label><input class="form-input" id="newProjState" placeholder="e.g. NY, MA, PA"></div>' +
+    '<div class="form-group"><label class="form-label">Custom Variables</label>' +
+    '<div class="form-hint">Add project-specific fields that appear at the top of the project view</div>' +
+    '<div id="varList" class="var-list"></div>' +
+    '<div class="var-add-row"><input class="var-add-input" id="varName" placeholder="Variable name..." onkeydown="if(event.key===\'Enter\')addVar()"><input class="var-add-input" id="varValue" placeholder="Value..." onkeydown="if(event.key===\'Enter\')addVar()"><button class="var-add-btn" onclick="addVar()">+ Add</button></div>' +
+    '</div></div>' +
+    '<div class="modal-footer"><button class="btn-cancel" onclick="closeAddProject()">Cancel</button><button class="btn-create" id="btnCreateProj" onclick="createProject()" disabled>\u26A1 Create Project</button></div>' +
+    '</div></div>';
+  _newVars = [];
+  renderVarList();
+  document.getElementById("newProjName").focus();
+}
+
+function closeAddProject() { document.getElementById("addProjectModal").style.display = "none"; }
+
+function validateNewProj() {
+  var name = document.getElementById("newProjName").value.trim();
+  var existing = [...new Set(DATA.map(function(r){return r.Project;}))];
+  document.getElementById("btnCreateProj").disabled = !name || existing.indexOf(name) >= 0;
+}
+
+function addVar() {
+  var n = document.getElementById("varName").value.trim();
+  var v = document.getElementById("varValue").value.trim();
+  if (!n) return;
+  _newVars.push({name:n,value:v});
+  document.getElementById("varName").value = "";
+  document.getElementById("varValue").value = "";
+  document.getElementById("varName").focus();
+  renderVarList();
+}
+
+function removeVar(idx) { _newVars.splice(idx,1); renderVarList(); }
+
+function renderVarList() {
+  var el = document.getElementById("varList");
+  if (!el) return;
+  if (_newVars.length === 0) { el.innerHTML = '<span style="font-size:12px;color:#c4d0dc;">No custom variables yet</span>'; return; }
+  el.innerHTML = _newVars.map(function(v,i) {
+    return '<span class="var-tag">' + esc(v.name) + (v.value ? ': ' + esc(v.value) : '') + '<span class="x" onclick="removeVar('+i+')">\u00d7</span></span>';
+  }).join("");
+}
+
+async function createProject() {
+  var name = document.getElementById("newProjName").value.trim();
+  var client = document.getElementById("newProjClient").value.trim();
+  var state = document.getElementById("newProjState").value.trim();
+  if (!name) return;
+
+  var templateRows = PROJECT_TEMPLATE;
+
+  // Disable button and show progress
+  var btn = document.getElementById("btnCreateProj");
+  btn.disabled = true;
+  btn.textContent = "Creating... 0/" + templateRows.length;
+
+  // Create rows in SharePoint
+  var created = 0;
+  var failed = 0;
+  for (var i = 0; i < templateRows.length; i++) {
+    var ref = templateRows[i];
+    var newRow = {
+      Title: name + " \u2014 " + ref.topic,
+      Project: name,
+      Category: ref.cat,
+      Topic: ref.topic,
+      Value: "",
+      SortOrder: ref.sort,
+      Complete: false
+    };
+    try {
+      var resp = await graph("POST", LIST + "/items", { fields: {
+        Title: newRow.Title, Project: newRow.Project, Category: newRow.Category,
+        Topic: newRow.Topic, Value: "", SortOrder: newRow.SortOrder
+      }});
+      if (resp && resp.id) {
+        spItemMap[name + "|" + ref.cat + "|" + ref.topic] = resp.id;
+        newRow.id = resp.id;
+      }
+      DATA.push(newRow);
+      created++;
+    } catch(e) {
+      console.error("Failed to create item " + ref.cat + "/" + ref.topic + ":", e);
+      failed++;
+    }
+    btn.textContent = "Creating... " + (i + 1) + "/" + templateRows.length;
+  }
+
+  closeAddProject();
+  selProject = name;
+  renderAll();
+  var msg = "\u26A1 " + name + " created with " + created + " items";
+  if (failed > 0) msg += " (" + failed + " failed)";
+  showToast(msg, failed > 0 ? "info" : "ok");
+}
+
+// ══════════════════════════════════════════════════
+// DELETE PROJECT
+// ══════════════════════════════════════════════════
+function confirmDeleteProject() {
+  if (!selProject) return;
+  var projRows = DATA.filter(function(r){return r.Project === selProject;});
+  var modal = document.getElementById("addProjectModal");
+  modal.style.display = "";
+  modal.innerHTML = '<div class="modal-overlay" onclick="if(event.target===this)closeAddProject()">' +
+    '<div class="modal">' +
+    '<div class="modal-head"><div class="modal-title" style="color:var(--red);">⚠️ Delete Project</div><button class="modal-close" onclick="closeAddProject()">\u2715</button></div>' +
+    '<div class="modal-body">' +
+    '<p style="font-size:14px;color:#4a5568;margin-bottom:16px;">Are you sure you want to permanently delete <strong>' + esc(selProject) + '</strong>?</p>' +
+    '<p style="font-size:13px;color:#8a9baa;margin-bottom:16px;">This will remove all <strong>' + projRows.length + ' items</strong> from SharePoint. This cannot be undone.</p>' +
+    '<div style="padding:12px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;margin-bottom:16px;">' +
+    '<label style="font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:0.5px;">Type project name to confirm</label>' +
+    '<input class="form-input" id="deleteConfirmInput" placeholder="' + esc(selProject) + '" oninput="validateDeleteConfirm()" style="margin-top:6px;border-color:#fecaca;">' +
+    '</div>' +
+    '</div>' +
+    '<div class="modal-footer"><button class="btn-cancel" onclick="closeAddProject()">Cancel</button><button class="btn-delete" id="btnDeleteProj" onclick="executeDeleteProject()" disabled>🗑 Delete ' + esc(selProject) + '</button></div>' +
+    '</div></div>';
+  document.getElementById("deleteConfirmInput").focus();
+}
+
+function validateDeleteConfirm() {
+  var input = document.getElementById("deleteConfirmInput").value.trim();
+  document.getElementById("btnDeleteProj").disabled = input !== selProject;
+}
+
+async function executeDeleteProject() {
+  var projectName = selProject;
+  if (!projectName) return;
+
+  var btn = document.getElementById("btnDeleteProj");
+  btn.disabled = true;
+
+  // Find all SharePoint item IDs for this project
+  var projRows = DATA.filter(function(r){return r.Project === projectName;});
+  var itemIds = [];
+  projRows.forEach(function(r) {
+    var key = r.Project + "|" + r.Category + "|" + r.Topic;
+    var spId = spItemMap[key] || r.id;
+    if (spId) itemIds.push(spId);
+  });
+
+  // Deduplicate IDs
+  itemIds = [...new Set(itemIds)];
+
+  var deleted = 0;
+  var failed = 0;
+  btn.textContent = "Deleting... 0/" + itemIds.length;
+
+  for (var i = 0; i < itemIds.length; i++) {
+    try {
+      await graph("DELETE", LIST + "/items/" + itemIds[i]);
+      deleted++;
+    } catch(e) {
+      console.error("Failed to delete item " + itemIds[i] + ":", e);
+      failed++;
+    }
+    btn.textContent = "Deleting... " + (i + 1) + "/" + itemIds.length;
+  }
+
+  // Remove from local DATA and spItemMap
+  DATA = DATA.filter(function(r){return r.Project !== projectName;});
+  Object.keys(spItemMap).forEach(function(key) {
+    if (key.startsWith(projectName + "|")) delete spItemMap[key];
+  });
+
+  // Also clean up localStorage comments for this project
+  try {
+    var allComments = JSON.parse(localStorage.getItem("pmo_comments") || "{}");
+    var cleaned = false;
+    Object.keys(allComments).forEach(function(itemId) {
+      if (itemIds.indexOf(itemId) >= 0 || itemIds.indexOf(Number(itemId)) >= 0) {
+        delete allComments[itemId];
+        cleaned = true;
+      }
+    });
+    if (cleaned) localStorage.setItem("pmo_comments", JSON.stringify(allComments));
+  } catch(e) {}
+
+  closeAddProject();
+
+  // Switch to first remaining project
+  var remaining = [...new Set(DATA.map(function(r){return r.Project;}))].filter(Boolean).sort();
+  selProject = remaining.length > 0 ? remaining[0] : null;
+  renderAll();
+
+  var msg = "🗑 " + projectName + " deleted — " + deleted + " items removed";
+  if (failed > 0) msg += " (" + failed + " failed)";
+  showToast(msg, failed > 0 ? "info" : "ok");
+}
+
+// Init
+initAuth();
 </script>
 </body>
 </html>
