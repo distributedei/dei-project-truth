@@ -308,6 +308,28 @@
   .doc-link-input{flex:1;padding:7px 10px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;font-family:'Barlow',sans-serif;}
   .doc-link-input:focus{outline:none;border-color:var(--green);}
   .doc-link-btn{padding:7px 14px;border-radius:5px;border:none;background:var(--green);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;white-space:nowrap;}
+
+  /* Report View */
+  .report-section{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:20px 24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+  .report-section-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .report-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:16px;}
+  .report-stat{padding:14px;background:#f8fafb;border:1px solid #e2e8f0;border-radius:8px;}
+  .report-stat-label{font-size:10px;color:#8a9baa;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;}
+  .report-stat-value{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:var(--navy);}
+  .report-stat-sub{font-size:11px;color:#8a9baa;margin-top:2px;}
+  .report-proj-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #f0f4f8;font-size:13px;}
+  .report-proj-row:last-child{border-bottom:none;}
+  .report-proj-name{font-weight:600;color:var(--navy);width:160px;flex-shrink:0;}
+  .report-proj-bar{flex:1;height:8px;background:#e9edf2;border-radius:4px;overflow:hidden;}
+  .report-proj-fill{height:100%;border-radius:4px;}
+  .report-proj-pct{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;width:50px;text-align:right;}
+  .report-overdue-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(224,82,82,0.04);border:1px solid rgba(224,82,82,0.15);border-radius:6px;margin-bottom:6px;font-size:12px;}
+  .report-overdue-item .days{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--red);width:50px;text-align:center;}
+  .ai-commentary{background:linear-gradient(135deg,#f8fafb,#eef3f9);border:1px solid rgba(55,86,115,0.15);border-radius:10px;padding:24px;line-height:1.7;font-size:14px;color:#4a5568;position:relative;}
+  .ai-commentary::before{content:'🤖';position:absolute;top:-12px;left:16px;font-size:20px;background:#f5f7fa;padding:0 8px;}
+  .ai-loading{text-align:center;padding:40px;color:#8a9baa;}
+  .ai-loading .spinner{margin:0 auto 12px;}
+  .report-timestamp{font-size:11px;color:#8a9baa;text-align:right;margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -363,6 +385,15 @@
         </div>
         <div class="sidebar-item" onclick="setSidebarView('progress')">
           <span class="icon">📈</span> Progress
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Reports</div>
+        <div class="sidebar-item" onclick="setSidebarView('report')">
+          <span class="icon">🤖</span> AI Executive Report
         </div>
       </div>
 
@@ -514,6 +545,10 @@ function setSidebarView(view) {
     } else {
       renderRFIView();
     }
+    return;
+  }
+  if (view === 'report') {
+    generateReport();
     return;
   }
   // Placeholder for future views
@@ -2093,6 +2128,266 @@ async function doRFIEdit(id) {
   } catch(e) {
     showToast("Error: " + e.message, "err");
     btn.disabled = false; btn.textContent = "⚡ Update SharePoint";
+  }
+}
+
+// ══════════════════════════════════════════════════
+// AI EXECUTIVE REPORT
+// ══════════════════════════════════════════════════
+async function generateReport() {
+  // Ensure both datasets are loaded
+  var needsRFI = RFI_DATA.length === 0;
+  if (needsRFI) {
+    document.getElementById("mainContent").innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading data for report...</div>';
+    try {
+      RFI_DATA = [];
+      var url = RFI_LIST + "/items?$expand=fields&$top=999";
+      while (url) {
+        var resp = await graph("GET", url);
+        if (resp.value) resp.value.forEach(function(item) { RFI_DATA.push(Object.assign({id: item.id}, fromSP(item.fields))); });
+        url = resp["@odata.nextLink"] ? resp["@odata.nextLink"].replace("https://graph.microsoft.com/v1.0", "") : null;
+      }
+    } catch(e) { console.warn("RFI load for report:", e); }
+  }
+
+  renderReportView();
+}
+
+function buildReportData() {
+  var projects = [...new Set(DATA.map(function(r){return r.Project;}).filter(Boolean))].sort();
+
+  // PMO stats per project
+  var pmoStats = {};
+  projects.forEach(function(p) {
+    var items = DATA.filter(function(r){return r.Project === p;});
+    var complete = items.filter(function(r){return r.Complete;}).length;
+    pmoStats[p] = {total: items.length, complete: complete, pct: items.length > 0 ? Math.round(complete / items.length * 100) : 0};
+  });
+
+  // RFI stats
+  var rfiProjects = [...new Set(RFI_DATA.map(function(i){return i.Project;}).filter(Boolean))].sort();
+  var allProjects = [...new Set(projects.concat(rfiProjects))].sort();
+
+  var rfiOpen = RFI_DATA.filter(function(i){return !["Closed","Approved"].includes(i.Status);});
+  var rfiOverdue = RFI_DATA.filter(rfiIsOverdue);
+  var rfiByProject = {};
+  allProjects.forEach(function(p) {
+    var items = RFI_DATA.filter(function(i){return i.Project === p;});
+    var open = items.filter(function(i){return !["Closed","Approved"].includes(i.Status);});
+    var overdue = items.filter(rfiIsOverdue);
+    rfiByProject[p] = {total: items.length, open: open.length, overdue: overdue.length};
+  });
+
+  // RFI by status
+  var rfiByStatus = {};
+  RFI_DATA.forEach(function(i) { rfiByStatus[i.Status || "Draft"] = (rfiByStatus[i.Status || "Draft"] || 0) + 1; });
+
+  // RFI by person
+  var rfiByPerson = {};
+  rfiOpen.forEach(function(i) { var p = i.AssignedTo || "Unassigned"; rfiByPerson[p] = (rfiByPerson[p] || 0) + 1; });
+
+  // Overdue items (both systems)
+  var overdueRFIs = rfiOverdue.map(function(i) {
+    return {source: "RFI", project: i.Project, title: i.Title, type: i.ItemType, number: i.Number, assigned: i.AssignedTo, days: rfiAgingDays(i.DueDate), status: i.Status};
+  }).sort(function(a,b){return b.days - a.days;});
+
+  // PMO items with no value (potential concern)
+  var pmoEmpty = DATA.filter(function(r){return !r.Complete && !r.Value;});
+
+  return {
+    allProjects: allProjects,
+    pmoStats: pmoStats,
+    pmoTotal: DATA.length,
+    pmoComplete: DATA.filter(function(r){return r.Complete;}).length,
+    rfiTotal: RFI_DATA.length,
+    rfiOpen: rfiOpen.length,
+    rfiOverdue: rfiOverdue.length,
+    rfiByProject: rfiByProject,
+    rfiByStatus: rfiByStatus,
+    rfiByPerson: rfiByPerson,
+    overdueRFIs: overdueRFIs,
+    pmoEmpty: pmoEmpty.length,
+    projectCount: allProjects.length,
+    generatedAt: new Date().toLocaleString()
+  };
+}
+
+function renderReportView() {
+  var d = buildReportData();
+  var html = '';
+
+  // Header
+  html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">';
+  html += '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:800;color:var(--navy);">AI Executive <span style="color:var(--green);">Report</span></div>';
+  html += '<div style="font-size:14px;color:#8a9baa;margin-top:4px;">Combined PMO + RFI/Submittal analysis across ' + d.projectCount + ' projects</div></div>';
+  html += '<button class="add-proj-btn" style="background:linear-gradient(135deg,#779d36,#5f8228);color:#fff;border-color:#779d36;" onclick="generateReport()">↺ Refresh Report</button>';
+  html += '</div>';
+  html += '<div class="report-timestamp">Generated: ' + d.generatedAt + '</div>';
+
+  // AI Commentary Section (loads async)
+  html += '<div class="report-section" style="border-color:rgba(119,157,54,0.3);background:linear-gradient(135deg,#fafdf6,#f5f9f0);">';
+  html += '<div class="report-section-title">🤖 AI Analysis & Recommendations</div>';
+  html += '<div id="aiCommentary"><div class="ai-loading"><div class="spinner"></div>Analyzing project data with AI...</div></div>';
+  html += '</div>';
+
+  // Executive KPIs
+  html += '<div class="report-section">';
+  html += '<div class="report-section-title">📊 Executive Summary</div>';
+  html += '<div class="report-grid">';
+  html += '<div class="report-stat"><div class="report-stat-label">Active Projects</div><div class="report-stat-value">' + d.projectCount + '</div></div>';
+  html += '<div class="report-stat"><div class="report-stat-label">PMO Items</div><div class="report-stat-value">' + d.pmoTotal + '</div><div class="report-stat-sub">' + d.pmoComplete + ' complete (' + (d.pmoTotal > 0 ? Math.round(d.pmoComplete/d.pmoTotal*100) : 0) + '%)</div></div>';
+  html += '<div class="report-stat"><div class="report-stat-label">RFI/Submittals</div><div class="report-stat-value">' + d.rfiTotal + '</div><div class="report-stat-sub">' + d.rfiOpen + ' open</div></div>';
+  html += '<div class="report-stat" style="' + (d.rfiOverdue > 0 ? 'border-color:rgba(224,82,82,0.3);background:rgba(224,82,82,0.04);' : '') + '"><div class="report-stat-label">Overdue RFIs</div><div class="report-stat-value" style="' + (d.rfiOverdue > 0 ? 'color:var(--red);' : 'color:#2ecc8a;') + '">' + d.rfiOverdue + '</div><div class="report-stat-sub ' + (d.rfiOverdue > 0 ? 'red' : 'green') + '">' + (d.rfiOverdue > 0 ? 'Action required' : 'All on track') + '</div></div>';
+  html += '</div></div>';
+
+  // Project Completion
+  html += '<div class="report-section">';
+  html += '<div class="report-section-title">🏗 PMO Completion by Project</div>';
+  d.allProjects.forEach(function(p) {
+    var s = d.pmoStats[p] || {total:0, complete:0, pct:0};
+    if (s.total === 0) return;
+    var col = s.pct >= 80 ? '#2ecc8a' : s.pct >= 50 ? '#779d36' : s.pct >= 25 ? 'var(--amber)' : 'var(--red)';
+    html += '<div class="report-proj-row">';
+    html += '<div class="report-proj-name">' + esc(p) + '</div>';
+    html += '<div class="report-proj-bar"><div class="report-proj-fill" style="width:' + s.pct + '%;background:' + col + ';"></div></div>';
+    html += '<div class="report-proj-pct" style="color:' + col + ';">' + s.pct + '%</div>';
+    html += '<div style="font-size:11px;color:#8a9baa;width:80px;text-align:right;">' + s.complete + '/' + s.total + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // RFI by Project
+  html += '<div class="report-section">';
+  html += '<div class="report-section-title">📝 RFI/Submittal Status by Project</div>';
+  html += '<table class="rfi-table"><thead><tr><th>Project</th><th>Total</th><th>Open</th><th>Overdue</th><th>Health</th></tr></thead><tbody>';
+  d.allProjects.forEach(function(p) {
+    var r = d.rfiByProject[p] || {total:0, open:0, overdue:0};
+    if (r.total === 0) return;
+    var health = r.overdue > 0 ? '<span style="color:var(--red);font-weight:700;">⚠ At Risk</span>' : r.open > 5 ? '<span style="color:var(--amber);">⚡ Active</span>' : '<span style="color:#2ecc8a;">✓ On Track</span>';
+    html += '<tr' + (r.overdue > 0 ? ' class="rfi-overdue"' : '') + '><td style="font-weight:600;">' + esc(p) + '</td><td>' + r.total + '</td><td>' + r.open + '</td><td style="' + (r.overdue > 0 ? 'color:var(--red);font-weight:700;' : '') + '">' + r.overdue + '</td><td>' + health + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+
+  // RFI by Status breakdown
+  html += '<div class="report-section">';
+  html += '<div class="report-section-title">📋 RFI Status Distribution</div>';
+  html += '<div class="report-grid">';
+  RFI_STATUSES.forEach(function(s) {
+    var cnt = d.rfiByStatus[s] || 0;
+    if (cnt === 0) return;
+    html += '<div class="report-stat"><div class="report-stat-label">' + s + '</div><div class="report-stat-value">' + cnt + '</div></div>';
+  });
+  html += '</div></div>';
+
+  // Workload by person
+  if (Object.keys(d.rfiByPerson).length > 0) {
+    html += '<div class="report-section">';
+    html += '<div class="report-section-title">👥 Open RFI Workload by Person</div>';
+    var sortedPeople = Object.entries(d.rfiByPerson).sort(function(a,b){return b[1]-a[1];});
+    var maxCount = sortedPeople[0] ? sortedPeople[0][1] : 1;
+    sortedPeople.forEach(function(e) {
+      var pct = Math.round(e[1] / maxCount * 100);
+      html += '<div class="report-proj-row">';
+      html += '<div class="report-proj-name">' + esc(e[0]) + '</div>';
+      html += '<div class="report-proj-bar"><div class="report-proj-fill" style="width:' + pct + '%;background:var(--navy);"></div></div>';
+      html += '<div class="report-proj-pct" style="color:var(--navy);">' + e[1] + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Overdue items detail
+  if (d.overdueRFIs.length > 0) {
+    html += '<div class="report-section" style="border-color:rgba(224,82,82,0.2);">';
+    html += '<div class="report-section-title" style="color:var(--red);">⚠ Overdue Items Requiring Action</div>';
+    d.overdueRFIs.slice(0, 20).forEach(function(item) {
+      html += '<div class="report-overdue-item">';
+      html += '<div class="days">' + item.days + 'd</div>';
+      html += '<div style="flex:1;"><div style="font-weight:600;color:var(--navy);">' + esc(item.title || "—") + '</div>';
+      html += '<div style="color:#8a9baa;font-size:11px;">' + esc(item.project || "") + ' · ' + esc(item.type || "") + '-' + esc(item.number || "") + ' · ' + esc(item.assigned || "Unassigned") + ' · ' + esc(item.status || "") + '</div></div>';
+      html += '</div>';
+    });
+    if (d.overdueRFIs.length > 20) html += '<div style="text-align:center;padding:8px;color:#8a9baa;font-size:12px;">+ ' + (d.overdueRFIs.length - 20) + ' more overdue items</div>';
+    html += '</div>';
+  }
+
+  document.getElementById("mainContent").innerHTML = html;
+  renderSidebarProjects();
+
+  // Fire AI analysis async
+  requestAICommentary(d);
+}
+
+async function requestAICommentary(data) {
+  var el = document.getElementById("aiCommentary");
+  if (!el) return;
+
+  // Build a concise data summary for Claude
+  var summary = "DEI Project Truth — Executive Report Data:\n\n";
+  summary += "PORTFOLIO: " + data.projectCount + " active projects\n";
+  summary += "PMO: " + data.pmoTotal + " items, " + data.pmoComplete + " complete (" + (data.pmoTotal > 0 ? Math.round(data.pmoComplete/data.pmoTotal*100) : 0) + "%)\n";
+  summary += "RFI/SUBMITTALS: " + data.rfiTotal + " total, " + data.rfiOpen + " open, " + data.rfiOverdue + " overdue\n\n";
+
+  summary += "PROJECT COMPLETION:\n";
+  data.allProjects.forEach(function(p) {
+    var s = data.pmoStats[p] || {pct:0, complete:0, total:0};
+    var r = data.rfiByProject[p] || {total:0, open:0, overdue:0};
+    if (s.total > 0 || r.total > 0) {
+      summary += "- " + p + ": PMO " + s.pct + "% (" + s.complete + "/" + s.total + ")";
+      if (r.total > 0) summary += ", RFIs: " + r.total + " total/" + r.open + " open/" + r.overdue + " overdue";
+      summary += "\n";
+    }
+  });
+
+  if (data.overdueRFIs.length > 0) {
+    summary += "\nOVERDUE ITEMS (by days late):\n";
+    data.overdueRFIs.slice(0, 10).forEach(function(i) {
+      summary += "- " + i.days + " days: " + (i.title || "Untitled") + " (" + i.project + ", " + i.type + "-" + i.number + ", assigned: " + (i.assigned || "none") + ")\n";
+    });
+  }
+
+  summary += "\nRFI STATUS DISTRIBUTION:\n";
+  for (var s in data.rfiByStatus) { summary += "- " + s + ": " + data.rfiByStatus[s] + "\n"; }
+
+  summary += "\nWORKLOAD (open RFIs by person):\n";
+  for (var p in data.rfiByPerson) { summary += "- " + p + ": " + data.rfiByPerson[p] + "\n"; }
+
+  try {
+    var response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: "You are the AI advisor for DEI (Distributed Energy Infrastructure), a commercial solar and battery energy storage construction company. Analyze this project data and provide a concise executive briefing. Include: 1) Overall portfolio health assessment (2-3 sentences), 2) Top 3 risks or concerns requiring attention, 3) Top 3 positive observations, 4) Specific recommended actions. Be direct, specific, and actionable. Reference specific projects and numbers. Keep it under 400 words. Format with clear headers.\n\n" + summary
+        }]
+      })
+    });
+
+    var result = await response.json();
+    var text = "";
+    if (result.content) {
+      result.content.forEach(function(block) { if (block.type === "text") text += block.text; });
+    }
+
+    if (text) {
+      // Convert markdown-style headers and bullets to HTML
+      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      text = text.replace(/^### (.+)$/gm, '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:700;color:var(--navy);margin-top:16px;margin-bottom:6px;">$1</div>');
+      text = text.replace(/^## (.+)$/gm, '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-top:16px;margin-bottom:6px;">$1</div>');
+      text = text.replace(/^- (.+)$/gm, '<div style="padding-left:16px;margin:4px 0;">• $1</div>');
+      text = text.replace(/^\d+\. (.+)$/gm, '<div style="padding-left:16px;margin:4px 0;">$&</div>');
+      text = text.replace(/\n\n/g, '<br><br>');
+      text = text.replace(/\n/g, '<br>');
+      el.innerHTML = '<div class="ai-commentary">' + text + '</div>';
+    } else {
+      el.innerHTML = '<div class="ai-commentary" style="color:#8a9baa;">AI analysis unavailable. The data summary is displayed in the sections below.</div>';
+    }
+  } catch(e) {
+    console.warn("AI commentary failed:", e);
+    el.innerHTML = '<div class="ai-commentary" style="color:#8a9baa;">AI analysis could not be generated (' + e.message + '). Review the data sections below for your executive summary.</div>';
   }
 }
 
