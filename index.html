@@ -520,10 +520,22 @@ const CAT_ICONS = {"General":"📋","Permitting":"🏛","Engineering":"⚙️","
 // ══════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════
-const msalInstance = new msal.PublicClientApplication({
-  auth: { clientId: CONFIG.clientId, authority: "https://login.microsoftonline.com/" + CONFIG.tenantId, redirectUri: REDIRECT, navigateToLoginRequestUrl: true },
-  cache: { cacheLocation: "localStorage" }
-});
+const msalConfig = {
+  auth: {
+    clientId: CONFIG.clientId,
+    authority: "https://login.microsoftonline.com/" + CONFIG.tenantId,
+    redirectUri: REDIRECT,
+    navigateToLoginRequestUrl: false
+  },
+  cache: { cacheLocation: "localStorage" },
+  system: {
+    allowRedirectInIframe: false,
+    windowHashTimeout: 9000,
+    iframeHashTimeout: 9000,
+    loadFrameTimeout: 9000
+  }
+};
+const msalInstance = new msal.PublicClientApplication(msalConfig);
 
 let account = null;
 let DATA = [];
@@ -563,78 +575,95 @@ let crmDealsListId = null;
 let crmActivitiesListId = null;
 let crmViewMode = "kanban"; // kanban or table
 
+function enterApp(acct) {
+  account = acct;
+  currentUser = acct.name || acct.username || "User";
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("appLayout").style.display = "flex";
+  document.getElementById("sidebarUserName").textContent = acct.name || "User";
+  document.getElementById("sidebarUserEmail").textContent = acct.username || "";
+  loadFromSharePoint();
+}
+
 async function initAuth() {
   try {
     await msalInstance.initialize();
-    const resp = await msalInstance.handleRedirectPromise();
-    if (resp) { account = resp.account; }
-    else {
-      const accounts = msalInstance.getAllAccounts();
-      if (accounts.length) account = accounts[0];
-    }
-    if (account) {
-      currentUser = account.name;
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("appLayout").style.display = "flex";
-      document.getElementById("sidebarUserName").textContent = account.name || "User";
-      document.getElementById("sidebarUserEmail").textContent = account.username || "";
-      loadFromSharePoint();
-    }
-  } catch (e) {
-    console.error("Init:", e);
-    // If redirect promise fails, clear and show login
-    var accounts = msalInstance.getAllAccounts();
-    if (accounts.length) {
-      account = accounts[0];
-      currentUser = account.name;
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("appLayout").style.display = "flex";
-      document.getElementById("sidebarUserName").textContent = account.name || "User";
-      document.getElementById("sidebarUserEmail").textContent = account.username || "";
-      loadFromSharePoint();
-    }
+  } catch(e) {
+    console.error("MSAL init failed:", e);
+    return;
   }
+
+  // CRITICAL: handleRedirectPromise must be called once before any other MSAL API
+  var redirectResp = null;
+  try {
+    redirectResp = await msalInstance.handleRedirectPromise();
+  } catch(e) {
+    console.error("handleRedirectPromise error:", e);
+    // On error, clear interaction state and try to recover
+    try {
+      var keys = Object.keys(localStorage);
+      keys.forEach(function(k) { if (k.indexOf("interaction") > -1) localStorage.removeItem(k); });
+    } catch(x) {}
+  }
+
+  if (redirectResp && redirectResp.account) {
+    enterApp(redirectResp.account);
+    return;
+  }
+
+  // Check for existing cached account
+  var accounts = msalInstance.getAllAccounts();
+  if (accounts.length > 0) {
+    enterApp(accounts[0]);
+    return;
+  }
+
+  // No account — show login screen (already visible by default)
 }
 
 async function doLogin() {
-  // Show loading state on button
   var btn = document.querySelector('.login-card-ms');
-  if (btn) { btn.disabled = true; btn.textContent = "Signing in..."; }
+  if (btn) { btn.disabled = true; btn.innerHTML = "Redirecting to Microsoft..."; }
+
   try {
-    // Try popup first (works best on desktop)
-    var resp = await msalInstance.loginPopup({ scopes: SCOPES });
-    if (resp && resp.account) {
-      account = resp.account;
-      currentUser = account.name;
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("appLayout").style.display = "flex";
-      document.getElementById("sidebarUserName").textContent = account.name || "User";
-      document.getElementById("sidebarUserEmail").textContent = account.username || "";
-      loadFromSharePoint();
+    // Use redirect ONLY — works on all platforms including iOS
+    await msalInstance.loginRedirect({
+      scopes: SCOPES,
+      prompt: "select_account"
+    });
+    // Page will redirect away, code below won't execute
+  } catch(e) {
+    console.error("Login redirect failed:", e);
+    // Reset button
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg> Sign in with Microsoft';
     }
-  } catch (e) {
-    console.warn("Popup login failed, trying redirect:", e.message);
-    // Popup blocked (iPad/mobile) — fall back to redirect
-    try {
-      await msalInstance.loginRedirect({ scopes: SCOPES });
-    } catch (e2) {
-      console.error("Redirect login also failed:", e2);
-      if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg> Sign in with Microsoft'; }
-      showToast("Login failed: " + e2.message, "err");
+    // If interaction_in_progress, clear it and retry
+    if (e.errorCode === "interaction_in_progress") {
+      try {
+        var keys = Object.keys(localStorage);
+        keys.forEach(function(k) { if (k.indexOf("interaction") > -1) localStorage.removeItem(k); });
+      } catch(x) {}
+      showToast("Please try signing in again", "info");
+    } else {
+      showToast("Login error: " + e.message, "err");
     }
   }
 }
 
 function doSignOut() {
-  // Try popup logout, fall back to clearing session
-  msalInstance.logoutPopup({ postLogoutRedirectUri: REDIRECT }).then(function() {
-    window.location.reload();
-  }).catch(function(e) {
-    console.warn("Popup logout failed, clearing session:", e.message);
-    sessionStorage.clear();
-    localStorage.clear();
-    window.location.reload();
-  });
+  // Clear all MSAL state and reload — simplest, most reliable approach
+  try {
+    var keys = Object.keys(localStorage);
+    keys.forEach(function(k) {
+      if (k.indexOf("msal") > -1 || k.indexOf("login") > -1 || k.indexOf(CONFIG.clientId) > -1) {
+        localStorage.removeItem(k);
+      }
+    });
+  } catch(e) {}
+  sessionStorage.clear();
+  window.location.href = REDIRECT;
 }
 
 let sidebarView = 'overview';
