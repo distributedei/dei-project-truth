@@ -502,7 +502,8 @@ const CONFIG = {
 const SITE = "/sites/" + CONFIG.siteId;
 const LIST = SITE + "/lists/" + CONFIG.listId;
 const RFI_LIST = SITE + "/lists/" + CONFIG.rfiListId;
-const SCOPES = ["Sites.Manage.All", "Sites.Selected", "User.Read", "Chat.Create", "Chat.ReadWrite", "User.ReadBasic.All", "Files.ReadWrite.All"];
+const SCOPES = ["Sites.Manage.All", "Sites.Selected", "User.Read", "Chat.Create", "Chat.ReadWrite", "User.ReadBasic.All"];
+const FILE_SCOPES = ["Files.ReadWrite.All"]; // requested separately when uploading docs
 const REDIRECT = window.location.origin + window.location.pathname;
 const DOC_ROOT = "RFI-Documents"; // Root folder in site's default drive
 
@@ -520,31 +521,24 @@ const CAT_ICONS = {"General":"📋","Permitting":"🏛","Engineering":"⚙️","
 // ══════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════
-const msalConfig = {
+const msalInstance = new msal.PublicClientApplication({
   auth: {
     clientId: CONFIG.clientId,
     authority: "https://login.microsoftonline.com/" + CONFIG.tenantId,
     redirectUri: REDIRECT,
-    navigateToLoginRequestUrl: false
+    navigateToLoginRequestUrl: true
   },
-  cache: { cacheLocation: "localStorage" },
-  system: {
-    allowRedirectInIframe: false,
-    windowHashTimeout: 9000,
-    iframeHashTimeout: 9000,
-    loadFrameTimeout: 9000
-  }
-};
-const msalInstance = new msal.PublicClientApplication(msalConfig);
+  cache: { cacheLocation: "sessionStorage" }
+});
 
 let account = null;
 let DATA = [];
-let spItemMap = {}; // key -> SP item id
+let spItemMap = {};
 let selProject = null;
 let searchQ = "";
 let collapsed = {};
-let openComment = null; // {project, category, topic, itemId}
-let comments = {}; // itemId -> [{author, text, time}]
+let openComment = null;
+let comments = {};
 let saveTimers = {};
 let currentUser = null;
 
@@ -565,103 +559,42 @@ const S2A = {BallinCourt:"BallInCourt",Assignedto:"AssignedTo"};
 const A2S = {BallInCourt:"BallinCourt",AssignedTo:"Assignedto"};
 
 // Document state
-let siteDriveId = null; // discovered on first use
-let rfiDocCache = {}; // itemId -> [{name, url, version, modified, size}]
+let siteDriveId = null;
+let rfiDocCache = {};
 
 // CRM state
 let CRM_DEALS = [];
 let CRM_ACTIVITIES = [];
 let crmDealsListId = null;
 let crmActivitiesListId = null;
-let crmViewMode = "kanban"; // kanban or table
-
-function enterApp(acct) {
-  account = acct;
-  currentUser = acct.name || acct.username || "User";
-  document.getElementById("loginScreen").style.display = "none";
-  document.getElementById("appLayout").style.display = "flex";
-  document.getElementById("sidebarUserName").textContent = acct.name || "User";
-  document.getElementById("sidebarUserEmail").textContent = acct.username || "";
-  loadFromSharePoint();
-}
+let crmViewMode = "kanban";
 
 async function initAuth() {
   try {
     await msalInstance.initialize();
-  } catch(e) {
-    console.error("MSAL init failed:", e);
-    return;
-  }
-
-  // CRITICAL: handleRedirectPromise must be called once before any other MSAL API
-  var redirectResp = null;
-  try {
-    redirectResp = await msalInstance.handleRedirectPromise();
-  } catch(e) {
-    console.error("handleRedirectPromise error:", e);
-    // On error, clear interaction state and try to recover
-    try {
-      var keys = Object.keys(localStorage);
-      keys.forEach(function(k) { if (k.indexOf("interaction") > -1) localStorage.removeItem(k); });
-    } catch(x) {}
-  }
-
-  if (redirectResp && redirectResp.account) {
-    enterApp(redirectResp.account);
-    return;
-  }
-
-  // Check for existing cached account
-  var accounts = msalInstance.getAllAccounts();
-  if (accounts.length > 0) {
-    enterApp(accounts[0]);
-    return;
-  }
-
-  // No account — show login screen (already visible by default)
+    const resp = await msalInstance.handleRedirectPromise();
+    if (resp) { account = resp.account; }
+    else {
+      const accounts = msalInstance.getAllAccounts();
+      if (accounts.length) account = accounts[0];
+    }
+    if (account) {
+      currentUser = account.name;
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("appLayout").style.display = "flex";
+      document.getElementById("sidebarUserName").textContent = account.name || "User";
+      document.getElementById("sidebarUserEmail").textContent = account.username || "";
+      loadFromSharePoint();
+    }
+  } catch (e) { console.error("Init:", e); }
 }
 
 async function doLogin() {
-  var btn = document.querySelector('.login-card-ms');
-  if (btn) { btn.disabled = true; btn.innerHTML = "Redirecting to Microsoft..."; }
-
-  try {
-    // Use redirect ONLY — works on all platforms including iOS
-    await msalInstance.loginRedirect({
-      scopes: SCOPES,
-      prompt: "select_account"
-    });
-    // Page will redirect away, code below won't execute
-  } catch(e) {
-    console.error("Login redirect failed:", e);
-    // Reset button
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg> Sign in with Microsoft';
-    }
-    // If interaction_in_progress, clear it and retry
-    if (e.errorCode === "interaction_in_progress") {
-      try {
-        var keys = Object.keys(localStorage);
-        keys.forEach(function(k) { if (k.indexOf("interaction") > -1) localStorage.removeItem(k); });
-      } catch(x) {}
-      showToast("Please try signing in again", "info");
-    } else {
-      showToast("Login error: " + e.message, "err");
-    }
-  }
+  try { await msalInstance.loginRedirect({ scopes: SCOPES }); }
+  catch (e) { showToast("Login failed: " + e.message, "err"); }
 }
 
 function doSignOut() {
-  // Clear all MSAL state and reload — simplest, most reliable approach
-  try {
-    var keys = Object.keys(localStorage);
-    keys.forEach(function(k) {
-      if (k.indexOf("msal") > -1 || k.indexOf("login") > -1 || k.indexOf(CONFIG.clientId) > -1) {
-        localStorage.removeItem(k);
-      }
-    });
-  } catch(e) {}
   sessionStorage.clear();
   window.location.href = REDIRECT;
 }
@@ -699,6 +632,11 @@ function setSidebarView(view) {
 async function getToken() {
   try { return (await msalInstance.acquireTokenSilent({ scopes: SCOPES, account })).accessToken; }
   catch (e) { await msalInstance.acquireTokenRedirect({ scopes: SCOPES }); }
+}
+
+async function getFileToken() {
+  try { return (await msalInstance.acquireTokenSilent({ scopes: SCOPES.concat(FILE_SCOPES), account })).accessToken; }
+  catch (e) { return (await msalInstance.acquireTokenPopup({ scopes: SCOPES.concat(FILE_SCOPES), account })).accessToken; }
 }
 
 async function graph(method, path, body) {
@@ -1764,7 +1702,7 @@ var fileName = docFileName(item, file.name, version);
 // Upload file (up to 4MB direct, larger needs upload session)
 var uploadPath = “/drives/” + driveId + “/root:/” + folderPath + “/” + fileName + “:/content”;
 
-var token = await getToken();
+var token = await getFileToken();
 var resp = await fetch(“https://graph.microsoft.com/v1.0” + uploadPath, {
 method: “PUT”,
 headers: {
