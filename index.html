@@ -429,8 +429,14 @@
         <div class="sidebar-item" onclick="setSidebarView('pipeline')">
           <span class="icon">🔄</span> Pipeline
         </div>
+        <div class="sidebar-item" onclick="setSidebarView('companies')">
+          <span class="icon">🏢</span> Companies
+        </div>
         <div class="sidebar-item" onclick="setSidebarView('contacts')">
           <span class="icon">👥</span> Contacts
+        </div>
+        <div class="sidebar-item" onclick="setSidebarView('jobs')">
+          <span class="icon">⚡</span> Jobs
         </div>
         <div class="sidebar-item" onclick="setSidebarView('activities')">
           <span class="icon">📞</span> Activity Log
@@ -488,7 +494,11 @@ const CONFIG = {
   tenantId: "ec357a32-5b85-438d-a765-ae33c8eb13b7",
   siteId: "8103997e-0688-4832-a5b4-bf18de7f96f5",
   listId: "c0443281-dca9-49e0-856f-2748d4681399",
-  rfiListId: "38fd99d2-dad5-41d8-a898-4f5e425ad340"
+  rfiListId: "38fd99d2-dad5-41d8-a898-4f5e425ad340",
+  crmCompanies: "a753a2be-7cc6-4e6d-b81e-108c87421bda",
+  crmContacts: "46671fc3-c41a-4ac4-84bf-993d487aaf08",
+  crmJobs: "f93f7675-11a1-470a-a2b3-87d9b6ad0588",
+  crmDeals: "3f1ef8af-f3f9-4e16-8484-80d8dd17e685"
 };
 const SITE = "/sites/" + CONFIG.siteId;
 const LIST = SITE + "/lists/" + CONFIG.listId;
@@ -499,8 +509,8 @@ const REDIRECT = window.location.origin + window.location.pathname;
 const DOC_ROOT = "RFI-Documents"; // Root folder in site's default drive
 
 // CRM Pipeline stages
-const CRM_STAGES = ["Lead","Qualified","Proposal","Negotiation","Won","Lost"];
-const CRM_STAGE_COLORS = {"Lead":"#8a9baa","Qualified":"#5a8ab4","Proposal":"#e8a930","Negotiation":"#779d36","Won":"#2ecc8a","Lost":"#e05252"};
+const CRM_STAGES = ["NDA Sent","NDA Received","Docs Received","Quote Prepared","Quote Submitted","Negotiation","Won","Lost"];
+const CRM_STAGE_COLORS = {"NDA Sent":"#8a9baa","NDA Received":"#5a8ab4","Docs Received":"#4a7296","Quote Prepared":"#e8a930","Quote Submitted":"#d4881c","Negotiation":"#e05252","Won":"#2ecc8a","Lost":"#6b7c8a"};
 const CRM_ACT_TYPES = ["Call","Email","Meeting","Note","Proposal Sent","Site Visit"];
 
 const TEAM = [{"name": "Joshua Dean", "email": "jdean@distributedei.com", "nick": "Joshua"}, {"name": "Tom Guinta", "email": "tguinta@distributedei.com", "nick": "Tom"}, {"name": "Beth Harrington", "email": "bharrington@distributedei.com", "nick": "Beth"}, {"name": "Steve Maslen", "email": "smaslen@distributedei.com", "nick": "Steve"}, {"name": "David Moulton", "email": "dmoulton@distributedei.com", "nick": "David M"}, {"name": "Jessica Morse", "email": "jmorse@distributedei.com", "nick": "Jessica"}, {"name": "Daniel Spaizman", "email": "dspaizman@distributedei.com", "nick": "Daniel"}, {"name": "Jonas Bukh", "email": "jbukh@distributedei.com", "nick": "Jonas"}, {"name": "John Daly", "email": "jdaly@distributedei.com", "nick": "John"}, {"name": "Brian Follo", "email": "bfollo@distributedei.com", "nick": "Brian F"}, {"name": "Eli Cayer", "email": "ecayer@distributedei.com", "nick": "Eli"}, {"name": "Jackson Elwell", "email": "jelwell@distributedei.com", "nick": "Jackson"}, {"name": "Corinne Scanlon", "email": "cscanlon@distributedei.com", "nick": "Corinne"}, {"name": "Joshua Kuntz", "email": "jkuntz@distributedei.com", "nick": "Josh K"}, {"name": "Mike Wilkinson", "email": "mwilkinson@distributedei.com", "nick": "Mike W"}, {"name": "Matthew Sowle", "email": "msowle@distributedei.com", "nick": "Matt"}, {"name": "Caleb Schott", "email": "cschott@distributedei.com", "nick": "Caleb"}, {"name": "Stowe Duston", "email": "sduston@distributedei.com", "nick": "Stowe"}, {"name": "Thomas Hewitt", "email": "thewitt@distributedei.com", "nick": "Thomas"}, {"name": "Chris Shepard", "email": "cshepard@distributedei.com", "nick": "Chris"}, {"name": "Dipti Kothari", "email": "dkothari@distributedei.com", "nick": "Dipti"}, {"name": "Rusfid Haroon", "email": "rharoon@distributedei.com", "nick": "Rusfid"}, {"name": "Gabriel Murray", "email": "gmurray@distributedei.com", "nick": "Gabe"}, {"name": "David Caparelli", "email": "dcaparelli@distributeder.com", "nick": "David C"}, {"name": "Prateek Tare", "email": "ptare@distributeder.com", "nick": "Prateek"}, {"name": "Sean Harrington", "email": "sharrington@distributeder.com", "nick": "Sean"}, {"name": "Adam Regen", "email": "aregen@distributeder.com", "nick": "Adam"}, {"name": "Laura Gilman-Boutot", "email": "lgilman-boutot@distributeder.com", "nick": "Laura"}, {"name": "Trevor Maclachlan", "email": "tmaclachlan@distributeder.com", "nick": "Trevor"}, {"name": "Ryan Harrington", "email": "rharrington@distributeder.com", "nick": "Ryan"}, {"name": "Brian Parker", "email": "bparker@distributeder.com", "nick": "Brian P"}, {"name": "Joot Wright", "email": "jwright@distributeder.com", "nick": "Joot"}, {"name": "Alyssa DeBell", "email": "adebell@distributeder.com", "nick": "Alyssa"}, {"name": "David Sieczarski", "email": "dsieczarski@distributeder.com", "nick": "David S"}, {"name": "Carlton Tobler", "email": "ctobler@distributeder.com", "nick": "Carlton"}, {"name": "Peter Stanford", "email": "pstanford@distributeder.com", "nick": "Peter"}, {"name": "Alan Derosier", "email": "aderosier@distributeder.com", "nick": "Alan"}, {"name": "Ian Maclachlan", "email": "imaclachlan@distributeder.com", "nick": "Ian"}, {"name": "Julian Diaz", "email": "jdiaz@distributeder.com", "nick": "Julian"}];
@@ -556,6 +566,9 @@ let rfiDocCache = {};
 // CRM state
 let CRM_DEALS = [];
 let CRM_ACTIVITIES = [];
+let CRM_COMPANIES = [];
+let CRM_CONTACTS = [];
+let CRM_JOBS = [];
 let crmDealsListId = null;
 let crmActivitiesListId = null;
 let crmViewMode = "kanban";
@@ -612,7 +625,7 @@ function setSidebarView(view) {
     generateReport();
     return;
   }
-  if (view === 'pipeline' || view === 'contacts' || view === 'activities') {
+  if (view === 'pipeline' || view === 'contacts' || view === 'activities' || view === 'companies' || view === 'jobs') {
     loadCRM(view);
     return;
   }
@@ -2465,40 +2478,17 @@ async function requestAICommentary(data) {
 // CRM ENGINE
 // ══════════════════════════════════════════════════
 async function ensureCRMLists() {
-  if (crmDealsListId && crmActivitiesListId) return;
-  // Try to find existing lists
-  try {
-    var lists = await graph("GET", SITE + "/lists?$top=50");
-    (lists.value || []).forEach(function(l) {
-      if (l.displayName === "DEI-CRM-Deals") crmDealsListId = l.id;
-      if (l.displayName === "DEI-CRM-Activities") crmActivitiesListId = l.id;
-    });
-  } catch(e) { console.warn("List discovery:", e); }
-
-  // Create Deals list if missing
-  if (!crmDealsListId) {
+  // Use known list IDs from CONFIG
+  crmDealsListId = CONFIG.crmDeals;
+  // Activities list is still auto-discovered/created for backward compat
+  if (!crmActivitiesListId) {
     try {
-      var dl = await graph("POST", SITE + "/lists", {
-        displayName: "DEI-CRM-Deals",
-        list: { template: "genericList" }
+      var lists = await graph("GET", SITE + "/lists?$top=50");
+      (lists.value || []).forEach(function(l) {
+        if (l.displayName === "DEI-CRM-Activities") crmActivitiesListId = l.id;
       });
-      crmDealsListId = dl.id;
-      // Add columns
-      var dealCols = [
-        {name:"Company",text:{}},{name:"ContactName",text:{}},{name:"ContactEmail",text:{}},
-        {name:"ContactPhone",text:{}},{name:"Stage",text:{}},{name:"DealValue",number:{}},
-        {name:"ProjectType",text:{}},{name:"Location",text:{}},{name:"SystemSize",text:{}},
-        {name:"ExpectedClose",dateTime:{format:"dateOnly"}},{name:"Notes",text:{allowMultipleLines:true}},
-        {name:"Owner",text:{}},{name:"Source",text:{}},{name:"Priority",text:{}}
-      ];
-      for (var i = 0; i < dealCols.length; i++) {
-        try { await graph("POST", SITE + "/lists/" + crmDealsListId + "/columns", dealCols[i]); } catch(e) {}
-      }
-      showToast("CRM Deals list created in SharePoint", "ok");
-    } catch(e) { showToast("Could not create Deals list: " + e.message, "err"); return; }
+    } catch(e) { console.warn("Activity list discovery:", e); }
   }
-
-  // Create Activities list if missing
   if (!crmActivitiesListId) {
     try {
       var al = await graph("POST", SITE + "/lists", {
@@ -2514,43 +2504,45 @@ async function ensureCRMLists() {
       for (var j = 0; j < actCols.length; j++) {
         try { await graph("POST", SITE + "/lists/" + crmActivitiesListId + "/columns", actCols[j]); } catch(e) {}
       }
-      showToast("CRM Activities list created in SharePoint", "ok");
-    } catch(e) { showToast("Could not create Activities list: " + e.message, "err"); }
+    } catch(e) { console.warn("Could not create Activities list:", e); }
   }
+}
+
+async function loadAllItems(listId) {
+  var items = [];
+  var url = SITE + "/lists/" + listId + "/items?$expand=fields&$top=999";
+  while (url) {
+    var resp = await graph("GET", url);
+    if (resp.value) resp.value.forEach(function(item) { items.push(Object.assign({id: item.id}, item.fields)); });
+    url = resp["@odata.nextLink"] ? resp["@odata.nextLink"].replace("https://graph.microsoft.com/v1.0", "") : null;
+  }
+  return items;
 }
 
 async function loadCRM(view) {
   document.getElementById("mainContent").innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading CRM data...</div>';
   await ensureCRMLists();
-  if (!crmDealsListId) {
-    document.getElementById("mainContent").innerHTML = '<div class="loading" style="color:var(--red);">CRM lists could not be initialized.</div>';
-    return;
-  }
 
   try {
-    // Load deals
-    CRM_DEALS = [];
-    var url = SITE + "/lists/" + crmDealsListId + "/items?$expand=fields&$top=999";
-    while (url) {
-      var resp = await graph("GET", url);
-      if (resp.value) resp.value.forEach(function(item) { CRM_DEALS.push(Object.assign({id: item.id}, item.fields)); });
-      url = resp["@odata.nextLink"] ? resp["@odata.nextLink"].replace("https://graph.microsoft.com/v1.0", "") : null;
-    }
-
-    // Load activities
-    CRM_ACTIVITIES = [];
-    if (crmActivitiesListId) {
-      url = SITE + "/lists/" + crmActivitiesListId + "/items?$expand=fields&$top=999";
-      while (url) {
-        var resp2 = await graph("GET", url);
-        if (resp2.value) resp2.value.forEach(function(item) { CRM_ACTIVITIES.push(Object.assign({id: item.id}, item.fields)); });
-        url = resp2["@odata.nextLink"] ? resp2["@odata.nextLink"].replace("https://graph.microsoft.com/v1.0", "") : null;
-      }
-    }
+    // Load all 4 CRM lists in parallel
+    var results = await Promise.all([
+      loadAllItems(CONFIG.crmDeals),
+      loadAllItems(CONFIG.crmCompanies),
+      loadAllItems(CONFIG.crmContacts),
+      loadAllItems(CONFIG.crmJobs),
+      crmActivitiesListId ? loadAllItems(crmActivitiesListId) : Promise.resolve([])
+    ]);
+    CRM_DEALS = results[0];
+    CRM_COMPANIES = results[1];
+    CRM_CONTACTS = results[2];
+    CRM_JOBS = results[3];
+    CRM_ACTIVITIES = results[4];
 
     if (view === "pipeline") renderPipeline();
     else if (view === "contacts") renderContacts();
     else if (view === "activities") renderActivities();
+    else if (view === "companies") renderCompanies();
+    else if (view === "jobs") renderJobs();
   } catch(e) {
     document.getElementById("mainContent").innerHTML = '<div class="loading" style="color:var(--red);">Failed to load CRM: ' + e.message + '</div>';
   }
@@ -2566,28 +2558,29 @@ function renderPipeline() {
   var html = '';
   html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">';
   html += '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:26px;font-weight:800;color:var(--navy);">Sales <span style="color:var(--green);">Pipeline</span></div>';
-  html += '<div style="font-size:14px;color:#8a9baa;margin-top:4px;">' + CRM_DEALS.length + ' deals in pipeline</div></div>';
+  html += '<div style="font-size:14px;color:#8a9baa;margin-top:4px;">' + CRM_DEALS.length + ' deals · ' + CRM_COMPANIES.length + ' companies · ' + CRM_JOBS.length + ' jobs</div></div>';
   html += '<div style="display:flex;gap:8px;"><button class="add-proj-btn" onclick="loadCRM(\'pipeline\')">↺ Refresh</button><button class="add-proj-btn" style="background:linear-gradient(135deg,#779d36,#5f8228);color:#fff;border-color:#779d36;" onclick="showDealModal()">+ New Deal</button></div>';
   html += '</div>';
 
   // Summary bar
-  var totalValue = CRM_DEALS.reduce(function(s, d) { return s + (Number(d.DealValue) || 0); }, 0);
-  var wonValue = CRM_DEALS.filter(function(d){return d.Stage === "Won";}).reduce(function(s, d) { return s + (Number(d.DealValue) || 0); }, 0);
+  var totalValue = CRM_DEALS.reduce(function(s, d) { return s + (Number(d.Value) || 0); }, 0);
+  var wonValue = CRM_DEALS.filter(function(d){return d.Stage === "Won";}).reduce(function(s, d) { return s + (Number(d.Value) || 0); }, 0);
   var activeDeals = CRM_DEALS.filter(function(d){return !["Won","Lost"].includes(d.Stage);}).length;
-  var pipelineValue = CRM_DEALS.filter(function(d){return !["Won","Lost"].includes(d.Stage);}).reduce(function(s, d) { return s + (Number(d.DealValue) || 0); }, 0);
+  var pipelineValue = CRM_DEALS.filter(function(d){return !["Won","Lost"].includes(d.Stage);}).reduce(function(s, d) { return s + (Number(d.Value) || 0); }, 0);
+  var weightedTotal = CRM_DEALS.filter(function(d){return !["Won","Lost"].includes(d.Stage);}).reduce(function(s, d) { return s + (Number(d.WeightedValue) || 0); }, 0);
 
   html += '<div class="crm-summary-bar">';
   html += '<div class="crm-summary-card"><div class="crm-summary-label">Pipeline Value</div><div class="crm-summary-value" style="color:var(--green);">' + formatCurrency(pipelineValue) + '</div><div class="crm-summary-sub">' + activeDeals + ' active deals</div></div>';
+  html += '<div class="crm-summary-card"><div class="crm-summary-label">Weighted Value</div><div class="crm-summary-value" style="color:var(--amber);">' + formatCurrency(weightedTotal) + '</div><div class="crm-summary-sub">probability-adjusted</div></div>';
   html += '<div class="crm-summary-card"><div class="crm-summary-label">Won</div><div class="crm-summary-value" style="color:#2ecc8a;">' + formatCurrency(wonValue) + '</div><div class="crm-summary-sub">' + CRM_DEALS.filter(function(d){return d.Stage==="Won";}).length + ' deals</div></div>';
-  html += '<div class="crm-summary-card"><div class="crm-summary-label">Total Deals</div><div class="crm-summary-value">' + CRM_DEALS.length + '</div><div class="crm-summary-sub">' + formatCurrency(totalValue) + ' total value</div></div>';
   html += '<div class="crm-summary-card"><div class="crm-summary-label">Avg Deal Size</div><div class="crm-summary-value">' + (CRM_DEALS.length > 0 ? formatCurrency(totalValue / CRM_DEALS.length) : "$0") + '</div></div>';
   html += '</div>';
 
   // Kanban board
   html += '<div class="crm-kanban">';
   CRM_STAGES.forEach(function(stage) {
-    var deals = CRM_DEALS.filter(function(d) { return (d.Stage || "Lead") === stage; });
-    var stageVal = deals.reduce(function(s, d) { return s + (Number(d.DealValue) || 0); }, 0);
+    var deals = CRM_DEALS.filter(function(d) { return (d.Stage || "NDA Sent") === stage; });
+    var stageVal = deals.reduce(function(s, d) { return s + (Number(d.Value) || 0); }, 0);
     var color = CRM_STAGE_COLORS[stage] || "#8a9baa";
 
     html += '<div class="crm-lane">';
@@ -2597,15 +2590,19 @@ function renderPipeline() {
     html += '</div>';
     html += '<div class="crm-lane-body">';
 
-    deals.sort(function(a,b) { return (Number(b.DealValue) || 0) - (Number(a.DealValue) || 0); }).forEach(function(deal) {
-      var closeDate = deal.ExpectedClose ? new Date(deal.ExpectedClose).toLocaleDateString("en-US", {month: "short", day: "numeric"}) : "";
+    deals.sort(function(a,b) { return (Number(b.Value) || 0) - (Number(a.Value) || 0); }).forEach(function(deal) {
       html += '<div class="crm-card" onclick="showDealDetail(' + deal.id + ')">';
-      html += '<div class="crm-card-title">' + esc(deal.Title || "Untitled") + '</div>';
-      html += '<div class="crm-card-company">' + esc(deal.Company || "") + (deal.Location ? ' · ' + esc(deal.Location) : '') + '</div>';
-      html += '<div class="crm-card-value">' + formatCurrency(deal.DealValue) + '</div>';
+      html += '<div class="crm-card-title">' + esc(deal.DealName || deal.Title || "Untitled") + '</div>';
+      html += '<div class="crm-card-company">' + esc(deal.CompanyRef || "") + (deal.JobRef ? ' · ' + esc(deal.JobRef) : '') + '</div>';
+      html += '<div class="crm-card-value">' + formatCurrency(deal.Value) + '</div>';
       html += '<div class="crm-card-meta">';
-      if (deal.SystemSize) html += '<span>' + esc(deal.SystemSize) + '</span>';
-      if (closeDate) html += '<span>' + closeDate + '</span>';
+      if (deal.Probability) html += '<span>' + deal.Probability + '% prob</span>';
+      if (deal.WeightedValue) html += '<span>Wtd: ' + formatCurrency(deal.WeightedValue) + '</span>';
+      html += '</div>';
+      html += '<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">';
+      if (deal.NDA) html += '<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(46,204,138,0.1);color:#2ecc8a;font-weight:700;">NDA</span>';
+      if (deal.DataRoom) html += '<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(55,86,115,0.1);color:#375673;font-weight:700;">DR</span>';
+      if (deal.BidSent) html += '<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(232,169,48,0.1);color:#e8a930;font-weight:700;">BID</span>';
       html += '</div>';
       if (deal.Owner) html += '<div style="margin-top:6px;font-size:10px;color:#8a9baa;">👤 ' + esc(deal.Owner) + '</div>';
       html += '</div>';
@@ -2624,27 +2621,16 @@ function renderPipeline() {
 
 // ── CONTACTS VIEW ──
 function renderContacts() {
-  // Extract unique contacts from deals
-  var contactMap = {};
-  CRM_DEALS.forEach(function(d) {
-    var key = (d.ContactEmail || d.ContactName || d.Company || d.id).toLowerCase();
-    if (!contactMap[key]) {
-      contactMap[key] = {name: d.ContactName, email: d.ContactEmail, phone: d.ContactPhone, company: d.Company, deals: []};
-    }
-    contactMap[key].deals.push(d);
-  });
-  var contacts = Object.values(contactMap).sort(function(a,b) { return (a.company || "").localeCompare(b.company || ""); });
-
   var html = '';
   html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">';
-  html += '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:26px;font-weight:800;color:var(--navy);">Contacts <span style="color:var(--green);">& Companies</span></div>';
-  html += '<div style="font-size:14px;color:#8a9baa;margin-top:4px;">' + contacts.length + ' contacts from ' + [...new Set(contacts.map(function(c){return c.company;}).filter(Boolean))].length + ' companies</div></div>';
-  html += '<button class="add-proj-btn" style="background:linear-gradient(135deg,#779d36,#5f8228);color:#fff;border-color:#779d36;" onclick="showDealModal()">+ New Deal</button>';
+  html += '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:26px;font-weight:800;color:var(--navy);">Contacts <span style="color:var(--green);">& People</span></div>';
+  html += '<div style="font-size:14px;color:#8a9baa;margin-top:4px;">' + CRM_CONTACTS.length + ' contacts across ' + CRM_COMPANIES.length + ' companies</div></div>';
+  html += '<button class="add-proj-btn" onclick="loadCRM(\'contacts\')">↺ Refresh</button>';
   html += '</div>';
 
   html += '<input class="form-input" placeholder="🔍 Search contacts..." oninput="filterContacts(this.value)" style="margin-bottom:16px;max-width:400px;">';
   html += '<div id="contactsList">';
-  html += renderContactCards(contacts);
+  html += renderContactCards(CRM_CONTACTS);
   html += '</div>';
 
   document.getElementById("mainContent").innerHTML = html;
@@ -2653,40 +2639,38 @@ function renderContacts() {
 
 function renderContactCards(contacts) {
   var html = '';
+  // Build deal count per contact
+  var dealsByContact = {};
+  CRM_DEALS.forEach(function(d) { if (d.ContactRef) { dealsByContact[d.ContactRef] = (dealsByContact[d.ContactRef] || 0) + 1; } });
+
   contacts.forEach(function(c) {
-    var initials = ((c.name || c.company || "?").split(" ").map(function(w){return w[0];}).join("").substring(0,2)).toUpperCase();
-    var totalVal = c.deals.reduce(function(s,d){return s + (Number(d.DealValue)||0);}, 0);
-    var activeDeals = c.deals.filter(function(d){return !["Won","Lost"].includes(d.Stage);}).length;
+    var fullName = ((c.FirstName || "") + " " + (c.LastName || "")).trim();
+    var initials = ((c.FirstName || "?")[0] + (c.LastName || "?")[0]).toUpperCase();
+    var dCount = dealsByContact[fullName] || 0;
 
     html += '<div class="crm-contact-card">';
     html += '<div class="crm-avatar">' + initials + '</div>';
     html += '<div class="crm-contact-info">';
-    html += '<div class="crm-contact-name">' + esc(c.name || "—") + '</div>';
-    html += '<div class="crm-contact-company">' + esc(c.company || "—") + '</div>';
+    html += '<div class="crm-contact-name">' + esc(fullName || "—") + '</div>';
+    html += '<div class="crm-contact-company">' + esc(c.CompanyRef || "—") + (c.Role ? ' · ' + esc(c.Role) : '') + '</div>';
     html += '<div class="crm-contact-detail">';
-    if (c.email) html += '✉ ' + esc(c.email) + ' ';
-    if (c.phone) html += '📞 ' + esc(c.phone);
+    if (c.Email) html += '✉ <a href="mailto:' + esc(c.Email) + '" style="color:#5a8ab4;text-decoration:none;">' + esc(c.Email) + '</a> ';
+    if (c.Phone) html += '📞 ' + esc(c.Phone);
     html += '</div>';
-    html += '<div style="margin-top:6px;font-size:11px;color:#8a9baa;">' + c.deals.length + ' deal(s) · ' + formatCurrency(totalVal) + (activeDeals > 0 ? ' · <span style="color:var(--green);">' + activeDeals + ' active</span>' : '') + '</div>';
+    if (dCount > 0) html += '<div style="margin-top:6px;font-size:11px;color:#8a9baa;">' + dCount + ' deal(s) linked</div>';
     html += '</div></div>';
   });
-  if (contacts.length === 0) html += '<div style="text-align:center;padding:40px;color:#8a9baa;">No contacts yet. Add a deal to create your first contact.</div>';
+  if (contacts.length === 0) html += '<div style="text-align:center;padding:40px;color:#8a9baa;">No contacts found.</div>';
   return html;
 }
 
 function filterContacts(q) {
   q = q.toLowerCase();
-  var contactMap = {};
-  CRM_DEALS.forEach(function(d) {
-    var key = (d.ContactEmail || d.ContactName || d.Company || d.id).toLowerCase();
-    if (!contactMap[key]) contactMap[key] = {name: d.ContactName, email: d.ContactEmail, phone: d.ContactPhone, company: d.Company, deals: []};
-    contactMap[key].deals.push(d);
-  });
-  var contacts = Object.values(contactMap).filter(function(c) {
+  var filtered = CRM_CONTACTS.filter(function(c) {
     if (!q) return true;
-    return (c.name || "").toLowerCase().includes(q) || (c.company || "").toLowerCase().includes(q) || (c.email || "").toLowerCase().includes(q);
+    return (c.FirstName || "").toLowerCase().includes(q) || (c.LastName || "").toLowerCase().includes(q) || (c.Email || "").toLowerCase().includes(q) || (c.CompanyRef || "").toLowerCase().includes(q) || (c.Role || "").toLowerCase().includes(q);
   });
-  document.getElementById("contactsList").innerHTML = renderContactCards(contacts);
+  document.getElementById("contactsList").innerHTML = renderContactCards(filtered);
 }
 
 // ── ACTIVITY LOG ──
@@ -2726,10 +2710,125 @@ function renderActivities() {
   renderSidebarProjects();
 }
 
+// ── COMPANIES VIEW ──
+function renderCompanies() {
+  var dealsByCompany = {};
+  CRM_DEALS.forEach(function(d) { if (d.CompanyRef) { dealsByCompany[d.CompanyRef] = (dealsByCompany[d.CompanyRef] || 0) + 1; } });
+
+  var html = '';
+  html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">';
+  html += '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:26px;font-weight:800;color:var(--navy);">CRM <span style="color:var(--green);">Companies</span></div>';
+  html += '<div style="font-size:14px;color:#8a9baa;margin-top:4px;">' + CRM_COMPANIES.length + ' companies in database</div></div>';
+  html += '<button class="add-proj-btn" onclick="loadCRM(\'companies\')">↺ Refresh</button>';
+  html += '</div>';
+
+  html += '<input class="form-input" placeholder="🔍 Search companies..." oninput="filterCompanies(this.value)" style="margin-bottom:16px;max-width:400px;">';
+  html += '<div id="companiesList">' + renderCompanyTable(CRM_COMPANIES, dealsByCompany) + '</div>';
+  document.getElementById("mainContent").innerHTML = html;
+  renderSidebarProjects();
+}
+
+function renderCompanyTable(companies, dealsByCompany) {
+  var html = '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">';
+  html += '<table style="width:100%;border-collapse:collapse;"><thead><tr>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">Company</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">Type</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">Domain</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">Tracker</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">Modules</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">Location</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">Deals</th>';
+  html += '</tr></thead><tbody>';
+
+  companies.forEach(function(c) {
+    var name = c.CompanyName || c.Title || "—";
+    var cnt = dealsByCompany[name] || 0;
+    html += '<tr style="border-bottom:1px solid #f0f4f8;">';
+    html += '<td style="padding:11px 16px;font-weight:600;color:#375673;">' + esc(name) + '</td>';
+    html += '<td style="padding:11px 16px;font-size:12px;"><span style="background:rgba(55,86,115,0.1);color:#375673;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">' + esc(c.CompanyType || "—") + '</span></td>';
+    html += '<td style="padding:11px 16px;font-size:12px;">' + esc(c.Domain || "—") + '</td>';
+    html += '<td style="padding:11px 16px;font-size:12px;">' + esc(c.TrackerType || "—") + '</td>';
+    html += '<td style="padding:11px 16px;font-size:12px;">' + esc(c.Modules || "—") + (c.ModuleSize ? " (" + esc(c.ModuleSize) + ")" : "") + '</td>';
+    html += '<td style="padding:11px 16px;font-size:12px;">' + esc((c.City || "") + (c.State ? ", " + c.State : "")) + '</td>';
+    html += '<td style="padding:11px 16px;">' + (cnt > 0 ? '<span style="background:rgba(119,157,54,0.1);color:#779d36;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">' + cnt + '</span>' : '—') + '</td>';
+    html += '</tr>';
+  });
+  if (companies.length === 0) html += '<tr><td colspan="7" style="text-align:center;padding:40px;color:#8a9baa;">No companies found.</td></tr>';
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function filterCompanies(q) {
+  q = q.toLowerCase();
+  var dealsByCompany = {};
+  CRM_DEALS.forEach(function(d) { if (d.CompanyRef) { dealsByCompany[d.CompanyRef] = (dealsByCompany[d.CompanyRef] || 0) + 1; } });
+  var filtered = CRM_COMPANIES.filter(function(c) {
+    if (!q) return true;
+    return (c.CompanyName || c.Title || "").toLowerCase().includes(q) || (c.City || "").toLowerCase().includes(q) || (c.State || "").toLowerCase().includes(q) || (c.CompanyType || "").toLowerCase().includes(q);
+  });
+  document.getElementById("companiesList").innerHTML = renderCompanyTable(filtered, dealsByCompany);
+}
+
+// ── JOBS VIEW ──
+function renderJobs() {
+  var html = '';
+  html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">';
+  html += '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:26px;font-weight:800;color:var(--navy);">CRM <span style="color:var(--green);">Jobs</span></div>';
+  html += '<div style="font-size:14px;color:#8a9baa;margin-top:4px;">' + CRM_JOBS.length + ' jobs tracked</div></div>';
+  html += '<button class="add-proj-btn" onclick="loadCRM(\'jobs\')">↺ Refresh</button>';
+  html += '</div>';
+
+  html += '<input class="form-input" placeholder="🔍 Search jobs..." oninput="filterJobs(this.value)" style="margin-bottom:16px;max-width:400px;">';
+  html += '<div id="jobsList">' + renderJobTable(CRM_JOBS) + '</div>';
+  document.getElementById("mainContent").innerHTML = html;
+  renderSidebarProjects();
+}
+
+function renderJobTable(jobs) {
+  var html = '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">';
+  html += '<table style="width:100%;border-collapse:collapse;"><thead><tr>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">Job</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">Company</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">City</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">State</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">System Size</th>';
+  html += '<th style="text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a9baa;border-bottom:1px solid #e2e8f0;background:#f8fafb;">Description</th>';
+  html += '</tr></thead><tbody>';
+
+  jobs.forEach(function(j) {
+    html += '<tr style="border-bottom:1px solid #f0f4f8;">';
+    html += '<td style="padding:11px 16px;font-weight:600;color:#375673;">' + esc(j.JobName || j.Title || "—") + '</td>';
+    html += '<td style="padding:11px 16px;font-size:12px;"><span style="background:rgba(55,86,115,0.1);color:#375673;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">' + esc(j.CompanyRef || "—") + '</span></td>';
+    html += '<td style="padding:11px 16px;font-size:12px;">' + esc(j.City || "—") + '</td>';
+    html += '<td style="padding:11px 16px;font-size:12px;">' + esc(j.State || "—") + '</td>';
+    html += '<td style="padding:11px 16px;font-family:\'Barlow Condensed\',sans-serif;font-weight:700;color:#779d36;">' + esc(j.SystemSize || "—") + '</td>';
+    html += '<td style="padding:11px 16px;font-size:12px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(j.Description || "—") + '</td>';
+    html += '</tr>';
+  });
+  if (jobs.length === 0) html += '<tr><td colspan="6" style="text-align:center;padding:40px;color:#8a9baa;">No jobs found.</td></tr>';
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function filterJobs(q) {
+  q = q.toLowerCase();
+  var filtered = CRM_JOBS.filter(function(j) {
+    if (!q) return true;
+    return (j.JobName || j.Title || "").toLowerCase().includes(q) || (j.CompanyRef || "").toLowerCase().includes(q) || (j.City || "").toLowerCase().includes(q);
+  });
+  document.getElementById("jobsList").innerHTML = renderJobTable(filtered);
+}
+
 // ── DEAL MODALS ──
 function showDealModal(dealId) {
   var deal = dealId ? CRM_DEALS.find(function(d){return d.id == dealId;}) : null;
   var isEdit = !!deal;
+  // Build company and contact options from CRM lists
+  var companyOptions = CRM_COMPANIES.map(function(c){return '<option>' + esc(c.CompanyName || c.Title || "") + '</option>';}).join('');
+  var contactOptions = CRM_CONTACTS.map(function(c){return '<option>' + esc((c.FirstName || "") + " " + (c.LastName || "")) + '</option>';}).join('');
+  var jobOptions = CRM_JOBS.map(function(j){return '<option>' + esc(j.JobName || j.Title || "") + '</option>';}).join('');
+  var ownerOptions = ["Sean","Adam","Eli","Unassigned"].map(function(o){return '<option' + (deal && deal.Owner === o ? ' selected' : (!deal && o === 'Sean' ? ' selected' : '')) + '>' + o + '</option>';}).join('');
+
   var modal = document.getElementById("addProjectModal");
   modal.style.display = "";
   modal.innerHTML = '<div class="modal-overlay" onclick="if(event.target===this)closeAddProject()">' +
@@ -2737,60 +2836,68 @@ function showDealModal(dealId) {
     '<div class="modal-head"><div class="modal-title">' + (isEdit ? 'Edit Deal' : 'New Deal') + '</div><button class="modal-close" onclick="closeAddProject()">✕</button></div>' +
     '<div class="modal-body">' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
-    '<div class="form-group" style="grid-column:1/-1;"><label class="form-label">Deal Name *</label><input class="form-input" id="crmTitle" value="' + esc(deal ? deal.Title || "" : "") + '" placeholder="e.g. Acton Solar Array 12MW"></div>' +
-    '<div class="form-group"><label class="form-label">Company</label><input class="form-input" id="crmCompany" value="' + esc(deal ? deal.Company || "" : "") + '"></div>' +
-    '<div class="form-group"><label class="form-label">Deal Value ($)</label><input class="form-input" id="crmValue" type="number" value="' + (deal ? deal.DealValue || "" : "") + '" placeholder="e.g. 5000000"></div>' +
-    '<div class="form-group"><label class="form-label">Contact Name</label><input class="form-input" id="crmContact" value="' + esc(deal ? deal.ContactName || "" : "") + '"></div>' +
-    '<div class="form-group"><label class="form-label">Contact Email</label><input class="form-input" id="crmEmail" value="' + esc(deal ? deal.ContactEmail || "" : "") + '"></div>' +
-    '<div class="form-group"><label class="form-label">Contact Phone</label><input class="form-input" id="crmPhone" value="' + esc(deal ? deal.ContactPhone || "" : "") + '"></div>' +
-    '<div class="form-group"><label class="form-label">Stage</label><select class="form-input" id="crmStage">' + CRM_STAGES.map(function(s){return '<option' + (deal && deal.Stage === s ? ' selected' : (!deal && s === 'Lead' ? ' selected' : '')) + '>' + s + '</option>';}).join('') + '</select></div>' +
-    '<div class="form-group"><label class="form-label">Project Type</label><input class="form-input" id="crmProjType" value="' + esc(deal ? deal.ProjectType || "" : "") + '" placeholder="e.g. Solar, BESS, Solar+Storage"></div>' +
-    '<div class="form-group"><label class="form-label">System Size</label><input class="form-input" id="crmSize" value="' + esc(deal ? deal.SystemSize || "" : "") + '" placeholder="e.g. 12.5 MW DC"></div>' +
-    '<div class="form-group"><label class="form-label">Location</label><input class="form-input" id="crmLocation" value="' + esc(deal ? deal.Location || "" : "") + '"></div>' +
-    '<div class="form-group"><label class="form-label">Expected Close</label><input class="form-input" id="crmClose" type="date" value="' + (deal && deal.ExpectedClose ? (deal.ExpectedClose+"").split("T")[0] : "") + '"></div>' +
-    '<div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="crmOwner" value="' + esc(deal ? deal.Owner || "" : currentUser || "") + '"></div>' +
-    '<div class="form-group"><label class="form-label">Source</label><input class="form-input" id="crmSource" value="' + esc(deal ? deal.Source || "" : "") + '" placeholder="e.g. Referral, RFP, Inbound"></div>' +
-    '<div class="form-group"><label class="form-label">Priority</label><select class="form-input" id="crmPriority"><option' + (deal && deal.Priority === "Low" ? ' selected' : '') + '>Low</option><option' + ((!deal || deal.Priority === "Medium") ? ' selected' : '') + '>Medium</option><option' + (deal && deal.Priority === "High" ? ' selected' : '') + '>High</option></select></div>' +
+    '<div class="form-group" style="grid-column:1/-1;"><label class="form-label">Deal Name *</label><input class="form-input" id="crmDealName" value="' + esc(deal ? deal.DealName || deal.Title || "" : "") + '" placeholder="e.g. Acton Solar 12MW"></div>' +
+    '<div class="form-group"><label class="form-label">Company</label><select class="form-input" id="crmCompanyRef"><option value="">Select company...</option>' + companyOptions + '</select></div>' +
+    '<div class="form-group"><label class="form-label">Job</label><select class="form-input" id="crmJobRef"><option value="">Select job...</option>' + jobOptions + '</select></div>' +
+    '<div class="form-group"><label class="form-label">Value ($)</label><input class="form-input" id="crmValue" type="number" value="' + (deal ? deal.Value || "" : "") + '" placeholder="e.g. 5000000"></div>' +
+    '<div class="form-group"><label class="form-label">Stage</label><select class="form-input" id="crmStage">' + CRM_STAGES.map(function(s){return '<option' + (deal && deal.Stage === s ? ' selected' : (!deal && s === 'NDA Sent' ? ' selected' : '')) + '>' + s + '</option>';}).join('') + '</select></div>' +
+    '<div class="form-group"><label class="form-label">Owner</label><select class="form-input" id="crmOwner">' + ownerOptions + '</select></div>' +
+    '<div class="form-group"><label class="form-label">Contact</label><select class="form-input" id="crmContactRef"><option value="">Select contact...</option>' + contactOptions + '</select></div>' +
+    '<div class="form-group"><label class="form-label">NDA</label><select class="form-input" id="crmNDA"><option value="false"' + (deal && !deal.NDA ? ' selected' : '') + '>No</option><option value="true"' + (deal && deal.NDA ? ' selected' : '') + '>Yes</option></select></div>' +
+    '<div class="form-group"><label class="form-label">Data Room</label><select class="form-input" id="crmDataRoom"><option value="false"' + (deal && !deal.DataRoom ? ' selected' : '') + '>No</option><option value="true"' + (deal && deal.DataRoom ? ' selected' : '') + '>Yes</option></select></div>' +
+    '<div class="form-group"><label class="form-label">Bid Sent</label><select class="form-input" id="crmBidSent"><option value="false"' + (deal && !deal.BidSent ? ' selected' : '') + '>No</option><option value="true"' + (deal && deal.BidSent ? ' selected' : '') + '>Yes</option></select></div>' +
     '<div class="form-group" style="grid-column:1/-1;"><label class="form-label">Notes</label><textarea class="form-input" id="crmNotes" rows="3" style="resize:vertical;">' + esc(deal ? deal.Notes || "" : "") + '</textarea></div>' +
     '</div></div>' +
     '<div class="modal-footer"><button class="btn-cancel" onclick="closeAddProject()">Cancel</button><button class="btn-create" id="btnCRMSave" onclick="saveDeal(' + (dealId || "null") + ')">⚡ ' + (isEdit ? 'Update' : 'Create') + ' Deal</button></div>' +
     '</div></div>';
+
+  // Pre-select values for edit
+  if (deal) {
+    if (deal.CompanyRef) document.getElementById("crmCompanyRef").value = deal.CompanyRef;
+    if (deal.JobRef) document.getElementById("crmJobRef").value = deal.JobRef;
+    if (deal.ContactRef) document.getElementById("crmContactRef").value = deal.ContactRef;
+  }
 }
 
 async function saveDeal(dealId) {
-  var title = document.getElementById("crmTitle").value.trim();
-  if (!title) { showToast("Deal name is required", "err"); return; }
+  var dealName = document.getElementById("crmDealName").value.trim();
+  if (!dealName) { showToast("Deal name is required", "err"); return; }
   var btn = document.getElementById("btnCRMSave");
   btn.disabled = true; btn.textContent = "Saving...";
 
+  var stage = document.getElementById("crmStage").value;
+  var stageProb = {"NDA Sent":5,"NDA Received":15,"Docs Received":25,"Quote Prepared":40,"Quote Submitted":60,"Negotiation":75,"Won":100,"Lost":0};
+  var value = document.getElementById("crmValue").value ? Number(document.getElementById("crmValue").value) : null;
+  var prob = stageProb[stage] || 0;
+
   var fields = {
-    Title: title,
-    Company: document.getElementById("crmCompany").value,
-    DealValue: document.getElementById("crmValue").value ? Number(document.getElementById("crmValue").value) : null,
-    ContactName: document.getElementById("crmContact").value,
-    ContactEmail: document.getElementById("crmEmail").value,
-    ContactPhone: document.getElementById("crmPhone").value,
-    Stage: document.getElementById("crmStage").value,
-    ProjectType: document.getElementById("crmProjType").value,
-    SystemSize: document.getElementById("crmSize").value,
-    Location: document.getElementById("crmLocation").value,
-    ExpectedClose: document.getElementById("crmClose").value || null,
+    Title: dealName,
+    DealName: dealName,
+    CompanyRef: document.getElementById("crmCompanyRef").value,
+    JobRef: document.getElementById("crmJobRef").value,
+    Value: value,
+    Stage: stage,
+    Probability: prob,
+    WeightedValue: value ? Math.round(value * prob / 100) : null,
     Owner: document.getElementById("crmOwner").value,
-    Source: document.getElementById("crmSource").value,
-    Priority: document.getElementById("crmPriority").value,
-    Notes: document.getElementById("crmNotes").value
+    ContactRef: document.getElementById("crmContactRef").value,
+    NDA: document.getElementById("crmNDA").value === "true",
+    DataRoom: document.getElementById("crmDataRoom").value === "true",
+    BidSent: document.getElementById("crmBidSent").value === "true",
+    Notes: document.getElementById("crmNotes").value,
+    DateAdded: dealId ? undefined : new Date().toISOString().split("T")[0]
   };
 
-  // Clean nulls
+  // Clean nulls/undefined
   var clean = {};
-  for (var k in fields) { if (fields[k] !== null && fields[k] !== "") clean[k] = fields[k]; }
+  for (var k in fields) { if (fields[k] !== null && fields[k] !== "" && fields[k] !== undefined) clean[k] = fields[k]; }
 
   try {
     if (dealId) {
-      await graph("PATCH", SITE + "/lists/" + crmDealsListId + "/items/" + dealId + "/fields", clean);
+      await graph("PATCH", SITE + "/lists/" + CONFIG.crmDeals + "/items/" + dealId + "/fields", clean);
       showToast("Deal updated ✓", "ok");
     } else {
-      await graph("POST", SITE + "/lists/" + crmDealsListId + "/items", {fields: clean});
+      await graph("POST", SITE + "/lists/" + CONFIG.crmDeals + "/items", {fields: clean});
       showToast("Deal created ✓", "ok");
     }
     closeAddProject();
@@ -2807,7 +2914,7 @@ function showDealDetail(dealId) {
 
 // ── ACTIVITY MODAL ──
 function showActivityModal() {
-  var dealOptions = CRM_DEALS.map(function(d) { return '<option value="' + d.id + '">' + esc(d.Title || "Untitled") + ' — ' + esc(d.Company || "") + '</option>'; }).join('');
+  var dealOptions = CRM_DEALS.map(function(d) { return '<option value="' + d.id + '">' + esc(d.DealName || d.Title || "Untitled") + ' — ' + esc(d.CompanyRef || "") + '</option>'; }).join('');
 
   var modal = document.getElementById("addProjectModal");
   modal.style.display = "";
@@ -2838,7 +2945,7 @@ async function saveActivity() {
   var fields = {
     Title: type + (deal ? " — " + (deal.Title || "") : ""),
     DealId: dealId || "",
-    DealTitle: deal ? (deal.Title || "") : "",
+    DealTitle: deal ? (deal.DealName || deal.Title || "") : "",
     ActivityType: type,
     ActivityDate: document.getElementById("actDate").value,
     ContactName: document.getElementById("actContact").value,
