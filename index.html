@@ -1295,11 +1295,13 @@ function renderCategories() {
         html += '<div class="ms-row">';
         html += '<span style="font-size:10px;color:#8a9baa;font-weight:600;">TARGET DATE:</span>';
         html += '<input type="date" class="ms-date-input" value="' + esc(msData.date) + '" data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" onchange="updateMilestoneDate(this.dataset.proj,this.dataset.cat,this.dataset.topic,this.value)">';
-        if (msData.date) {
+        if (msData.date && !r.Complete) {
           var msDays = daysUntil(new Date(msData.date + "T00:00:00"));
           var msCls = msDays < 0 ? "red" : msDays <= 14 ? "amber" : "green";
           var msLabel = msDays < 0 ? (Math.abs(msDays) + "d overdue") : msDays === 0 ? "TODAY" : msDays === 1 ? "TOMORROW" : (msDays + "d away");
           html += '<span class="ms-countdown ' + msCls + '">' + msLabel + '</span>';
+        } else if (msData.date && r.Complete) {
+          html += '<span class="ms-countdown green">✓ Complete</span>';
         }
         html += '</div>';
         // Notes below date
@@ -1837,11 +1839,13 @@ function editEntry(card, entryIdx, project, category, topic) {
         var msData2 = parseMilestoneValue(updated);
         var dateHtml = '<div class="ms-row"><span style="font-size:10px;color:#8a9baa;font-weight:600;">TARGET DATE:</span>';
         dateHtml += '<input type="date" class="ms-date-input" value="' + esc(msData2.date) + '" data-proj="' + esc(project) + '" data-cat="' + esc(category) + '" data-topic="' + esc(topic) + '" onchange="updateMilestoneDate(this.dataset.proj,this.dataset.cat,this.dataset.topic,this.value)">';
-        if (msData2.date) {
+        if (msData2.date && !DATA[idx].Complete) {
           var msDays = daysUntil(new Date(msData2.date + "T00:00:00"));
           var msCls = msDays < 0 ? "red" : msDays <= 14 ? "amber" : "green";
           var msLabel = msDays < 0 ? (Math.abs(msDays) + "d overdue") : msDays === 0 ? "TODAY" : msDays === 1 ? "TOMORROW" : (msDays + "d away");
           dateHtml += '<span class="ms-countdown ' + msCls + '">' + msLabel + '</span>';
+        } else if (msData2.date && DATA[idx].Complete) {
+          dateHtml += '<span class="ms-countdown green">✓ Complete</span>';
         }
         dateHtml += '</div>';
         container.innerHTML = dateHtml + renderEntryLog(msData2.notes, project, category, topic) + buildNewEntryTextarea(project, category, topic);
@@ -1896,11 +1900,13 @@ function onNewEntry(project, category, topic, textarea) {
       var msData2 = parseMilestoneValue(updated);
       var dateHtml = '<div class="ms-row"><span style="font-size:10px;color:#8a9baa;font-weight:600;">TARGET DATE:</span>';
       dateHtml += '<input type="date" class="ms-date-input" value="' + esc(msData2.date) + '" data-proj="' + esc(project) + '" data-cat="' + esc(category) + '" data-topic="' + esc(topic) + '" onchange="updateMilestoneDate(this.dataset.proj,this.dataset.cat,this.dataset.topic,this.value)">';
-      if (msData2.date) {
+      if (msData2.date && !DATA[idx].Complete) {
         var msDays = daysUntil(new Date(msData2.date + "T00:00:00"));
         var msCls = msDays < 0 ? "red" : msDays <= 14 ? "amber" : "green";
         var msLabel = msDays < 0 ? (Math.abs(msDays) + "d overdue") : msDays === 0 ? "TODAY" : msDays === 1 ? "TOMORROW" : (msDays + "d away");
         dateHtml += '<span class="ms-countdown ' + msCls + '">' + msLabel + '</span>';
+      } else if (msData2.date && DATA[idx].Complete) {
+        dateHtml += '<span class="ms-countdown green">✓ Complete</span>';
       }
       dateHtml += '</div>';
       container.innerHTML = dateHtml + renderEntryLog(msData2.notes, project, category, topic) + buildNewEntryTextarea(project, category, topic);
