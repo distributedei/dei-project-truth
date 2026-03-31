@@ -1056,10 +1056,12 @@ async function generateProjectSummary() {
     context += cat.toUpperCase() + ":\n";
     catItems.forEach(function(r) {
       var entries = parseEntries(r.Value);
-      var latest = entries.length > 0 ? entries[entries.length - 1].text : "(no updates)";
-      context += "- " + r.Topic + (r.Complete ? " [COMPLETE]" : " [OPEN]") + ": " + latest + "\n";
-      if (!r.Complete) openItems.push({ cat: cat, topic: r.Topic, latest: latest });
-      if (entries.length > 0 && !r.Complete) latestUpdates.push({ cat: cat, topic: r.Topic, text: latest });
+      var latest = entries.length > 0 ? entries[entries.length - 1] : null;
+      var latestText = latest ? latest.text : "(no updates)";
+      var latestTs = latest ? latest.ts : "";
+      context += "- " + r.Topic + (r.Complete ? " [COMPLETE]" : " [OPEN]") + ": " + latestText + "\n";
+      if (!r.Complete) openItems.push({ cat: cat, topic: r.Topic, latest: latestText, ts: latestTs });
+      if (latest && !r.Complete) latestUpdates.push({ cat: cat, topic: r.Topic, text: latestText, ts: latestTs });
     });
     context += "\n";
   });
@@ -1156,7 +1158,41 @@ function renderFallbackSummary(el, proj, items, openItems, latestUpdates) {
     h += '<div class="proj-summary-actions-title">⚡ Open Items Requiring Action</div>';
     openItems.forEach(function(o) {
       if (o.latest === "(no updates)") return;
-      h += '<div class="action-item"><div class="action-dot"></div><span><strong>' + esc(o.cat) + ' → ' + esc(o.topic) + ':</strong> ' + esc(o.latest.length > 80 ? o.latest.substring(0, 77) + "..." : o.latest) + '</span></div>';
+      // Determine staleness from timestamp
+      var dotColor = "#e25252"; // red default (no date = stale)
+      var dateLabel = "";
+      if (o.ts) {
+        // Parse ts like "2026-03-31 14:30" or "2026-03-31 14:30 (edited ...)"
+        var tsClean = o.ts.replace(/\s*\(edited.*?\)/, "");
+        var edited = o.ts.match(/\(edited\s+([^)]+)\)/);
+        var d = new Date(tsClean.replace(" ", "T"));
+        // If edited, use edited date for staleness
+        if (edited) {
+          var ep = edited[1].trim();
+          // Parse MM/DD/YYYY HH:MM
+          var em = ep.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(\d{2}):(\d{2})/);
+          if (em) d = new Date(parseInt(em[3]), parseInt(em[1])-1, parseInt(em[2]), parseInt(em[4]), parseInt(em[5]));
+        }
+        if (!isNaN(d.getTime())) {
+          var now = new Date();
+          var diffDays = Math.floor((now - d) / 86400000);
+          if (diffDays <= 30) {
+            dotColor = "#2ecc8a"; // green — updated within last month
+          } else {
+            dotColor = "#e25252"; // red — stale over a month
+          }
+          // Format date label
+          var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+          dateLabel = months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+          if (diffDays === 0) dateLabel += " (today)";
+          else if (diffDays === 1) dateLabel += " (yesterday)";
+          else if (diffDays <= 30) dateLabel += " (" + diffDays + "d ago)";
+          else dateLabel += " (" + diffDays + "d ago ⚠)";
+        }
+      }
+      h += '<div class="action-item"><div class="action-dot" style="background:' + dotColor + ';"></div><span><strong>' + esc(o.cat) + ' → ' + esc(o.topic) + ':</strong> ' + esc(o.latest.length > 80 ? o.latest.substring(0, 77) + "..." : o.latest);
+      if (dateLabel) h += ' <span style="font-size:10px;color:#8a9baa;font-weight:600;white-space:nowrap;">— ' + dateLabel + '</span>';
+      h += '</span></div>';
     });
     h += '</div>';
   }
