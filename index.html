@@ -113,6 +113,18 @@
   .entry-ts{font-size:9px;color:#a0aec0;font-weight:600;letter-spacing:0.5px;margin-bottom:1px;}
   .entry-text{white-space:pre-wrap;word-break:break-word;}
   .proj-summary{background:linear-gradient(135deg,#f8fbf6,#f0f7ff);border:1px solid #d4e2cd;border-radius:10px;padding:16px 20px;margin-bottom:20px;}
+  .countdown-strip{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .countdown-card{flex:1;min-width:220px;border-radius:10px;padding:14px 18px;position:relative;overflow:hidden;}
+  .countdown-card.milestone{background:linear-gradient(135deg,#f0fff6,#e8f8ef);border:1px solid #b8e6cc;}
+  .countdown-card.invoice{background:linear-gradient(135deg,#fff9f0,#fef3e2);border:1px solid #f0d9a8;}
+  .countdown-card.overdue{border-color:#f5c4c4;background:linear-gradient(135deg,#fff5f5,#feeaea);}
+  .cd-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#8a9baa;margin-bottom:4px;}
+  .cd-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:2px;}
+  .cd-date{font-size:12px;color:#6b7c8a;margin-bottom:6px;}
+  .cd-countdown{font-size:22px;font-weight:800;font-family:'Barlow Condensed',sans-serif;}
+  .cd-countdown.green{color:#2ecc8a;}
+  .cd-countdown.amber{color:#e6a23c;}
+  .cd-countdown.red{color:#e25252;}
   .proj-summary-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
   .proj-summary-text{font-size:13px;color:#4a5568;line-height:1.6;margin-bottom:12px;}
   .proj-summary-actions{border-top:1px solid #e2e8f0;padding-top:10px;}
@@ -856,6 +868,130 @@ function renderKPI() {
   return h;
 }
 
+function extractNextDate(text) {
+  // Try to find dates in various formats from entry text
+  // Matches: MM/DD/YYYY, MM/DD/YY, MM.DD.YYYY, YYYY-MM-DD, Month DD YYYY, etc.
+  var patterns = [
+    /(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{4})/,
+    /(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2})(?!\d)/,
+    /(\d{4})-(\d{1,2})-(\d{1,2})/,
+    /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{1,2}),?\s*(\d{4})/i
+  ];
+  for (var p = 0; p < patterns.length; p++) {
+    var m = text.match(patterns[p]);
+    if (m) {
+      var d;
+      if (p === 0) d = new Date(parseInt(m[3]), parseInt(m[1])-1, parseInt(m[2]));
+      else if (p === 1) { var yr = parseInt(m[3]); yr += yr < 50 ? 2000 : 1900; d = new Date(yr, parseInt(m[1])-1, parseInt(m[2])); }
+      else if (p === 2) d = new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+      else {
+        var months = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+        d = new Date(parseInt(m[3]), months[m[1].substring(0,3).toLowerCase()], parseInt(m[2]));
+      }
+      if (!isNaN(d.getTime())) return d;
+    }
+  }
+  return null;
+}
+
+function daysUntil(date) {
+  var now = new Date(); now.setHours(0,0,0,0);
+  var target = new Date(date); target.setHours(0,0,0,0);
+  return Math.ceil((target - now) / 86400000);
+}
+
+function formatCountdownDate(d) {
+  var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+}
+
+function renderCountdownStrip() {
+  var items = DATA.filter(r => r.Project === selProject);
+  if (items.length === 0) return "";
+
+  var cards = [];
+
+  // Find next milestone — scan Milestones category for earliest future date from OPEN items
+  var milestoneTopics = ["NTP/Mob","MC","WT","PTO","SC","FC"];
+  var milestones = items.filter(r => r.Category === "Milestones" && !r.Complete);
+  var nextMilestone = null;
+  milestones.forEach(function(r) {
+    var entries = parseEntries(r.Value);
+    // Check all entries for dates, take the one with the nearest future (or most recent past) date
+    entries.forEach(function(e) {
+      var d = extractNextDate(e.text);
+      if (d) {
+        if (!nextMilestone || (d >= new Date() && (!nextMilestone.date || d < nextMilestone.date)) || (!nextMilestone.date && d)) {
+          nextMilestone = { topic: r.Topic, date: d, text: e.text };
+        }
+      }
+    });
+  });
+  // If no future date found, find closest past date
+  if (!nextMilestone) {
+    milestones.forEach(function(r) {
+      var entries = parseEntries(r.Value);
+      entries.forEach(function(e) {
+        var d = extractNextDate(e.text);
+        if (d && (!nextMilestone || d > nextMilestone.date)) {
+          nextMilestone = { topic: r.Topic, date: d, text: e.text };
+        }
+      });
+    });
+  }
+
+  if (nextMilestone && nextMilestone.date) {
+    var days = daysUntil(nextMilestone.date);
+    var cls = days < 0 ? "red" : days <= 14 ? "amber" : "green";
+    var label = days < 0 ? (Math.abs(days) + " days overdue") : days === 0 ? "TODAY" : days === 1 ? "TOMORROW" : (days + " days away");
+    cards.push('<div class="countdown-card milestone' + (days < 0 ? ' overdue' : '') + '">' +
+      '<div class="cd-label">🎯 Next Milestone</div>' +
+      '<div class="cd-title">' + esc(nextMilestone.topic) + '</div>' +
+      '<div class="cd-date">' + formatCountdownDate(nextMilestone.date) + '</div>' +
+      '<div class="cd-countdown ' + cls + '">' + label + '</div>' +
+      '</div>');
+  }
+
+  // Find next invoice date from Finance > Current/Upcoming Invoice Status
+  var invoiceItem = items.find(r => r.Category === "Finance" && r.Topic === "Current/Upcoming Invoice Status");
+  var nextInvoice = null;
+  if (invoiceItem) {
+    var entries = parseEntries(invoiceItem.Value);
+    entries.forEach(function(e) {
+      var d = extractNextDate(e.text);
+      if (d) {
+        if (!nextInvoice || (d >= new Date() && (!nextInvoice.date || d < nextInvoice.date)) || (!nextInvoice.date && d)) {
+          nextInvoice = { date: d, text: e.text };
+        }
+      }
+    });
+    if (!nextInvoice) {
+      entries.forEach(function(e) {
+        var d = extractNextDate(e.text);
+        if (d && (!nextInvoice || d > nextInvoice.date)) {
+          nextInvoice = { date: d, text: e.text };
+        }
+      });
+    }
+  }
+
+  if (nextInvoice && nextInvoice.date) {
+    var days = daysUntil(nextInvoice.date);
+    var cls = days < 0 ? "red" : days <= 7 ? "amber" : "green";
+    var label = days < 0 ? (Math.abs(days) + " days overdue") : days === 0 ? "TODAY" : days === 1 ? "TOMORROW" : (days + " days away");
+    var summary = nextInvoice.text.length > 60 ? nextInvoice.text.substring(0, 57) + "..." : nextInvoice.text;
+    cards.push('<div class="countdown-card invoice' + (days < 0 ? ' overdue' : '') + '">' +
+      '<div class="cd-label">💰 Next Invoice Due</div>' +
+      '<div class="cd-title">' + esc(summary) + '</div>' +
+      '<div class="cd-date">' + formatCountdownDate(nextInvoice.date) + '</div>' +
+      '<div class="cd-countdown ' + cls + '">' + label + '</div>' +
+      '</div>');
+  }
+
+  if (cards.length === 0) return "";
+  return '<div class="countdown-strip">' + cards.join("") + '</div>';
+}
+
 function renderAll(projects) {
   if (!projects) projects = [...new Set(DATA.map(r => r.Project))].filter(Boolean).sort();
 
@@ -872,6 +1008,9 @@ function renderAll(projects) {
 
   // KPI Dashboard
   html += '<div id="kpiDash">' + renderKPI() + '</div>';
+
+  // Countdown strip — milestones + invoice
+  html += renderCountdownStrip();
 
   // AI Project Summary
   html += '<div id="projSummary"></div>';
