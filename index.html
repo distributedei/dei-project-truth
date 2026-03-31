@@ -852,7 +852,8 @@ function renderKPI() {
       if (s.total === 0) return;
       const catClass = 'kpi-' + cat.toLowerCase().replace(/[^a-z]/g, '');
       const col = barColor(s.pct);
-      h += '<div class="kpi-card ' + catClass + '">';
+      var catAnchor = cat.replace(/[^a-zA-Z]/g, "");
+      h += '<div class="kpi-card ' + catClass + '" style="cursor:pointer;" onclick="scrollToCat(\'' + catAnchor + '\')">';
       h += '<div class="kpi-label">' + (CAT_ICONS[cat] || '') + ' ' + esc(cat) + '</div>';
       h += '<div style="display:flex;justify-content:space-between;align-items:baseline;">';
       h += '<div class="kpi-value">' + s.done + '<span style="font-size:16px;font-weight:600;color:#b0bac4;">/' + s.total + '</span></div>';
@@ -1134,7 +1135,7 @@ function renderCategories() {
     const doneCount = rows.filter(r => r.Complete).length;
     const countStyle = doneCount === rows.length && rows.length > 0 ? "color:#2ecc8a;" : "";
 
-    html += '<div class="cat-section">';
+    html += '<div class="cat-section" id="catSec_' + catId + '">';
     html += '<div class="cat-header ' + cls + (isCollapsed ? ' collapsed' : '') + '" data-cat="' + esc(cat) + '" onclick="toggleCat(this.dataset.cat)"><span>' + icon + ' ' + esc(cat) + '</span><span style="display:flex;align-items:center;gap:12px;"><span style="font-size:12px;font-weight:600;' + countStyle + '">' + doneCount + '/' + rows.length + '</span><span class="cat-chevron">▼</span></span></div>';
     html += '<div class="cat-body' + (isCollapsed ? ' hidden' : '') + '">';
 
@@ -1211,6 +1212,20 @@ function toggleCat(cat) {
   collapsed[cat] = !collapsed[cat];
   document.getElementById("catContent").innerHTML = renderCategories();
   setTimeout(autoGrowAll, 0);
+}
+
+function scrollToCat(catId) {
+  // Find the matching category name to uncollapse if needed
+  var catName = CATEGORIES.find(c => c.replace(/[^a-zA-Z]/g, "") === catId);
+  if (catName && collapsed[catName]) {
+    collapsed[catName] = false;
+    document.getElementById("catContent").innerHTML = renderCategories();
+    setTimeout(autoGrowAll, 0);
+  }
+  setTimeout(function() {
+    var el = document.getElementById("catSec_" + catId);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 50);
 }
 
 function showAddRow(catId) {
