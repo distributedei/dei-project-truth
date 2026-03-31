@@ -1640,7 +1640,7 @@ function deleteSOVRow(idx) {
   setTimeout(autoGrowAll, 0);
   showToast("Removed SOV line", "ok");
 }
-function selectProject(p) { selProject = p; renderAll(); }
+function selectProject(p) { selProject = p; renderAll(); document.getElementById("mainContent").scrollIntoView({ behavior: "smooth", block: "start" }); }
 
 function renderSidebarProjects() {
   var el = document.getElementById("sidebarProjects");
