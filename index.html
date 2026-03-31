@@ -145,6 +145,14 @@
   .sov-del:hover{color:#e25252;background:#fff5f5;}
   .sov-paid{color:#2ecc8a;font-weight:700;}
   .sov-unpaid{color:#e25252;}
+  /* Milestone date picker */
+  .ms-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .ms-date-input{border:1px solid #e2e8f0;border-radius:5px;padding:4px 8px;font-size:12px;font-family:'Barlow',sans-serif;color:#4a5568;width:140px;}
+  .ms-date-input:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(119,157,54,0.15);}
+  .ms-countdown{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;}
+  .ms-countdown.green{color:#2ecc8a;}
+  .ms-countdown.amber{color:#e6a23c;}
+  .ms-countdown.red{color:#e25252;}
   .proj-summary-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
   .proj-summary-text{font-size:13px;color:#4a5568;line-height:1.6;margin-bottom:12px;}
   .proj-summary-actions{border-top:1px solid #e2e8f0;padding-top:10px;}
@@ -932,34 +940,24 @@ function renderCountdownStrip() {
 
   var cards = [];
 
-  // Find next milestone — scan Milestones category for earliest future date from OPEN items
-  var milestoneTopics = ["NTP/Mob","MC","WT","PTO","SC","FC"];
+  // Find next milestone — use structured DATE: field from milestones
   var milestones = items.filter(r => r.Category === "Milestones" && !r.Complete);
   var nextMilestone = null;
+  var now = new Date(); now.setHours(0,0,0,0);
   milestones.forEach(function(r) {
-    var entries = parseEntries(r.Value);
-    // Check all entries for dates, take the one with the nearest future (or most recent past) date
-    entries.forEach(function(e) {
-      var d = extractNextDate(e.text);
-      if (d) {
-        if (!nextMilestone || (d >= new Date() && (!nextMilestone.date || d < nextMilestone.date)) || (!nextMilestone.date && d)) {
-          nextMilestone = { topic: r.Topic, date: d, text: e.text };
-        }
-      }
-    });
+    var msData = parseMilestoneValue(r.Value);
+    if (!msData.date) return;
+    var d = new Date(msData.date + "T00:00:00");
+    if (isNaN(d.getTime())) return;
+    // Prefer nearest future date; fallback to closest past date
+    if (!nextMilestone) {
+      nextMilestone = { topic: r.Topic, date: d };
+    } else if (d >= now && (nextMilestone.date < now || d < nextMilestone.date)) {
+      nextMilestone = { topic: r.Topic, date: d };
+    } else if (d < now && nextMilestone.date < now && d > nextMilestone.date) {
+      nextMilestone = { topic: r.Topic, date: d };
+    }
   });
-  // If no future date found, find closest past date
-  if (!nextMilestone) {
-    milestones.forEach(function(r) {
-      var entries = parseEntries(r.Value);
-      entries.forEach(function(e) {
-        var d = extractNextDate(e.text);
-        if (d && (!nextMilestone || d > nextMilestone.date)) {
-          nextMilestone = { topic: r.Topic, date: d, text: e.text };
-        }
-      });
-    });
-  }
 
   if (nextMilestone && nextMilestone.date) {
     var days = daysUntil(nextMilestone.date);
@@ -973,20 +971,22 @@ function renderCountdownStrip() {
       '</div>');
   }
 
-  // Find next invoice date from Finance > Current/Upcoming Invoice Status
-  var invoiceItem = items.find(r => r.Category === "Finance" && r.Topic === "Current/Upcoming Invoice Status");
+  // Find next invoice date from SOV — earliest submitted but unpaid
+  var sovRows = getSOV(selProject);
   var nextInvoice = null;
-  if (invoiceItem) {
-    var entries = parseEntries(invoiceItem.Value);
-    entries.forEach(function(e) {
-      var d = extractNextDate(e.text);
-      if (d) {
-        if (!nextInvoice || (d >= new Date() && (!nextInvoice.date || d < nextInvoice.date)) || (!nextInvoice.date && d)) {
-          nextInvoice = { date: d, text: e.text };
-        }
-      }
-    });
-    if (!nextInvoice) {
+  sovRows.forEach(function(r) {
+    if (!r.invoiceDate || r.paid) return;
+    var d = new Date(r.invoiceDate + "T00:00:00");
+    if (isNaN(d.getTime())) return;
+    if (!nextInvoice || d < nextInvoice.date) {
+      nextInvoice = { date: d, text: r.desc || "Invoice" };
+    }
+  });
+  // Fallback: try Finance > Current/Upcoming Invoice Status entries
+  if (!nextInvoice) {
+    var invoiceItem = items.find(r => r.Category === "Finance" && r.Topic === "Current/Upcoming Invoice Status");
+    if (invoiceItem) {
+      var entries = parseEntries(invoiceItem.Value);
       entries.forEach(function(e) {
         var d = extractNextDate(e.text);
         if (d && (!nextInvoice || d > nextInvoice.date)) {
@@ -1260,7 +1260,28 @@ function renderCategories() {
       html += '<div class="topic-check"><input type="checkbox" ' + (r.Complete ? 'checked ' : '') + 'data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" onchange="toggleComplete(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)"></div>';
       html += '<div style="display:flex;flex-direction:column;overflow:hidden;">';
       html += '<div class="topic-label">' + esc(r.Topic) + '</div>';
-      html += '<div class="topic-val">' + renderEntryLog(val, r.Project, r.Category, r.Topic) + buildNewEntryTextarea(r.Project, r.Category, r.Topic) + '</div>';
+
+      if (cat === "Milestones") {
+        // Special milestone rendering: date picker + notes
+        var msData = parseMilestoneValue(val);
+        html += '<div class="topic-val">';
+        html += '<div class="ms-row">';
+        html += '<span style="font-size:10px;color:#8a9baa;font-weight:600;">TARGET DATE:</span>';
+        html += '<input type="date" class="ms-date-input" value="' + esc(msData.date) + '" data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" onchange="updateMilestoneDate(this.dataset.proj,this.dataset.cat,this.dataset.topic,this.value)">';
+        if (msData.date) {
+          var msDays = daysUntil(new Date(msData.date + "T00:00:00"));
+          var msCls = msDays < 0 ? "red" : msDays <= 14 ? "amber" : "green";
+          var msLabel = msDays < 0 ? (Math.abs(msDays) + "d overdue") : msDays === 0 ? "TODAY" : msDays === 1 ? "TOMORROW" : (msDays + "d away");
+          html += '<span class="ms-countdown ' + msCls + '">' + msLabel + '</span>';
+        }
+        html += '</div>';
+        // Notes below date
+        html += renderEntryLog(msData.notes, r.Project, r.Category, r.Topic) + buildNewEntryTextarea(r.Project, r.Category, r.Topic);
+        html += '</div>';
+      } else {
+        html += '<div class="topic-val">' + renderEntryLog(val, r.Project, r.Category, r.Topic) + buildNewEntryTextarea(r.Project, r.Category, r.Topic) + '</div>';
+      }
+
       html += '</div>';
       html += '<div class="comment-btn' + (hasComm ? ' has-comments' : '') + '" data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" data-itemid="' + itemId + '" onclick="openCommentPanel(this.dataset.proj,this.dataset.cat,this.dataset.topic,this.dataset.itemid)" title="Comments">💬</div>';
       html += '</div>';
@@ -1303,6 +1324,58 @@ function autoGrowAll() {
     el.style.height = el.scrollHeight + 'px';
   });
 }
+
+// ══════════════════════════════════════════════════
+// MILESTONES — structured date + notes
+// ══════════════════════════════════════════════════
+// Value format: "DATE:2026-05-15\n---\n[ts] note\n---\n[ts] note"
+// Legacy values (no DATE: prefix) treated as notes only
+function parseMilestoneValue(val) {
+  if (!val) return { date: "", notes: "" };
+  var lines = val.split("\n");
+  if (lines[0] && lines[0].startsWith("DATE:")) {
+    var date = lines[0].substring(5).trim();
+    // Rest is notes (skip the DATE: line and first --- separator if present)
+    var rest = lines.slice(1).join("\n");
+    if (rest.startsWith("\n---\n")) rest = rest.substring(5);
+    else if (rest.startsWith("---\n")) rest = rest.substring(4);
+    return { date: date, notes: rest.trim() };
+  }
+  // Legacy: no DATE: prefix — treat entire value as notes
+  return { date: "", notes: val };
+}
+
+function buildMilestoneValue(date, notes) {
+  var val = "DATE:" + (date || "");
+  if (notes && notes.trim()) {
+    val += "\n---\n" + notes.trim();
+  }
+  return val;
+}
+
+function updateMilestoneDate(project, category, topic, newDate) {
+  var key = project + "|" + category + "|" + topic;
+  var itemId = spItemMap[key];
+  var idx = DATA.findIndex(r => r.Project === project && r.Category === category && r.Topic === topic);
+  if (idx < 0) return;
+
+  var msData = parseMilestoneValue(DATA[idx].Value);
+  msData.date = newDate;
+  var updated = buildMilestoneValue(msData.date, msData.notes);
+  DATA[idx].Value = updated;
+
+  if (itemId) { queueSave(itemId, "Value", updated); }
+  else { console.error("No SP item for:", key); }
+
+  // Re-render to update countdown
+  document.getElementById("catContent").innerHTML = renderCategories();
+  setTimeout(autoGrowAll, 0);
+  delete summaryCache[project];
+  showToast("✓ Milestone date updated", "ok");
+}
+
+// Override onNewEntry for milestones — append notes after DATE: line
+var _origOnNewEntry = typeof onNewEntry === "function" ? onNewEntry : null;
 
 // ══════════════════════════════════════════════════
 // SOV (Schedule of Values)
@@ -1554,7 +1627,11 @@ function editEntry(card, entryIdx, project, category, topic) {
   var key = project + "|" + category + "|" + topic;
   var idx = DATA.findIndex(r => r.Project === project && r.Category === category && r.Topic === topic);
   if (idx < 0) return;
-  var entries = parseEntries(DATA[idx].Value);
+  var valToParse = DATA[idx].Value;
+  if (category === "Milestones") {
+    valToParse = parseMilestoneValue(valToParse).notes;
+  }
+  var entries = parseEntries(valToParse);
   if (!entries[entryIdx]) return;
 
   var oldText = entries[entryIdx].text;
@@ -1580,9 +1657,16 @@ function editEntry(card, entryIdx, project, category, topic) {
       entries[entryIdx].ts = origTs + " (edited " + editTs + ")";
     }
     // Rebuild Value string
-    var updated = entries.map(function(e) {
+    var notesStr = entries.map(function(e) {
       return (e.ts ? "[" + e.ts + "] " : "") + e.text;
     }).join("\n---\n");
+    var updated;
+    if (category === "Milestones") {
+      var msData = parseMilestoneValue(DATA[idx].Value);
+      updated = buildMilestoneValue(msData.date, notesStr);
+    } else {
+      updated = notesStr;
+    }
     DATA[idx].Value = updated;
     var itemId = spItemMap[key];
     if (itemId) { queueSave(itemId, "Value", updated); }
@@ -1590,7 +1674,21 @@ function editEntry(card, entryIdx, project, category, topic) {
     // Re-render the whole topic-val cell
     var container = card.closest(".topic-val");
     if (container) {
-      container.innerHTML = renderEntryLog(updated, project, category, topic) + buildNewEntryTextarea(project, category, topic);
+      if (category === "Milestones") {
+        var msData2 = parseMilestoneValue(updated);
+        var dateHtml = '<div class="ms-row"><span style="font-size:10px;color:#8a9baa;font-weight:600;">TARGET DATE:</span>';
+        dateHtml += '<input type="date" class="ms-date-input" value="' + esc(msData2.date) + '" data-proj="' + esc(project) + '" data-cat="' + esc(category) + '" data-topic="' + esc(topic) + '" onchange="updateMilestoneDate(this.dataset.proj,this.dataset.cat,this.dataset.topic,this.value)">';
+        if (msData2.date) {
+          var msDays = daysUntil(new Date(msData2.date + "T00:00:00"));
+          var msCls = msDays < 0 ? "red" : msDays <= 14 ? "amber" : "green";
+          var msLabel = msDays < 0 ? (Math.abs(msDays) + "d overdue") : msDays === 0 ? "TODAY" : msDays === 1 ? "TOMORROW" : (msDays + "d away");
+          dateHtml += '<span class="ms-countdown ' + msCls + '">' + msLabel + '</span>';
+        }
+        dateHtml += '</div>';
+        container.innerHTML = dateHtml + renderEntryLog(msData2.notes, project, category, topic) + buildNewEntryTextarea(project, category, topic);
+      } else {
+        container.innerHTML = renderEntryLog(updated, project, category, topic) + buildNewEntryTextarea(project, category, topic);
+      }
     }
     if (newText !== oldText) { showToast("✓ Entry updated", "ok"); delete summaryCache[project]; }
   };
@@ -1617,7 +1715,16 @@ function onNewEntry(project, category, topic, textarea) {
   var entry = "[" + ts + "] " + newText;
 
   var existing = DATA[idx].Value || "";
-  var updated = existing ? (existing + "\n---\n" + entry) : entry;
+  var updated;
+
+  if (category === "Milestones") {
+    // Preserve DATE: prefix, append note to notes section
+    var msData = parseMilestoneValue(existing);
+    var newNotes = msData.notes ? (msData.notes + "\n---\n" + entry) : entry;
+    updated = buildMilestoneValue(msData.date, newNotes);
+  } else {
+    updated = existing ? (existing + "\n---\n" + entry) : entry;
+  }
   DATA[idx].Value = updated;
 
   if (itemId) { queueSave(itemId, "Value", updated); }
@@ -1626,7 +1733,21 @@ function onNewEntry(project, category, topic, textarea) {
   // Re-render just this cell
   var container = textarea.closest(".topic-val");
   if (container) {
-    container.innerHTML = renderEntryLog(updated, project, category, topic) + buildNewEntryTextarea(project, category, topic);
+    if (category === "Milestones") {
+      var msData2 = parseMilestoneValue(updated);
+      var dateHtml = '<div class="ms-row"><span style="font-size:10px;color:#8a9baa;font-weight:600;">TARGET DATE:</span>';
+      dateHtml += '<input type="date" class="ms-date-input" value="' + esc(msData2.date) + '" data-proj="' + esc(project) + '" data-cat="' + esc(category) + '" data-topic="' + esc(topic) + '" onchange="updateMilestoneDate(this.dataset.proj,this.dataset.cat,this.dataset.topic,this.value)">';
+      if (msData2.date) {
+        var msDays = daysUntil(new Date(msData2.date + "T00:00:00"));
+        var msCls = msDays < 0 ? "red" : msDays <= 14 ? "amber" : "green";
+        var msLabel = msDays < 0 ? (Math.abs(msDays) + "d overdue") : msDays === 0 ? "TODAY" : msDays === 1 ? "TOMORROW" : (msDays + "d away");
+        dateHtml += '<span class="ms-countdown ' + msCls + '">' + msLabel + '</span>';
+      }
+      dateHtml += '</div>';
+      container.innerHTML = dateHtml + renderEntryLog(msData2.notes, project, category, topic) + buildNewEntryTextarea(project, category, topic);
+    } else {
+      container.innerHTML = renderEntryLog(updated, project, category, topic) + buildNewEntryTextarea(project, category, topic);
+    }
   }
   showToast("✓ Entry saved", "ok");
   delete summaryCache[project];
