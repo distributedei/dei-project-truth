@@ -1052,7 +1052,7 @@ function parseEntries(val) {
   blocks.forEach(function(b) {
     b = b.trim();
     if (!b) return;
-    var m = b.match(/^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2})\]\s*([\s\S]*)$/);
+    var m = b.match(/^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?:\s*\(edited[^)]*\))?)\]\s*([\s\S]*)$/);
     if (m) { entries.push({ ts: m[1], text: m[2].trim() }); }
     else { entries.push({ ts: "", text: b }); }
   });
@@ -1095,7 +1095,15 @@ function editEntry(card, entryIdx, project, category, topic) {
   ta.onblur = function() {
     var newText = ta.value.trim();
     if (!newText) newText = oldText; // don't allow blank — revert
-    entries[entryIdx].text = newText;
+    if (newText !== oldText) {
+      entries[entryIdx].text = newText;
+      // Add edited timestamp
+      var now = new Date();
+      var editTs = (now.getMonth()+1) + "/" + now.getDate() + "/" + now.getFullYear() + " " + String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
+      // Strip any previous edited note
+      var origTs = entries[entryIdx].ts.replace(/\s*\(edited.*?\)/, "");
+      entries[entryIdx].ts = origTs + " (edited " + editTs + ")";
+    }
     // Rebuild Value string
     var updated = entries.map(function(e) {
       return (e.ts ? "[" + e.ts + "] " : "") + e.text;
