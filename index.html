@@ -153,6 +153,25 @@
   .ms-countdown.green{color:#2ecc8a;}
   .ms-countdown.amber{color:#e6a23c;}
   .ms-countdown.red{color:#e25252;}
+  /* Construction Timeline */
+  .cx-timeline{border-top:2px solid #e2e8f0;margin-top:4px;padding:12px 16px;}
+  .cx-timeline-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:10px;}
+  .cx-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .cx-table th{background:#f0f4f8;padding:6px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#8a9baa;border-bottom:2px solid #e2e8f0;}
+  .cx-table td{padding:5px 8px;border-bottom:1px solid #f0f4f8;vertical-align:middle;}
+  .cx-table tr:hover{background:#fafbfc;}
+  .cx-table .cx-act{font-weight:700;color:var(--navy);font-size:13px;white-space:nowrap;}
+  .cx-table .cx-date{width:120px;}
+  .cx-table .cx-date input[type="date"]{border:1px solid #e2e8f0;border-radius:4px;padding:3px 6px;font-size:11px;font-family:'Barlow',sans-serif;color:#4a5568;width:100%;}
+  .cx-table .cx-date input[type="date"]:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(119,157,54,0.15);}
+  .cx-dur{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:12px;text-align:center;white-space:nowrap;}
+  .cx-bar{height:8px;border-radius:4px;position:relative;overflow:hidden;}
+  .cx-bar-fill{height:100%;border-radius:4px;transition:width 0.3s;}
+  .cx-status{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;text-align:center;white-space:nowrap;}
+  .cx-done{background:#e8f8ef;color:#2ecc8a;}
+  .cx-active{background:#fff3e0;color:#e6a23c;}
+  .cx-future{background:#f0f4f8;color:#8a9baa;}
+  .cx-overdue{background:#fff0f0;color:#e25252;}
   .proj-summary-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
   .proj-summary-text{font-size:13px;color:#4a5568;line-height:1.6;margin-bottom:12px;}
   .proj-summary-actions{border-top:1px solid #e2e8f0;padding-top:10px;}
@@ -1232,6 +1251,11 @@ function renderCategories() {
     if (!rows) return;
     rows.sort((a,b) => (a.SortOrder||0) - (b.SortOrder||0));
 
+    // Filter out Construction timeline topics — they render in the compact timeline table
+    if (cat === "Construction" && !searchQ) {
+      rows = rows.filter(r => !CX_TIMELINE_TOPICS.has(r.Topic));
+    }
+
     if (searchQ) {
       rows = rows.filter(r => r.Topic.toLowerCase().includes(searchQ) || (r.Value||"").toLowerCase().includes(searchQ));
       if (!rows.length) return;
@@ -1241,11 +1265,14 @@ function renderCategories() {
     const isCollapsed = collapsed[cat];
     const cls = CAT_CLASSES[cat] || "cat-general";
     const icon = CAT_ICONS[cat] || "";
-    const doneCount = rows.filter(r => r.Complete).length;
-    const countStyle = doneCount === rows.length && rows.length > 0 ? "color:#2ecc8a;" : "";
+    // For Construction, count all items (including timeline) for header stats
+    const allCatRows = (groups[cat] || []);
+    const doneCount = allCatRows.filter(r => r.Complete).length;
+    const totalCount = allCatRows.length;
+    const countStyle = doneCount === totalCount && totalCount > 0 ? "color:#2ecc8a;" : "";
 
     html += '<div class="cat-section" id="catSec_' + catId + '">';
-    html += '<div class="cat-header ' + cls + (isCollapsed ? ' collapsed' : '') + '" data-cat="' + esc(cat) + '" onclick="toggleCat(this.dataset.cat)"><span>' + icon + ' ' + esc(cat) + '</span><span style="display:flex;align-items:center;gap:12px;"><span style="font-size:12px;font-weight:600;' + countStyle + '">' + doneCount + '/' + rows.length + '</span><span class="cat-chevron">▼</span></span></div>';
+    html += '<div class="cat-header ' + cls + (isCollapsed ? ' collapsed' : '') + '" data-cat="' + esc(cat) + '" onclick="toggleCat(this.dataset.cat)"><span>' + icon + ' ' + esc(cat) + '</span><span style="display:flex;align-items:center;gap:12px;"><span style="font-size:12px;font-weight:600;' + countStyle + '">' + doneCount + '/' + totalCount + '</span><span class="cat-chevron">▼</span></span></div>';
     html += '<div class="cat-body' + (isCollapsed ? ' hidden' : '') + '">';
 
     rows.forEach(r => {
@@ -1294,6 +1321,11 @@ function renderCategories() {
       html += renderSOV();
     }
 
+    // Construction timeline
+    if (cat === "Construction") {
+      html += renderConstructionTimeline();
+    }
+
     // Add Row button at bottom of each category (spans both columns)
     html += '<div class="add-row-area" style="grid-column:1/-1;padding:8px 16px;border-top:1px solid #f0f4f8;">';
     html += '<div class="add-row-inline" id="addRowInline_' + catId + '" style="display:none;margin-bottom:8px;">';
@@ -1326,6 +1358,122 @@ function autoGrowAll() {
 }
 
 // ══════════════════════════════════════════════════
+// CONSTRUCTION TIMELINE
+// ══════════════════════════════════════════════════
+var CX_ACTIVITIES = [
+  { name: "Mobilization", start: "Mobilization", finish: null },
+  { name: "Civil Work", start: "Civil Work Start", finish: "Civil Work Finish" },
+  { name: "Trenching + Pads", start: "Trenching + Pads Start", finish: "Trenching + Pads Finish" },
+  { name: "Post Install", start: "Post Install Start", finish: "Post Install Finish" },
+  { name: "Rack Install", start: "Rack Install Start", finish: "Rack Install Finish" },
+  { name: "Module Install", start: "Module Install Start", finish: "Module Install Finish" },
+  { name: "DC Work", start: "DC Work Start", finish: "DC Work Finish" },
+  { name: "AC Work", start: "AC Work Start", finish: "AC Work Finish" },
+  { name: "MV Work", start: "MV Work Start", finish: "MV Work Finish" }
+];
+var CX_TIMELINE_TOPICS = new Set();
+CX_ACTIVITIES.forEach(function(a) { if (a.start) CX_TIMELINE_TOPICS.add(a.start); if (a.finish) CX_TIMELINE_TOPICS.add(a.finish); });
+
+function getCxDate(project, topic) {
+  var r = DATA.find(d => d.Project === project && d.Category === "Construction" && d.Topic === topic);
+  if (!r || !r.Value) return "";
+  var ms = parseMilestoneValue(r.Value);
+  return ms.date || "";
+}
+
+function getCxComplete(project, topic) {
+  var r = DATA.find(d => d.Project === project && d.Category === "Construction" && d.Topic === topic);
+  return r ? r.Complete : false;
+}
+
+function renderConstructionTimeline() {
+  var proj = selProject;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var h = '<div class="cx-timeline">';
+  h += '<div class="cx-timeline-title">📅 Activity Timeline</div>';
+  h += '<table class="cx-table">';
+  h += '<thead><tr><th>Activity</th><th>Start</th><th>Finish</th><th style="width:70px;">Duration</th><th style="width:200px;">Progress</th><th style="width:70px;">Status</th></tr></thead>';
+  h += '<tbody>';
+
+  CX_ACTIVITIES.forEach(function(a) {
+    var startDate = a.start ? getCxDate(proj, a.start) : "";
+    var finishDate = a.finish ? getCxDate(proj, a.finish) : "";
+    var startComplete = a.start ? getCxComplete(proj, a.start) : false;
+    var finishComplete = a.finish ? getCxComplete(proj, a.finish) : false;
+
+    var sD = startDate ? new Date(startDate + "T00:00:00") : null;
+    var fD = finishDate ? new Date(finishDate + "T00:00:00") : null;
+
+    // Duration
+    var durText = "—";
+    var durDays = 0;
+    if (sD && fD) {
+      durDays = Math.ceil((fD - sD) / 86400000);
+      durText = durDays + "d";
+    }
+
+    // Progress & status
+    var pct = 0;
+    var statusCls = "cx-future";
+    var statusText = "Upcoming";
+    if (a.finish && finishComplete) {
+      pct = 100; statusCls = "cx-done"; statusText = "Complete";
+    } else if (a.start && !a.finish && startComplete) {
+      pct = 100; statusCls = "cx-done"; statusText = "Complete";
+    } else if (sD && sD <= today) {
+      if (fD && fD < today) {
+        // Past finish but not marked complete
+        pct = 100; statusCls = "cx-overdue"; statusText = "Overdue";
+      } else if (sD && fD) {
+        var elapsed = Math.ceil((today - sD) / 86400000);
+        pct = durDays > 0 ? Math.min(Math.round(elapsed / durDays * 100), 100) : 50;
+        statusCls = "cx-active"; statusText = "Active";
+      } else {
+        pct = 50; statusCls = "cx-active"; statusText = "Active";
+      }
+    }
+
+    var barColor = statusCls === "cx-done" ? "#2ecc8a" : statusCls === "cx-active" ? "#e6a23c" : statusCls === "cx-overdue" ? "#e25252" : "#e2e8f0";
+
+    h += '<tr>';
+    h += '<td class="cx-act">' + esc(a.name) + '</td>';
+    h += '<td class="cx-date"><input type="date" value="' + esc(startDate) + '" data-proj="' + esc(proj) + '" data-topic="' + esc(a.start || "") + '" onchange="updateCxDate(this.dataset.proj,this.dataset.topic,this.value)"></td>';
+    if (a.finish) {
+      h += '<td class="cx-date"><input type="date" value="' + esc(finishDate) + '" data-proj="' + esc(proj) + '" data-topic="' + esc(a.finish) + '" onchange="updateCxDate(this.dataset.proj,this.dataset.topic,this.value)"></td>';
+    } else {
+      h += '<td class="cx-date" style="color:#c4d0dc;font-size:11px;">—</td>';
+    }
+    h += '<td class="cx-dur">' + durText + '</td>';
+    h += '<td><div class="cx-bar" style="background:#f0f4f8;"><div class="cx-bar-fill" style="width:' + pct + '%;background:' + barColor + ';"></div></div></td>';
+    h += '<td><span class="cx-status ' + statusCls + '">' + statusText + '</span></td>';
+    h += '</tr>';
+  });
+
+  h += '</tbody></table>';
+  h += '</div>';
+  return h;
+}
+
+function updateCxDate(project, topic, newDate) {
+  if (!topic) return;
+  var idx = DATA.findIndex(r => r.Project === project && r.Category === "Construction" && r.Topic === topic);
+  if (idx < 0) return;
+  var key = project + "|Construction|" + topic;
+  var itemId = spItemMap[key];
+
+  var msData = parseMilestoneValue(DATA[idx].Value);
+  msData.date = newDate;
+  var updated = buildMilestoneValue(msData.date, msData.notes);
+  DATA[idx].Value = updated;
+
+  if (itemId) { queueSave(itemId, "Value", updated); }
+  document.getElementById("catContent").innerHTML = renderCategories();
+  setTimeout(autoGrowAll, 0);
+  delete summaryCache[project];
+  showToast("✓ Date updated", "ok");
+}
+
+// ══════════════════════════════════════════════════
 // MILESTONES — structured date + notes
 // ══════════════════════════════════════════════════
 // Value format: "DATE:2026-05-15\n---\n[ts] note\n---\n[ts] note"
@@ -1341,7 +1489,18 @@ function parseMilestoneValue(val) {
     else if (rest.startsWith("---\n")) rest = rest.substring(4);
     return { date: date, notes: rest.trim() };
   }
-  // Legacy: no DATE: prefix — treat entire value as notes
+  // Legacy: no DATE: prefix
+  // Check if first line is a bare date like "2025-07-07" or "2025-07-07, some notes"
+  var firstLine = lines[0].trim();
+  var bareDateMatch = firstLine.match(/^(\d{4}-\d{2}-\d{2})(?:\s*,\s*(.*))?$/);
+  if (bareDateMatch) {
+    var date = bareDateMatch[1];
+    var extraNote = bareDateMatch[2] || "";
+    var rest = lines.slice(1).join("\n").trim();
+    var notes = extraNote;
+    if (rest) notes = notes ? (notes + "\n---\n" + rest) : rest;
+    return { date: date, notes: notes.trim() };
+  }
   return { date: "", notes: val };
 }
 
