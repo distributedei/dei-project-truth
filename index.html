@@ -1045,6 +1045,7 @@ async function generateProjectSummary() {
 
   var context = "PROJECT: " + proj + "\n\n";
   var openItems = [];
+  var latestUpdates = [];
   CATEGORIES.forEach(function(cat) {
     var catItems = items.filter(r => r.Category === cat);
     if (catItems.length === 0) return;
@@ -1054,6 +1055,7 @@ async function generateProjectSummary() {
       var latest = entries.length > 0 ? entries[entries.length - 1].text : "(no updates)";
       context += "- " + r.Topic + (r.Complete ? " [COMPLETE]" : " [OPEN]") + ": " + latest + "\n";
       if (!r.Complete) openItems.push({ cat: cat, topic: r.Topic, latest: latest });
+      if (entries.length > 0 && !r.Complete) latestUpdates.push({ cat: cat, topic: r.Topic, text: latest });
     });
     context += "\n";
   });
@@ -1075,6 +1077,8 @@ async function generateProjectSummary() {
         messages: [{ role: "user", content: prompt }]
       })
     });
+
+    if (!response.ok) throw new Error("API " + response.status);
 
     var result = await response.json();
     var text = "";
@@ -1099,17 +1103,62 @@ async function generateProjectSummary() {
       }
       h += '</div>';
       summaryCache[proj] = h;
-      // Only update if still on same project
       if (selProject === proj && document.getElementById("projSummary")) {
         document.getElementById("projSummary").innerHTML = h;
       }
-    } else {
-      el.innerHTML = "";
+      return;
     }
   } catch(e) {
-    console.warn("Summary generation failed:", e);
-    el.innerHTML = "";
+    console.warn("AI summary failed, using fallback:", e);
   }
+
+  // Fallback — data-driven summary (no AI needed)
+  renderFallbackSummary(el, proj, items, openItems, latestUpdates);
+}
+
+function renderFallbackSummary(el, proj, items, openItems, latestUpdates) {
+  var stats = getCompletionStats(proj);
+  var h = '<div class="proj-summary">';
+  h += '<div class="proj-summary-title">📊 Project Status — ' + esc(proj) + '</div>';
+
+  // Auto-generated summary paragraph
+  var totalOpen = openItems.length;
+  var totalItems = items.length;
+  var totalDone = items.filter(r => r.Complete).length;
+  var pct = totalItems > 0 ? Math.round(totalDone / totalItems * 100) : 0;
+  var summaryText = proj + " is " + pct + "% complete (" + totalDone + " of " + totalItems + " items closed). ";
+  if (totalOpen === 0) {
+    summaryText += "All items are complete.";
+  } else {
+    // Count open by category
+    var openByCat = {};
+    openItems.forEach(function(o) { openByCat[o.cat] = (openByCat[o.cat] || 0) + 1; });
+    var catList = Object.entries(openByCat).sort(function(a,b){ return b[1]-a[1]; });
+    summaryText += totalOpen + " open items remain";
+    if (catList.length > 0) {
+      summaryText += ", primarily in " + catList.slice(0, 3).map(function(c) { return c[0] + " (" + c[1] + ")"; }).join(", ");
+    }
+    summaryText += ".";
+    // Add latest updates context
+    if (latestUpdates.length > 0) {
+      var recent = latestUpdates.slice(0, 3);
+      summaryText += " Recent activity: " + recent.map(function(u) { return u.topic + " — " + (u.text.length > 50 ? u.text.substring(0, 47) + "..." : u.text); }).join("; ") + ".";
+    }
+  }
+  h += '<div class="proj-summary-text">' + esc(summaryText) + '</div>';
+
+  if (openItems.length > 0) {
+    h += '<div class="proj-summary-actions">';
+    h += '<div class="proj-summary-actions-title">⚡ Open Items Requiring Action</div>';
+    openItems.forEach(function(o) {
+      if (o.latest === "(no updates)") return;
+      h += '<div class="action-item"><div class="action-dot"></div><span><strong>' + esc(o.cat) + ' → ' + esc(o.topic) + ':</strong> ' + esc(o.latest.length > 80 ? o.latest.substring(0, 77) + "..." : o.latest) + '</span></div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+  summaryCache[proj] = h;
+  if (selProject === proj && el) { el.innerHTML = h; }
 }
 
 function renderCategories() {
