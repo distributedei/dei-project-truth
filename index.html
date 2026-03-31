@@ -1028,6 +1028,10 @@ function renderAll(projects) {
 }
 
 var summaryCache = {};
+function refreshSummary() {
+  delete summaryCache[selProject];
+  generateProjectSummary();
+}
 async function generateProjectSummary() {
   var el = document.getElementById("projSummary");
   if (!el) return;
@@ -1091,7 +1095,7 @@ async function generateProjectSummary() {
 
     if (parsed && parsed.summary) {
       var h = '<div class="proj-summary">';
-      h += '<div class="proj-summary-title">🤖 Project Intelligence — ' + esc(proj) + '</div>';
+      h += '<div class="proj-summary-title"><span>🤖 Project Intelligence — ' + esc(proj) + '</span><button onclick="refreshSummary()" style="background:none;border:1px solid #d4e2cd;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:#779d36;cursor:pointer;margin-left:auto;">↺ Refresh</button></div>';
       h += '<div class="proj-summary-text">' + esc(parsed.summary) + '</div>';
       if (parsed.actions && parsed.actions.length > 0) {
         h += '<div class="proj-summary-actions">';
@@ -1119,7 +1123,7 @@ async function generateProjectSummary() {
 function renderFallbackSummary(el, proj, items, openItems, latestUpdates) {
   var stats = getCompletionStats(proj);
   var h = '<div class="proj-summary">';
-  h += '<div class="proj-summary-title">📊 Project Status — ' + esc(proj) + '</div>';
+  h += '<div class="proj-summary-title"><span>📊 Project Status — ' + esc(proj) + '</span><button onclick="refreshSummary()" style="background:none;border:1px solid #d4e2cd;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:#779d36;cursor:pointer;margin-left:auto;">↺ Refresh</button></div>';
 
   // Auto-generated summary paragraph
   var totalOpen = openItems.length;
@@ -1424,7 +1428,7 @@ function editEntry(card, entryIdx, project, category, topic) {
     if (container) {
       container.innerHTML = renderEntryLog(updated, project, category, topic) + buildNewEntryTextarea(project, category, topic);
     }
-    if (newText !== oldText) showToast("✓ Entry updated", "ok");
+    if (newText !== oldText) { showToast("✓ Entry updated", "ok"); delete summaryCache[project]; }
   };
   ta.onkeydown = function(e) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ta.blur(); }
@@ -1461,6 +1465,7 @@ function onNewEntry(project, category, topic, textarea) {
     container.innerHTML = renderEntryLog(updated, project, category, topic) + buildNewEntryTextarea(project, category, topic);
   }
   showToast("✓ Entry saved", "ok");
+  delete summaryCache[project];
 }
 
 function toggleComplete(project, category, topic, checkbox) {
@@ -1478,6 +1483,7 @@ function toggleComplete(project, category, topic, checkbox) {
   var kpiEl = document.getElementById("kpiDash");
   if (kpiEl) kpiEl.innerHTML = renderKPI();
   showToast(checkbox.checked ? "✓ Marked complete" : "↩ Reopened", "ok");
+  delete summaryCache[project];
 }
 
 // ══════════════════════════════════════════════════
