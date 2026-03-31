@@ -107,8 +107,21 @@
   .entry-log{display:flex;flex-direction:column;gap:4px;margin-bottom:4px;}
   .entry-card{border:1px solid #e2e8f0;border-radius:5px;padding:4px 8px;background:#f8fafc;font-size:12px;color:#4a5568;line-height:1.4;position:relative;}
   .entry-card:hover{border-color:#c4d0dc;}
+  .entry-card.older{opacity:0.5;border-color:#edf0f4;background:#fcfcfd;}
+  .entry-card.older .entry-text{color:#a0aec0;}
+  .entry-card.latest{border-color:#d4e2cd;background:#f8fbf6;}
   .entry-ts{font-size:9px;color:#a0aec0;font-weight:600;letter-spacing:0.5px;margin-bottom:1px;}
   .entry-text{white-space:pre-wrap;word-break:break-word;}
+  .proj-summary{background:linear-gradient(135deg,#f8fbf6,#f0f7ff);border:1px solid #d4e2cd;border-radius:10px;padding:16px 20px;margin-bottom:20px;}
+  .proj-summary-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .proj-summary-text{font-size:13px;color:#4a5568;line-height:1.6;margin-bottom:12px;}
+  .proj-summary-actions{border-top:1px solid #e2e8f0;padding-top:10px;}
+  .proj-summary-actions-title{font-size:11px;font-weight:700;color:#8a9baa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+  .action-item{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:#4a5568;padding:3px 0;}
+  .action-dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:5px;}
+  .summary-loading{display:flex;align-items:center;gap:8px;font-size:12px;color:#8a9baa;padding:8px 0;}
+  .summary-loading .spin{width:14px;height:14px;border:2px solid #e2e8f0;border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
   /* Comment button */
   .comment-btn{display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c4d0dc;background:#fafbfc;transition:color 0.15s;padding:0 4px;border-left:1px solid #f0f4f8;font-size:12px;}
@@ -860,6 +873,9 @@ function renderAll(projects) {
   // KPI Dashboard
   html += '<div id="kpiDash">' + renderKPI() + '</div>';
 
+  // AI Project Summary
+  html += '<div id="projSummary"></div>';
+
   // Content
   html += '<div id="catContent">';
   html += renderCategories();
@@ -868,6 +884,92 @@ function renderAll(projects) {
   document.getElementById("mainContent").innerHTML = html;
   setTimeout(autoGrowAll, 0);
   renderSidebarProjects();
+  generateProjectSummary();
+}
+
+var summaryCache = {};
+async function generateProjectSummary() {
+  var el = document.getElementById("projSummary");
+  if (!el) return;
+  var proj = selProject;
+  if (!proj) { el.innerHTML = ""; return; }
+
+  // Check cache
+  if (summaryCache[proj]) { el.innerHTML = summaryCache[proj]; return; }
+
+  // Build context from project data
+  var items = DATA.filter(r => r.Project === proj);
+  if (items.length === 0) { el.innerHTML = ""; return; }
+
+  el.innerHTML = '<div class="proj-summary"><div class="summary-loading"><div class="spin"></div>Generating project summary...</div></div>';
+
+  var context = "PROJECT: " + proj + "\n\n";
+  var openItems = [];
+  CATEGORIES.forEach(function(cat) {
+    var catItems = items.filter(r => r.Category === cat);
+    if (catItems.length === 0) return;
+    context += cat.toUpperCase() + ":\n";
+    catItems.forEach(function(r) {
+      var entries = parseEntries(r.Value);
+      var latest = entries.length > 0 ? entries[entries.length - 1].text : "(no updates)";
+      context += "- " + r.Topic + (r.Complete ? " [COMPLETE]" : " [OPEN]") + ": " + latest + "\n";
+      if (!r.Complete) openItems.push({ cat: cat, topic: r.Topic, latest: latest });
+    });
+    context += "\n";
+  });
+
+  var prompt = "You are the project intelligence assistant for DEI (Distributed Energy Infrastructure), a commercial solar and BESS EPC firm. Given the following project status data, provide:\n\n" +
+    "1) A 3-4 sentence executive summary paragraph of where this project stands — what's progressing, what needs attention, overall health.\n\n" +
+    "2) A bullet list of specific open action items that are affecting the project, derived from the OPEN items. Each action should be concrete and reference the category and topic. Only include items that actually need action (skip items with no meaningful updates).\n\n" +
+    "Respond in JSON format ONLY with no markdown backticks:\n" +
+    "{\"summary\": \"paragraph text here\", \"actions\": [\"action 1\", \"action 2\", ...]}\n\n" +
+    "Keep it concise and direct. No fluff.\n\n" + context;
+
+  try {
+    var response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    var result = await response.json();
+    var text = "";
+    if (result.content) {
+      result.content.forEach(function(block) { if (block.type === "text") text += block.text; });
+    }
+
+    var parsed;
+    try { parsed = JSON.parse(text.replace(/```json|```/g, "").trim()); } catch(e) { parsed = null; }
+
+    if (parsed && parsed.summary) {
+      var h = '<div class="proj-summary">';
+      h += '<div class="proj-summary-title">🤖 Project Intelligence — ' + esc(proj) + '</div>';
+      h += '<div class="proj-summary-text">' + esc(parsed.summary) + '</div>';
+      if (parsed.actions && parsed.actions.length > 0) {
+        h += '<div class="proj-summary-actions">';
+        h += '<div class="proj-summary-actions-title">⚡ Open Action Items</div>';
+        parsed.actions.forEach(function(a) {
+          h += '<div class="action-item"><div class="action-dot"></div><span>' + esc(a) + '</span></div>';
+        });
+        h += '</div>';
+      }
+      h += '</div>';
+      summaryCache[proj] = h;
+      // Only update if still on same project
+      if (selProject === proj && document.getElementById("projSummary")) {
+        document.getElementById("projSummary").innerHTML = h;
+      }
+    } else {
+      el.innerHTML = "";
+    }
+  } catch(e) {
+    console.warn("Summary generation failed:", e);
+    el.innerHTML = "";
+  }
 }
 
 function renderCategories() {
@@ -1063,8 +1165,10 @@ function renderEntryLog(val, project, category, topic) {
   var entries = parseEntries(val);
   if (entries.length === 0) return "";
   var html = '<div class="entry-log">';
+  var last = entries.length - 1;
   entries.forEach(function(e, i) {
-    html += '<div class="entry-card" style="cursor:pointer;" onclick="editEntry(this,' + i + ',\'' + esc(project).replace(/'/g,"\\&#39;") + '\',\'' + esc(category).replace(/'/g,"\\&#39;") + '\',\'' + esc(topic).replace(/'/g,"\\&#39;") + '\')" title="Click to edit">';
+    var cls = i < last ? "entry-card older" : "entry-card latest";
+    html += '<div class="' + cls + '" style="cursor:pointer;" onclick="editEntry(this,' + i + ',\'' + esc(project).replace(/'/g,"\\&#39;") + '\',\'' + esc(category).replace(/'/g,"\\&#39;") + '\',\'' + esc(topic).replace(/'/g,"\\&#39;") + '\')" title="Click to edit">';
     if (e.ts) html += '<div class="entry-ts">' + esc(e.ts) + '</div>';
     html += '<div class="entry-text">' + esc(e.text) + '</div>';
     html += '</div>';
