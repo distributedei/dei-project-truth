@@ -125,6 +125,26 @@
   .cd-countdown.green{color:#2ecc8a;}
   .cd-countdown.amber{color:#e6a23c;}
   .cd-countdown.red{color:#e25252;}
+  /* SOV Table */
+  .sov-section{border-top:2px solid #e2e8f0;margin-top:4px;padding:12px 16px;}
+  .sov-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .sov-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--navy);}
+  .sov-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .sov-table th{background:#f0f4f8;padding:6px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#8a9baa;border-bottom:2px solid #e2e8f0;}
+  .sov-table td{padding:6px 10px;border-bottom:1px solid #f0f4f8;vertical-align:middle;}
+  .sov-table tr:hover{background:#fafbfc;}
+  .sov-table .sov-amt{text-align:right;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;}
+  .sov-table .sov-total{font-weight:800;background:#f0f4f8;font-size:13px;}
+  .sov-input{border:1px solid #e2e8f0;border-radius:4px;padding:3px 6px;font-size:12px;font-family:'Barlow',sans-serif;width:100%;box-sizing:border-box;}
+  .sov-input:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(119,157,54,0.15);}
+  .sov-date{width:110px;}
+  .sov-check{width:18px;height:18px;accent-color:var(--green);cursor:pointer;}
+  .sov-add-btn{background:none;border:1px dashed #c4d0dc;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:#8a9baa;cursor:pointer;transition:all 0.15s;width:100%;}
+  .sov-add-btn:hover{border-color:var(--green);color:var(--green);}
+  .sov-del{background:none;border:none;color:#c4d0dc;cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px;}
+  .sov-del:hover{color:#e25252;background:#fff5f5;}
+  .sov-paid{color:#2ecc8a;font-weight:700;}
+  .sov-unpaid{color:#e25252;}
   .proj-summary-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
   .proj-summary-text{font-size:13px;color:#4a5568;line-height:1.6;margin-bottom:12px;}
   .proj-summary-actions{border-top:1px solid #e2e8f0;padding-top:10px;}
@@ -1248,6 +1268,11 @@ function renderCategories() {
 
     html += '</div>';
 
+    // SOV section inside Finance
+    if (cat === "Finance") {
+      html += renderSOV();
+    }
+
     // Add Row button at bottom of each category (spans both columns)
     html += '<div class="add-row-area" style="grid-column:1/-1;padding:8px 16px;border-top:1px solid #f0f4f8;">';
     html += '<div class="add-row-inline" id="addRowInline_' + catId + '" style="display:none;margin-bottom:8px;">';
@@ -1277,6 +1302,109 @@ function autoGrowAll() {
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
   });
+}
+
+// ══════════════════════════════════════════════════
+// SOV (Schedule of Values)
+// ══════════════════════════════════════════════════
+function getSOV(project) {
+  try {
+    var all = JSON.parse(localStorage.getItem("pmo_sov") || "{}");
+    return all[project] || [];
+  } catch(e) { return []; }
+}
+
+function saveSOV(project, rows) {
+  try {
+    var all = JSON.parse(localStorage.getItem("pmo_sov") || "{}");
+    all[project] = rows;
+    localStorage.setItem("pmo_sov", JSON.stringify(all));
+  } catch(e) { console.error("SOV save failed:", e); }
+}
+
+function renderSOV() {
+  var proj = selProject;
+  var rows = getSOV(proj);
+  var h = '<div class="sov-section">';
+  h += '<div class="sov-header"><div class="sov-title">📑 Schedule of Values</div>';
+  h += '<button onclick="addSOVRow()" style="background:var(--green);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;">+ Add Line</button>';
+  h += '</div>';
+
+  h += '<table class="sov-table">';
+  h += '<thead><tr><th style="width:30px;">#</th><th>Description</th><th style="width:120px;">Amount</th><th style="width:130px;">Invoice Submitted</th><th style="width:80px;text-align:center;">Paid</th><th style="width:30px;"></th></tr></thead>';
+  h += '<tbody>';
+
+  var totalAmt = 0;
+  var totalPaid = 0;
+  if (rows.length === 0) {
+    h += '<tr><td colspan="6" style="text-align:center;padding:20px;color:#c4d0dc;">No SOV lines yet. Click "+ Add Line" to start.</td></tr>';
+  } else {
+    rows.forEach(function(r, i) {
+      var amt = parseFloat(r.amount) || 0;
+      totalAmt += amt;
+      if (r.paid) totalPaid += amt;
+      h += '<tr>';
+      h += '<td style="color:#8a9baa;font-weight:600;">' + (i + 1) + '</td>';
+      h += '<td><input class="sov-input" value="' + esc(r.desc || "") + '" onblur="updateSOVField(' + i + ',\'desc\',this.value)" placeholder="Line item description..."></td>';
+      h += '<td><input class="sov-input sov-amt" value="' + (amt ? amt.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "") + '" onblur="updateSOVField(' + i + ',\'amount\',this.value)" placeholder="0.00" style="text-align:right;"></td>';
+      h += '<td><input type="date" class="sov-input sov-date" value="' + esc(r.invoiceDate || "") + '" onchange="updateSOVField(' + i + ',\'invoiceDate\',this.value)"></td>';
+      h += '<td style="text-align:center;"><input type="checkbox" class="sov-check" ' + (r.paid ? 'checked ' : '') + 'onchange="updateSOVField(' + i + ',\'paid\',this.checked)"></td>';
+      h += '<td><button class="sov-del" onclick="deleteSOVRow(' + i + ')" title="Remove">✕</button></td>';
+      h += '</tr>';
+    });
+    // Totals row
+    h += '<tr class="sov-total">';
+    h += '<td></td><td style="font-weight:700;">TOTAL</td>';
+    h += '<td class="sov-amt">$' + totalAmt.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>';
+    h += '<td></td>';
+    h += '<td style="text-align:center;font-size:11px;" class="' + (totalPaid >= totalAmt && totalAmt > 0 ? 'sov-paid' : 'sov-unpaid') + '">$' + totalPaid.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' paid</td>';
+    h += '<td></td>';
+    h += '</tr>';
+    // Progress bar
+    var pct = totalAmt > 0 ? Math.round(totalPaid / totalAmt * 100) : 0;
+    h += '<tr><td colspan="6" style="padding:8px 10px;">';
+    h += '<div style="display:flex;align-items:center;gap:10px;">';
+    h += '<div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + (pct >= 100 ? '#2ecc8a' : pct >= 50 ? '#779d36' : '#e6a23c') + ';border-radius:3px;transition:width 0.3s;"></div></div>';
+    h += '<div style="font-family:Barlow Condensed;font-size:14px;font-weight:700;color:' + (pct >= 100 ? '#2ecc8a' : pct >= 50 ? '#779d36' : '#e6a23c') + ';">' + pct + '% collected</div>';
+    h += '</div>';
+    h += '</td></tr>';
+  }
+
+  h += '</tbody></table>';
+  h += '</div>';
+  return h;
+}
+
+function addSOVRow() {
+  var rows = getSOV(selProject);
+  rows.push({ desc: "", amount: 0, invoiceDate: "", paid: false });
+  saveSOV(selProject, rows);
+  document.getElementById("catContent").innerHTML = renderCategories();
+  setTimeout(autoGrowAll, 0);
+  showToast("+ Added SOV line", "ok");
+}
+
+function updateSOVField(idx, field, value) {
+  var rows = getSOV(selProject);
+  if (!rows[idx]) return;
+  if (field === "amount") {
+    value = parseFloat(value.replace(/[,$]/g, "")) || 0;
+  }
+  rows[idx][field] = value;
+  saveSOV(selProject, rows);
+  // Re-render to update totals
+  document.getElementById("catContent").innerHTML = renderCategories();
+  setTimeout(autoGrowAll, 0);
+}
+
+function deleteSOVRow(idx) {
+  if (!confirm("Remove this SOV line?")) return;
+  var rows = getSOV(selProject);
+  rows.splice(idx, 1);
+  saveSOV(selProject, rows);
+  document.getElementById("catContent").innerHTML = renderCategories();
+  setTimeout(autoGrowAll, 0);
+  showToast("Removed SOV line", "ok");
 }
 function selectProject(p) { selProject = p; renderAll(); }
 
