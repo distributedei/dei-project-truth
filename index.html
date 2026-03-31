@@ -104,6 +104,11 @@
   .topic-val textarea:hover{border-color:#e2e8f0;background:#fff;}
   .topic-val textarea:focus{border-color:var(--green);background:#fff;outline:none;box-shadow:0 0 0 2px rgba(119,157,54,0.15);}
   .topic-val textarea.empty{color:#c4d0dc;font-style:italic;}
+  .entry-log{display:flex;flex-direction:column;gap:4px;margin-bottom:4px;}
+  .entry-card{border:1px solid #e2e8f0;border-radius:5px;padding:4px 8px;background:#f8fafc;font-size:12px;color:#4a5568;line-height:1.4;position:relative;}
+  .entry-card:hover{border-color:#c4d0dc;}
+  .entry-ts{font-size:9px;color:#a0aec0;font-weight:600;letter-spacing:0.5px;margin-bottom:1px;}
+  .entry-text{white-space:pre-wrap;word-break:break-word;}
 
   /* Comment button */
   .comment-btn{display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c4d0dc;background:#fafbfc;transition:color 0.15s;padding:0 4px;border-left:1px solid #f0f4f8;font-size:12px;}
@@ -613,24 +618,13 @@ function setSidebarView(view) {
     renderAll();
     return;
   }
-  if (view === 'rfi') {
-    if (RFI_DATA.length === 0) {
-      loadRFIData();
-    } else {
-      renderRFIView();
-    }
-    return;
-  }
-  if (view === 'report') {
-    generateReport();
-    return;
-  }
-  if (view === 'pipeline' || view === 'contacts' || view === 'activities' || view === 'companies' || view === 'jobs') {
-    loadCRM(view);
-    return;
-  }
-  // Placeholder for future views
-  showToast(view.charAt(0).toUpperCase() + view.slice(1) + " — coming soon", "info");
+  // All other views — Coming Soon
+  var label = {rfi:'RFI & Submittal Log',cost:'Cost',progress:'Progress',pipeline:'Pipeline',companies:'Companies',contacts:'Contacts',jobs:'Jobs',activities:'Activity Log',report:'AI Executive Report',settings:'Settings'}[view] || (view.charAt(0).toUpperCase() + view.slice(1));
+  document.getElementById('main-content').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center;">' +
+    '<div style="font-size:48px;margin-bottom:16px;opacity:0.4;">🚧</div>' +
+    '<div style="font-size:24px;font-weight:700;color:#375673;margin-bottom:8px;">' + label + '</div>' +
+    '<div style="font-size:15px;color:#8a9baa;max-width:400px;">Coming soon. This module is under active development and will be available in a future release.</div>' +
+    '</div>';
 }
 
 async function getToken() {
@@ -915,7 +909,7 @@ function renderCategories() {
       html += '<div class="topic-check"><input type="checkbox" ' + (r.Complete ? 'checked ' : '') + 'data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" onchange="toggleComplete(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)"></div>';
       html += '<div style="display:flex;flex-direction:column;overflow:hidden;">';
       html += '<div class="topic-label">' + esc(r.Topic) + '</div>';
-      html += '<div class="topic-val"><textarea rows="1" class="' + emptyCls + '" data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" oninput="autoGrow(this)" onblur="onEdit(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)" onfocus="this.classList.remove(&quot;empty&quot;)">' + escaped + '</textarea></div>';
+      html += '<div class="topic-val">' + renderEntryLog(val) + '<textarea rows="1" class="empty" data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" oninput="autoGrow(this)" onblur="onNewEntry(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();this.blur();}" onfocus="this.classList.remove(&quot;empty&quot;)" placeholder="Add update..."></textarea></div>';
       html += '</div>';
       html += '<div class="comment-btn' + (hasComm ? ' has-comments' : '') + '" data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" data-itemid="' + itemId + '" onclick="openCommentPanel(this.dataset.proj,this.dataset.cat,this.dataset.topic,this.dataset.itemid)" title="Comments">💬</div>';
       html += '</div>';
@@ -1047,6 +1041,63 @@ function onEdit(project, category, topic, textarea) {
   textarea.className = textarea.value ? "" : "empty";
   if (itemId) { queueSave(itemId, "Value", textarea.value); }
   else { console.error("No SharePoint item ID for key:", key); showToast("✗ Cannot save — item not linked to SharePoint", "err"); }
+}
+
+// Parse Value field into entries. Format: [YYYY-MM-DD HH:MM] text\n---\n[...] text
+// Legacy values (no timestamp) treated as single entry
+function parseEntries(val) {
+  if (!val) return [];
+  var blocks = val.split("\n---\n");
+  var entries = [];
+  blocks.forEach(function(b) {
+    b = b.trim();
+    if (!b) return;
+    var m = b.match(/^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2})\]\s*([\s\S]*)$/);
+    if (m) { entries.push({ ts: m[1], text: m[2].trim() }); }
+    else { entries.push({ ts: "", text: b }); }
+  });
+  return entries;
+}
+
+function renderEntryLog(val) {
+  var entries = parseEntries(val);
+  if (entries.length === 0) return "";
+  var html = '<div class="entry-log">';
+  entries.forEach(function(e) {
+    html += '<div class="entry-card">';
+    if (e.ts) html += '<div class="entry-ts">' + esc(e.ts) + '</div>';
+    html += '<div class="entry-text">' + esc(e.text) + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function onNewEntry(project, category, topic, textarea) {
+  var newText = textarea.value.trim();
+  if (!newText) { textarea.className = "empty"; return; }
+  var key = project + "|" + category + "|" + topic;
+  var itemId = spItemMap[key];
+  var idx = DATA.findIndex(r => r.Project === project && r.Category === category && r.Topic === topic);
+  if (idx < 0) return;
+
+  var now = new Date();
+  var ts = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0") + "-" + String(now.getDate()).padStart(2,"0") + " " + String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
+  var entry = "[" + ts + "] " + newText;
+
+  var existing = DATA[idx].Value || "";
+  var updated = existing ? (existing + "\n---\n" + entry) : entry;
+  DATA[idx].Value = updated;
+
+  if (itemId) { queueSave(itemId, "Value", updated); }
+  else { console.error("No SharePoint item ID for key:", key); showToast("✗ Cannot save — item not linked", "err"); }
+
+  // Re-render just this cell
+  var container = textarea.closest(".topic-val");
+  if (container) {
+    container.innerHTML = renderEntryLog(updated) + '<textarea rows="1" class="empty" data-proj="' + esc(project) + '" data-cat="' + esc(category) + '" data-topic="' + esc(topic) + '" oninput="autoGrow(this)" onblur="onNewEntry(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();this.blur();}" onfocus="this.classList.remove(\'empty\')" placeholder="Add update..."></textarea>';
+  }
+  showToast("✓ Entry saved", "ok");
 }
 
 function toggleComplete(project, category, topic, checkbox) {
