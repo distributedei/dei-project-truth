@@ -909,7 +909,7 @@ function renderCategories() {
       html += '<div class="topic-check"><input type="checkbox" ' + (r.Complete ? 'checked ' : '') + 'data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" onchange="toggleComplete(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)"></div>';
       html += '<div style="display:flex;flex-direction:column;overflow:hidden;">';
       html += '<div class="topic-label">' + esc(r.Topic) + '</div>';
-      html += '<div class="topic-val">' + renderEntryLog(val) + '<textarea rows="1" class="empty" data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" oninput="autoGrow(this)" onblur="onNewEntry(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();this.blur();}" onfocus="this.classList.remove(&quot;empty&quot;)" placeholder="Add update..."></textarea></div>';
+      html += '<div class="topic-val">' + renderEntryLog(val, r.Project, r.Category, r.Topic) + buildNewEntryTextarea(r.Project, r.Category, r.Topic) + '</div>';
       html += '</div>';
       html += '<div class="comment-btn' + (hasComm ? ' has-comments' : '') + '" data-proj="' + esc(r.Project) + '" data-cat="' + esc(r.Category) + '" data-topic="' + esc(r.Topic) + '" data-itemid="' + itemId + '" onclick="openCommentPanel(this.dataset.proj,this.dataset.cat,this.dataset.topic,this.dataset.itemid)" title="Comments">💬</div>';
       html += '</div>';
@@ -1059,18 +1059,66 @@ function parseEntries(val) {
   return entries;
 }
 
-function renderEntryLog(val) {
+function renderEntryLog(val, project, category, topic) {
   var entries = parseEntries(val);
   if (entries.length === 0) return "";
   var html = '<div class="entry-log">';
-  entries.forEach(function(e) {
-    html += '<div class="entry-card">';
+  entries.forEach(function(e, i) {
+    html += '<div class="entry-card" style="cursor:pointer;" onclick="editEntry(this,' + i + ',\'' + esc(project).replace(/'/g,"\\&#39;") + '\',\'' + esc(category).replace(/'/g,"\\&#39;") + '\',\'' + esc(topic).replace(/'/g,"\\&#39;") + '\')" title="Click to edit">';
     if (e.ts) html += '<div class="entry-ts">' + esc(e.ts) + '</div>';
     html += '<div class="entry-text">' + esc(e.text) + '</div>';
     html += '</div>';
   });
   html += '</div>';
   return html;
+}
+
+function editEntry(card, entryIdx, project, category, topic) {
+  // Already editing? skip
+  if (card.querySelector("textarea")) return;
+  var key = project + "|" + category + "|" + topic;
+  var idx = DATA.findIndex(r => r.Project === project && r.Category === category && r.Topic === topic);
+  if (idx < 0) return;
+  var entries = parseEntries(DATA[idx].Value);
+  if (!entries[entryIdx]) return;
+
+  var oldText = entries[entryIdx].text;
+  var ts = entries[entryIdx].ts;
+  card.innerHTML = (ts ? '<div class="entry-ts">' + esc(ts) + '</div>' : '') +
+    '<textarea rows="1" style="width:100%;border:1px solid var(--green);background:#fff;font-family:Barlow,sans-serif;font-size:12px;color:#4a5568;resize:none;overflow:hidden;padding:3px 6px;border-radius:4px;line-height:1.4;outline:none;box-shadow:0 0 0 2px rgba(119,157,54,0.15);" oninput="autoGrow(this)">' + esc(oldText) + '</textarea>';
+  card.style.cursor = "default";
+  var ta = card.querySelector("textarea");
+  ta.focus();
+  ta.style.height = "auto";
+  ta.style.height = ta.scrollHeight + "px";
+
+  ta.onblur = function() {
+    var newText = ta.value.trim();
+    if (!newText) newText = oldText; // don't allow blank — revert
+    entries[entryIdx].text = newText;
+    // Rebuild Value string
+    var updated = entries.map(function(e) {
+      return (e.ts ? "[" + e.ts + "] " : "") + e.text;
+    }).join("\n---\n");
+    DATA[idx].Value = updated;
+    var itemId = spItemMap[key];
+    if (itemId) { queueSave(itemId, "Value", updated); }
+
+    // Re-render the whole topic-val cell
+    var container = card.closest(".topic-val");
+    if (container) {
+      container.innerHTML = renderEntryLog(updated, project, category, topic) + buildNewEntryTextarea(project, category, topic);
+    }
+    if (newText !== oldText) showToast("✓ Entry updated", "ok");
+  };
+  ta.onkeydown = function(e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ta.blur(); }
+    if (e.key === "Escape") { ta.value = oldText; ta.blur(); }
+  };
+}
+
+function buildNewEntryTextarea(project, category, topic) {
+  return '<textarea rows="1" class="empty" data-proj="' + esc(project) + '" data-cat="' + esc(category) + '" data-topic="' + esc(topic) + '" oninput="autoGrow(this)" onblur="onNewEntry(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();this.blur();}" onfocus="this.classList.remove(\'empty\')" placeholder="Add update..."></textarea>';
 }
 
 function onNewEntry(project, category, topic, textarea) {
@@ -1095,7 +1143,7 @@ function onNewEntry(project, category, topic, textarea) {
   // Re-render just this cell
   var container = textarea.closest(".topic-val");
   if (container) {
-    container.innerHTML = renderEntryLog(updated) + '<textarea rows="1" class="empty" data-proj="' + esc(project) + '" data-cat="' + esc(category) + '" data-topic="' + esc(topic) + '" oninput="autoGrow(this)" onblur="onNewEntry(this.dataset.proj,this.dataset.cat,this.dataset.topic,this)" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();this.blur();}" onfocus="this.classList.remove(\'empty\')" placeholder="Add update..."></textarea>';
+    container.innerHTML = renderEntryLog(updated, project, category, topic) + buildNewEntryTextarea(project, category, topic);
   }
   showToast("✓ Entry saved", "ok");
 }
