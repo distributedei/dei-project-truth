@@ -673,11 +673,15 @@ async function loadFromSharePoint() {
   spItemMap = {};
 
   try {
-    // Ensure Complete column exists
+    // Ensure Complete column exists (silent — 409 means it already exists)
     try {
-      await graph("POST", LIST + "/columns", { name: "Complete", displayName: "Complete", boolean: {} });
-      console.log("Complete column created");
-    } catch(e) { console.log("Complete column exists or error:", e.message); }
+      const t = await getToken();
+      const cr = await fetch("https://graph.microsoft.com/v1.0" + LIST + "/columns", {
+        method: "POST", headers: { Authorization: "Bearer " + t, "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Complete", displayName: "Complete", boolean: {} })
+      });
+      if (cr.ok) console.log("Complete column created");
+    } catch(e) { /* column exists */ }
 
     let url = LIST + "/items?$expand=fields&$top=999";
     let page = 0;
