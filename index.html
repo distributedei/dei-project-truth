@@ -634,8 +634,13 @@ function setSidebarView(view) {
 }
 
 async function getToken() {
-  try { return (await msalInstance.acquireTokenSilent({ scopes: SCOPES, account })).accessToken; }
-  catch (e) { await msalInstance.acquireTokenRedirect({ scopes: SCOPES }); }
+  try {
+    return (await msalInstance.acquireTokenSilent({ scopes: SCOPES, account })).accessToken;
+  } catch (e) {
+    console.warn("Silent token refresh failed, redirecting to login:", e.message);
+    await msalInstance.acquireTokenRedirect({ scopes: SCOPES });
+    throw new Error("Session expired — signing you back in...");
+  }
 }
 
 async function getFileToken() {
@@ -645,12 +650,15 @@ async function getFileToken() {
 
 async function graph(method, path, body) {
   const token = await getToken();
+  if (!token) throw new Error("No auth token — please sign out and sign back in");
   const opts = { method: method || "GET", headers: { Authorization: "Bearer " + token } };
   if (body) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
   const r = await fetch("https://graph.microsoft.com/v1.0" + path, opts);
   if (!r.ok) {
     let msg = "HTTP " + r.status;
-    try { const e = await r.json(); msg = e.error?.message || msg; } catch(x) {}
+    try { const e = await r.json(); msg = e.error?.message || e.error?.code || msg; } catch(x) {}
+    if (r.status === 401 || r.status === 403) msg += " — try signing out and back in";
+    console.error("Graph " + method + " " + path + " → " + r.status + ": " + msg);
     throw new Error(msg);
   }
   return r.status === 204 ? null : r.json();
@@ -724,6 +732,7 @@ async function doSave(itemId, field, value) {
     setSyncStatus("saved");
   } catch (e) {
     setSyncStatus("error", e.message);
+    showToast("✗ Save failed: " + e.message, "err");
   }
 }
 
@@ -1032,7 +1041,8 @@ function onEdit(project, category, topic, textarea) {
   const idx = DATA.findIndex(r => r.Project === project && r.Category === category && r.Topic === topic);
   if (idx >= 0) DATA[idx].Value = textarea.value;
   textarea.className = textarea.value ? "" : "empty";
-  if (itemId) queueSave(itemId, "Value", textarea.value);
+  if (itemId) { queueSave(itemId, "Value", textarea.value); }
+  else { console.error("No SharePoint item ID for key:", key); showToast("✗ Cannot save — item not linked to SharePoint", "err"); }
 }
 
 function toggleComplete(project, category, topic, checkbox) {
@@ -1042,7 +1052,8 @@ function toggleComplete(project, category, topic, checkbox) {
   if (idx >= 0) DATA[idx].Complete = checkbox.checked;
   const row = checkbox.closest(".topic-row");
   if (checkbox.checked) row.classList.add("completed"); else row.classList.remove("completed");
-  if (itemId) queueSave(itemId, "Complete", checkbox.checked);
+  if (itemId) { queueSave(itemId, "Complete", checkbox.checked); }
+  else { console.error("No SharePoint item ID for key:", key); showToast("✗ Cannot save checkbox — item not linked", "err"); }
   // Update counter + KPI
   document.getElementById("catContent").innerHTML = renderCategories();
   setTimeout(autoGrowAll, 0);
