@@ -1049,21 +1049,23 @@ function renderAll(projects) {
   // KPI Dashboard
   html += '<div id="kpiDash">' + renderKPI() + '</div>';
 
-  // Countdown strip — milestones + invoice
-  html += renderCountdownStrip();
+  if (kpiView === 'project') {
+    // Countdown strip — milestones + invoice
+    html += renderCountdownStrip();
 
-  // AI Project Summary
-  html += '<div id="projSummary"></div>';
+    // Project Summary — open action items only
+    html += '<div id="projSummary"></div>';
 
-  // Content
-  html += '<div id="catContent">';
-  html += renderCategories();
-  html += '</div>';
+    // Content
+    html += '<div id="catContent">';
+    html += renderCategories();
+    html += '</div>';
+  }
 
   document.getElementById("mainContent").innerHTML = html;
   setTimeout(autoGrowAll, 0);
   renderSidebarProjects();
-  generateProjectSummary();
+  if (kpiView === 'project') generateProjectSummary();
 }
 
 var summaryCache = {};
@@ -1162,53 +1164,23 @@ async function generateProjectSummary() {
 }
 
 function renderFallbackSummary(el, proj, items, openItems, latestUpdates) {
-  var stats = getCompletionStats(proj);
   var h = '<div class="proj-summary">';
-  h += '<div class="proj-summary-title"><span>📊 Project Status — ' + esc(proj) + '</span><button onclick="refreshSummary()" style="background:none;border:1px solid #d4e2cd;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:#779d36;cursor:pointer;margin-left:auto;">↺ Refresh</button></div>';
+  var totalOpen = openItems.filter(function(o) { return o.latest !== "(no updates)"; }).length;
+  h += '<div class="proj-summary-title"><span>⚡ Open Items — ' + esc(proj) + ' (' + totalOpen + ')</span><button onclick="refreshSummary()" style="background:none;border:1px solid #d4e2cd;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:#779d36;cursor:pointer;margin-left:auto;">↺ Refresh</button></div>';
 
-  // Auto-generated summary paragraph
-  var totalOpen = openItems.length;
-  var totalItems = items.length;
-  var totalDone = items.filter(r => r.Complete).length;
-  var pct = totalItems > 0 ? Math.round(totalDone / totalItems * 100) : 0;
-  var summaryText = proj + " is " + pct + "% complete (" + totalDone + " of " + totalItems + " items closed). ";
-  if (totalOpen === 0) {
-    summaryText += "All items are complete.";
-  } else {
-    // Count open by category
-    var openByCat = {};
-    openItems.forEach(function(o) { openByCat[o.cat] = (openByCat[o.cat] || 0) + 1; });
-    var catList = Object.entries(openByCat).sort(function(a,b){ return b[1]-a[1]; });
-    summaryText += totalOpen + " open items remain";
-    if (catList.length > 0) {
-      summaryText += ", primarily in " + catList.slice(0, 3).map(function(c) { return c[0] + " (" + c[1] + ")"; }).join(", ");
-    }
-    summaryText += ".";
-    // Add latest updates context
-    if (latestUpdates.length > 0) {
-      var recent = latestUpdates.slice(0, 3);
-      summaryText += " Recent activity: " + recent.map(function(u) { return u.topic + " — " + (u.text.length > 50 ? u.text.substring(0, 47) + "..." : u.text); }).join("; ") + ".";
-    }
-  }
-  h += '<div class="proj-summary-text">' + esc(summaryText) + '</div>';
-
-  if (openItems.length > 0) {
-    h += '<div class="proj-summary-actions">';
-    h += '<div class="proj-summary-actions-title">⚡ Open Items Requiring Action</div>';
-    openItems.forEach(function(o) {
-      if (o.latest === "(no updates)") return;
+  var actionItems = openItems.filter(function(o) { return o.latest !== "(no updates)"; });
+  if (actionItems.length > 0) {
+    var shown = actionItems.slice(0, 10);
+    shown.forEach(function(o) {
       // Determine staleness from timestamp
       var dotColor = "#e25252"; // red default (no date = stale)
       var dateLabel = "";
       if (o.ts) {
-        // Parse ts like "2026-03-31 14:30" or "2026-03-31 14:30 (edited ...)"
         var tsClean = o.ts.replace(/\s*\(edited.*?\)/, "");
         var edited = o.ts.match(/\(edited\s+([^)]+)\)/);
         var d = new Date(tsClean.replace(" ", "T"));
-        // If edited, use edited date for staleness
         if (edited) {
           var ep = edited[1].trim();
-          // Parse MM/DD/YYYY HH:MM
           var em = ep.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(\d{2}):(\d{2})/);
           if (em) d = new Date(parseInt(em[3]), parseInt(em[1])-1, parseInt(em[2]), parseInt(em[4]), parseInt(em[5]));
         }
@@ -1216,11 +1188,10 @@ function renderFallbackSummary(el, proj, items, openItems, latestUpdates) {
           var now = new Date();
           var diffDays = Math.floor((now - d) / 86400000);
           if (diffDays <= 30) {
-            dotColor = "#2ecc8a"; // green — updated within last month
+            dotColor = "#2ecc8a";
           } else {
-            dotColor = "#e25252"; // red — stale over a month
+            dotColor = "#e25252";
           }
-          // Format date label
           var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
           dateLabel = months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
           if (diffDays === 0) dateLabel += " (today)";
@@ -1233,7 +1204,11 @@ function renderFallbackSummary(el, proj, items, openItems, latestUpdates) {
       if (dateLabel) h += ' <span style="font-size:10px;color:#8a9baa;font-weight:600;white-space:nowrap;">— ' + dateLabel + '</span>';
       h += '</span></div>';
     });
-    h += '</div>';
+    if (actionItems.length > 10) {
+      h += '<div style="font-size:11px;color:#8a9baa;padding:4px 0;font-weight:600;">+ ' + (actionItems.length - 10) + ' more open items</div>';
+    }
+  } else {
+    h += '<div style="color:#2ecc8a;font-size:13px;font-weight:600;padding:8px 0;">✓ All items complete or awaiting updates</div>';
   }
   h += '</div>';
   summaryCache[proj] = h;
